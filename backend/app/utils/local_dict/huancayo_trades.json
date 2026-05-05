@@ -1,0 +1,11 @@
+{
+  "gasfitero": ["plomero", "fontanero", "instalador sanitario"],
+  "techero": ["techadista", "instalador de techos", "techador"],
+  "fierrero": ["soldador", "herrero", "metalurgista"],
+  "albanil": ["constructor", "obrero de construccion", "operario civil"],
+  "electricista": ["instalador electrico", "tecnico electrico"],
+  "pintor": ["aplicador de pintura", "pintor de obras"],
+  "carpintero": ["ebanista", "trabajador de madera"],
+  "mecanico": ["tecnico automotriz", "mecanico automotriz"],
+  "instalador": ["tecnico de instalaciones"]
+}

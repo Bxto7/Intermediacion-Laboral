@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.venv/Scripts/ruff check *)",
+      "Bash(.venv/Scripts/pytest --cov=app --cov-report=term-missing --cov-fail-under=80 -x -q)",
+      "Bash(.venv/Scripts/pytest --cov=app --cov-report=term-missing --cov-fail-under=80 -q)",
+      "Bash(.venv/Scripts/pytest tests/unit/test_security.py::test_require_role_allows_correct_role tests/unit/test_security.py::test_estimated_level_avanzado -v -s)",
+      "Bash(.venv/Scripts/pytest tests/integration/test_api_employers.py tests/integration/test_api_nlp.py tests/integration/test_api_portfolio.py tests/integration/test_api_wizard.py -v --tb=short)",
+      "Bash(.venv/Scripts/pytest -q --no-header)",
+      "Bash(.venv/Scripts/pytest -q --tb=no)",
+      "Bash(.venv/Scripts/pytest tests/integration/test_api_employers.py::test_application_status_flow_valid tests/integration/test_api_employers.py::test_application_status_flow_invalid tests/integration/test_api_employers.py::test_apply_duplicate_returns_409 -v --tb=short)",
+      "Bash(.venv/Scripts/pytest tests/integration/test_api_employers.py::test_application_status_flow_valid tests/integration/test_api_employers.py::test_application_status_flow_invalid tests/integration/test_api_employers.py::test_apply_duplicate_returns_409 -v --tb=long)",
+      "Bash(.venv/Scripts/pytest tests/integration/test_api_employers.py::test_application_status_flow_valid -v --tb=long -s)",
+      "Bash(timeout 120 .venv/Scripts/pytest tests/integration/test_api_employers.py::test_apply_duplicate_returns_409 --tb=short -rN)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(echo \"grep done: $?\")",
+      "Bash(echo \"grep: $?\")"
+    ]
+  }
+}

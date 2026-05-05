@@ -1,0 +1,227 @@
+version: "3.9"
+
+# ============================================================
+# Sistema de Intermediación Laboral — Docker Compose
+# Levantar: docker-compose up -d
+# Bajar:    docker-compose down
+# Logs:     docker-compose logs -f api
+# ============================================================
+
+services:
+
+  # ── Base de datos PostgreSQL + pgvector ──────────────────
+  db:
+    image: pgvector/pgvector:pg15
+    container_name: intermediacion_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: intermediacion_laboral
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-dev_password_change_in_prod}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/scripts/init_db.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d intermediacion_laboral"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis — caché + broker Celery ────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: intermediacion_redis
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD:-dev_redis_password}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── FastAPI — API principal ───────────────────────────────
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: intermediacion_api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:${DB_PASSWORD:-dev_password_change_in_prod}@db:5432/intermediacion_laboral
+      REDIS_URL: redis://:${REDIS_PASSWORD:-dev_redis_password}@redis:6379/0
+      SECRET_KEY: ${SECRET_KEY:-dev_secret_key_change_in_production_32chars}
+      ALGORITHM: RS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 1440
+      REFRESH_TOKEN_EXPIRE_DAYS: 7
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      STORAGE_BUCKET: ${STORAGE_BUCKET:-intermediacion-files-dev}
+      AES_KEY: ${AES_KEY:-dev_aes_key_32_bytes_change_prod}
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+    volumes:
+      - ./backend:/app
+      - model_artifacts:/app/models
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ── Celery Worker — tareas asíncronas ────────────────────
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: intermediacion_worker
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:${DB_PASSWORD:-dev_password_change_in_prod}@db:5432/intermediacion_laboral
+      REDIS_URL: redis://:${REDIS_PASSWORD:-dev_redis_password}@redis:6379/0
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+    volumes:
+      - ./backend:/app
+      - model_artifacts:/app/models
+    depends_on:
+      - db
+      - redis
+    command: celery -A app.tasks.celery_app worker --loglevel=info -Q embeddings,reports,emails,notifications --concurrency=4
+    healthcheck:
+      test: ["CMD", "celery", "-A", "app.tasks.celery_app", "inspect", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ── Celery Beat — tareas programadas (cron) ──────────────
+  beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: intermediacion_beat
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:${DB_PASSWORD:-dev_password_change_in_prod}@db:5432/intermediacion_laboral
+      REDIS_URL: redis://:${REDIS_PASSWORD:-dev_redis_password}@redis:6379/0
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - redis
+    command: celery -A app.tasks.celery_app beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+
+  # ── React Frontend ────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: development
+    container_name: intermediacion_frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://localhost:8000
+      VITE_WS_URL: ws://localhost:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+    command: npm run dev -- --host
+
+  # ── Nginx — reverse proxy ─────────────────────────────────
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: intermediacion_nginx
+    restart: unless-stopped
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+      - frontend
+
+  # ── MLflow — tracking de experimentos ML ─────────────────
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.11.0
+    container_name: intermediacion_mlflow
+    restart: unless-stopped
+    environment:
+      MLFLOW_BACKEND_STORE_URI: postgresql://postgres:${DB_PASSWORD:-dev_password_change_in_prod}@db:5432/intermediacion_laboral
+      MLFLOW_DEFAULT_ARTIFACT_ROOT: /mlflow/artifacts
+    volumes:
+      - mlflow_artifacts:/mlflow/artifacts
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri postgresql://postgres:${DB_PASSWORD:-dev_password_change_in_prod}@db:5432/intermediacion_laboral
+
+  # ── Prometheus — métricas ─────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: intermediacion_prometheus
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.retention.time=30d"
+
+  # ── Grafana — dashboards ──────────────────────────────────
+  grafana:
+    image: grafana/grafana:10.4.0
+    container_name: intermediacion_grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+
+# ── Volúmenes persistentes ────────────────────────────────────
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  model_artifacts:
+    driver: local
+  mlflow_artifacts:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+# ── Red interna ───────────────────────────────────────────────
+networks:
+  default:
+    name: intermediacion_network
+    driver: bridge

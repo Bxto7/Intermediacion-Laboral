@@ -1,0 +1,49 @@
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+filterwarnings = ["ignore::pytest.PytestDeprecationWarning"]
+
+
+
+[tool.coverage.run]
+source = ["app"]
+concurrency = ["greenlet", "thread"]
+omit = [
+    "migrations/*",
+    "tests/*",
+    # Modelos de sprints futuros (Sprint 2 y 3)
+    "app/models/contract.py",
+    "app/models/job.py",
+    "app/models/tracking.py",
+    "app/models/base.py",
+    # Tareas Celery (stubs, Sprint 2)
+    "app/tasks/celery_app.py",
+    "app/tasks/emails.py",
+    "app/tasks/embeddings.py",
+    "app/tasks/reports.py",
+    # Redis alternativo (no usado en Sprint 1)
+    "app/core/redis.py",
+    # Infraestructura async-only (no testeable sin servicios reales)
+    "app/core/redis_client.py",
+    "app/core/database.py",
+    "app/core/logging.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "S"]
+ignore = ["S101", "S105", "S106", "S107", "S311", "E501", "UP035"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/conftest.py" = ["E402"]
+"tests/**" = ["E402"]
