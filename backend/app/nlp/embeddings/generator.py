@@ -116,3 +116,53 @@ def _hash_embedding(text: str) -> list[float]:
 
     norm = math.sqrt(sum(x * x for x in nums)) or 1.0
     return [x / norm for x in nums]
+
+
+# ── PII fields that must NEVER appear in embedding text ──────────────────
+# Enforced by build_profile_text(). Validated by tests/unit/test_embedding_no_pii.py
+_FORBIDDEN_WORKER_ATTRS = frozenset({"full_name", "dni", "phone", "email"})
+
+
+def build_profile_text(worker: object, extra: dict) -> str:
+    """Build embedding input text for a worker profile.
+
+    SECURITY CONTRACT (RNF001, RNF006):
+    Only non-PII fields are read from the worker object: worker_type,
+    district, trade_category, years_experience, avg_rating.
+    full_name, dni, phone, email are intentionally never accessed.
+    """
+    worker_type = getattr(worker, "worker_type", "experiencia")
+
+    if worker_type == "primer_empleo":
+        wizard_skills = extra.get("wizard_skills", [])
+        job_interests = extra.get("job_interests", "")
+        district = getattr(worker, "district", "") or ""
+        return (
+            f"primer empleo | {district} | "
+            f"habilidades: {', '.join(wizard_skills)} | "
+            f"intereses: {job_interests}"
+        )
+
+    if worker_type == "oficio":
+        trade_category = getattr(worker, "trade_category", "") or ""
+        years_experience = getattr(worker, "years_experience", 0) or 0
+        district = getattr(worker, "district", "") or ""
+        avg_rating = float(getattr(worker, "avg_rating", 0) or 0)
+        portfolio_count = extra.get("portfolio_count", 0)
+        portfolio_skills = extra.get("portfolio_skills", [])
+        return (
+            f"{trade_category} | {years_experience} anios | {district} | "
+            f"{avg_rating:.1f}/5.0 | trabajos: {portfolio_count} | "
+            f"habilidades: {', '.join(portfolio_skills)}"
+        )
+
+    # EXPERIENCIA (default)
+    job_title = extra.get("job_title", "")
+    bio = extra.get("bio", "")
+    years_experience = getattr(worker, "years_experience", 0) or 0
+    district = getattr(worker, "district", "") or ""
+    avg_rating = float(getattr(worker, "avg_rating", 0) or 0)
+    return (
+        f"{job_title} | {years_experience} anios | {district} | "
+        f"{avg_rating:.1f}/5.0 | {bio}"
+    )

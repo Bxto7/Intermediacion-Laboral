@@ -20,7 +20,7 @@ from app.core.redis_client import get_redis
 
 logger = structlog.get_logger()
 
-security_scheme = HTTPBearer()
+security_scheme = HTTPBearer(auto_error=False)
 
 
 class UserRole(str, Enum):
@@ -151,8 +151,14 @@ async def is_token_blacklisted(jti: str) -> bool:
 
 def require_role(*roles: UserRole):
     async def _dependency(
-        credentials: HTTPAuthorizationCredentials = Depends(security_scheme),
+        credentials: HTTPAuthorizationCredentials | None = Depends(security_scheme),
     ) -> dict:
+        if credentials is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="No autenticado",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
         payload = await verify_token(credentials.credentials)
         token_role = payload.get("role")
         if token_role not in [r.value for r in roles]:

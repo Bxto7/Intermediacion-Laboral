@@ -3,9 +3,10 @@
 
 from __future__ import annotations
 
+from unittest.mock import MagicMock, patch
+
 import pytest
 from httpx import AsyncClient
-from unittest.mock import patch, MagicMock
 
 
 async def _register_and_login(client: AsyncClient, role: str, email: str) -> str:

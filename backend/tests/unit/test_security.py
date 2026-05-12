@@ -309,3 +309,196 @@ def test_forgot_password_schema_validates_email() -> None:
 
     with pytest.raises(ValidationError):
         ForgotPasswordRequest(email="no-es-email")
+
+
+# ── File validator (Sprint 3) ─────────────────────────────────────────────────────
+
+@pytest.mark.asyncio
+async def test_file_validator_rejects_wrong_mime() -> None:
+    """Archivos que no son imagen deben ser rechazados."""
+    from unittest.mock import MagicMock
+
+    from app.utils.file_validator import validate_portfolio_photo
+
+    file = MagicMock()
+    file.read = AsyncMock(return_value=b"PK\x03\x04" + b"\x00" * 100)
+    file.seek = AsyncMock()
+    file.filename = "malicious.zip"
+    file.content_type = "image/jpeg"
+
+    import sys
+    mock_magic = MagicMock()
+    mock_magic.from_buffer.return_value = "application/zip"
+    sys.modules["magic"] = mock_magic
+
+    try:
+        with pytest.raises(HTTPException) as exc_info:
+            await validate_portfolio_photo(file)
+        assert exc_info.value.status_code == 400
+    finally:
+        sys.modules.pop("magic", None)
+
+
+@pytest.mark.asyncio
+async def test_file_validator_rejects_oversized_file() -> None:
+    """Archivos mayores a 5MB deben ser rechazados."""
+    from unittest.mock import MagicMock
+
+    from app.utils.file_validator import MAX_FILE_SIZE_BYTES, validate_portfolio_photo
+
+    big_content = b"\xff\xd8\xff" + b"\x00" * (MAX_FILE_SIZE_BYTES + 1)
+    file = MagicMock()
+    file.read = AsyncMock(return_value=big_content)
+    file.seek = AsyncMock()
+    file.filename = "huge.jpg"
+    file.content_type = "image/jpeg"
+
+    import sys
+    mock_magic = MagicMock()
+    mock_magic.from_buffer.return_value = "image/jpeg"
+    sys.modules["magic"] = mock_magic
+
+    try:
+        with pytest.raises(HTTPException) as exc_info:
+            await validate_portfolio_photo(file)
+        assert exc_info.value.status_code == 400
+        assert "5 MB" in exc_info.value.detail
+    finally:
+        sys.modules.pop("magic", None)
+
+
+@pytest.mark.asyncio
+async def test_file_validator_accepts_valid_jpeg() -> None:
+    """JPEG valido y dentro del tamano permitido debe pasar."""
+    from unittest.mock import MagicMock
+
+    from app.utils.file_validator import validate_portfolio_photo
+
+    jpeg_content = b"\xff\xd8\xff\xe0" + b"\x00" * 1000
+    file = MagicMock()
+    file.read = AsyncMock(return_value=jpeg_content)
+    file.seek = AsyncMock()
+    file.filename = "photo.jpg"
+    file.content_type = "image/jpeg"
+
+    import sys
+    mock_magic = MagicMock()
+    mock_magic.from_buffer.return_value = "image/jpeg"
+    sys.modules["magic"] = mock_magic
+
+    try:
+        result = await validate_portfolio_photo(file)
+        assert result == jpeg_content
+    finally:
+        sys.modules.pop("magic", None)
+
+
+@pytest.mark.asyncio
+async def test_file_validator_fallback_without_magic() -> None:
+    """Sin python-magic, usa content_type del header."""
+    from unittest.mock import MagicMock
+
+    from app.utils.file_validator import validate_portfolio_photo
+
+    png_content = b"\x89PNG\r\n\x1a\n" + b"\x00" * 100
+    file = MagicMock()
+    file.read = AsyncMock(return_value=png_content)
+    file.seek = AsyncMock()
+    file.filename = "photo.png"
+    file.content_type = "image/png"
+
+    import sys
+    # Remove magic from modules to simulate ImportError path
+    original = sys.modules.get("magic")
+    sys.modules["magic"] = None  # type: ignore
+
+    try:
+        result = await validate_portfolio_photo(file)
+        assert result == png_content
+    finally:
+        if original is None:
+            sys.modules.pop("magic", None)
+        else:
+            sys.modules["magic"] = original
+
+
+# ── Cold start resolve_cold_start ─────────────────────────────────────────────────
+
+@pytest.mark.asyncio
+async def test_resolve_cold_start_primer_empleo() -> None:
+    """resolve_cold_start para PRIMER_EMPLEO genera embedding."""
+    from unittest.mock import AsyncMock, MagicMock
+
+    from app.ml.cold_start.resolver import resolve_cold_start
+
+    worker = MagicMock()
+    worker.id = "worker-cold-primer"
+    worker.worker_type = "primer_empleo"
+    worker.district = "Huancayo"
+    worker.embedding = None
+
+    wizard = MagicMock()
+    wizard.extracted_skills = ["responsabilidad"]
+    wizard.answers = {"job_interests": "comercio"}
+
+    mock_result = MagicMock()
+    mock_result.scalar_one_or_none.return_value = wizard
+
+    db = AsyncMock()
+    db.execute.return_value = mock_result
+
+    with patch("app.ml.cold_start.resolver.generate_embedding_sync", return_value=[0.1] * 384):
+        result = await resolve_cold_start(worker, db)
+
+    assert result.embedding == [0.1] * 384
+
+
+@pytest.mark.asyncio
+async def test_resolve_cold_start_oficio() -> None:
+    """resolve_cold_start para OFICIO genera embedding desde portfolio."""
+    from unittest.mock import AsyncMock, MagicMock
+
+    from app.ml.cold_start.resolver import resolve_cold_start
+
+    worker = MagicMock()
+    worker.id = "worker-cold-oficio"
+    worker.worker_type = "oficio"
+    worker.trade_category = "Carpinteria"
+    worker.district = "El Tambo"
+    worker.years_experience = 5
+    worker.embedding = None
+
+    mock_result = MagicMock()
+    mock_result.scalars.return_value.all.return_value = []
+
+    db = AsyncMock()
+    db.execute.return_value = mock_result
+
+    with patch("app.ml.cold_start.resolver.generate_embedding_sync", return_value=[0.2] * 384):
+        result = await resolve_cold_start(worker, db)
+
+    assert result.embedding == [0.2] * 384
+
+
+@pytest.mark.asyncio
+async def test_resolve_cold_start_experiencia() -> None:
+    """resolve_cold_start para EXPERIENCIA genera embedding."""
+    from unittest.mock import AsyncMock, MagicMock
+
+    from app.ml.cold_start.resolver import resolve_cold_start
+
+    worker = MagicMock()
+    worker.id = "worker-cold-exp"
+    worker.worker_type = "experiencia"
+    worker.bio = "Profesional contable"
+    worker.job_title = "Contador"
+    worker.years_experience = 4
+    worker.district = "Chilca"
+    worker.embedding = None
+
+    db = AsyncMock()
+
+    with patch("app.ml.cold_start.resolver.generate_embedding_sync", return_value=[0.3] * 384):
+        result = await resolve_cold_start(worker, db)
+
+    assert result.embedding == [0.3] * 384

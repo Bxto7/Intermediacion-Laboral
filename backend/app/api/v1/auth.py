@@ -31,6 +31,7 @@ from app.schemas.auth import (
     RegisterRequest,
     ResetPasswordRequest,
     TokenResponse,
+    UserResponse,
     VerifyEmailRequest,
 )
 from app.tasks.notifications import send_reset_email
@@ -180,6 +181,35 @@ async def logout(
 
     logger.info("user_logout", user_id=payload.get("sub"))
     return MessageResponse(message="Sesion cerrada correctamente")
+
+
+@router.get("/me", response_model=UserResponse)
+async def get_current_user(
+    payload: dict = Depends(
+        require_role(
+            UserRole.ADMIN,
+            UserRole.EMPLOYER,
+            UserRole.WORKER,
+            UserRole.MODERATOR,
+        )
+    ),
+    db: AsyncSession = Depends(get_db),
+) -> UserResponse:
+    user_id = payload.get("sub")
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    
+    if not user or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuario no encontrado"
+        )
+        
+    return UserResponse(
+        id=str(user.id),
+        email=user.email,
+        role=user.role
+    )
 
 
 @router.post("/verify-email", response_model=MessageResponse)

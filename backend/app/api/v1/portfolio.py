@@ -16,6 +16,7 @@ from app.schemas.portfolio import (
     PortfolioEntryCreate,
     PortfolioEntryResponse,
     PortfolioEntryUpdate,
+    PublicPortfolioEntryResponse,
 )
 from app.tasks.embeddings import generate_portfolio_entry_embedding, generate_worker_embedding
 
@@ -30,6 +31,22 @@ def _build_entry_response(entry: PortfolioEntry) -> PortfolioEntryResponse:
     return PortfolioEntryResponse(
         id=str(entry.id),
         worker_id=str(entry.worker_id),
+        title=entry.title,
+        description=entry.description,
+        extracted_skills=entry.extracted_skills or [],
+        photos=entry.photos or [],
+        period_start=entry.period_start,
+        period_end=entry.period_end,
+        client_rating=float(entry.client_rating) if entry.client_rating else None,
+        is_public=entry.is_public,
+        created_at=entry.created_at,
+    )
+
+
+def _build_public_entry_response(entry: PortfolioEntry) -> PublicPortfolioEntryResponse:
+    """Build public portfolio entry response without exposing worker_id UUID."""
+    return PublicPortfolioEntryResponse(
+        id=str(entry.id),
         title=entry.title,
         description=entry.description,
         extracted_skills=entry.extracted_skills or [],
@@ -155,7 +172,8 @@ async def get_public_portfolio(
         .where(PortfolioEntry.worker_id == str(worker.id), PortfolioEntry.is_public.is_(True))
         .order_by(PortfolioEntry.created_at.desc())
     )
-    entries = [_build_entry_response(e) for e in entries_result.scalars().all()]
+    # Use PublicPortfolioEntryResponse to exclude worker_id UUID (RNF001 audit)
+    entries = [_build_public_entry_response(e) for e in entries_result.scalars().all()]
 
     return {
         "full_name": full_name,

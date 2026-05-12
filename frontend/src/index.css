@@ -2,8 +2,188 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ═══════════════════════════════════════
+   CSS Custom Properties — Design Tokens
+═══════════════════════════════════════ */
+:root {
+  --bg-base:     #f7f1e8;
+  --bg-elevated: #fdf6ea;
+  --bg-warm:     #ebe0cd;
+  --ink-strong:  #3d2818;
+  --ink:         #5a3d2b;
+  --ink-warm:    #6b4a35;
+  --ink-muted:   #8a6648;
+  --dark:        #4a3120;
+  --dark-2:      #5a3d2b;
+  --dark-deep:   #3d2818;
+  --terra-500:   #c2562e;
+  --terra-400:   #d97757;
+  --terra-700:   #8a3a1c;
+  --blue:        #2d5a82;
+  --blue-light:  #4d6a8a;
+  --olive:       #7a8c5c;
+  --olive-deep:  #5d6b46;
+  --gold:        #b8893a;
+  --gold-light:  #e8b45a;
+  --coral:       #e8a691;
+}
+
 @layer base {
   html {
-    font-family: Inter, system-ui, sans-serif;
+    font-family: 'Geist', 'Inter', system-ui, sans-serif;
+    background-color: var(--bg-base);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
   }
+  body { background-color: var(--bg-base); }
+
+  *:focus-visible {
+    outline: 2px solid var(--terra-500);
+    outline-offset: 2px;
+  }
+
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg-warm); }
+  ::-webkit-scrollbar-thumb { background: #d4c5bb; border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: #bba99c; }
+}
+
+@layer components {
+  /* ─── Inputs ─── */
+  .input-warm {
+    @apply w-full px-4 py-3 bg-white border border-[#d4c5bb] rounded-xl text-sm
+           transition-all duration-150
+           focus:outline-none focus:border-[#c2562e] focus:ring-2 focus:ring-[#c2562e]/15;
+    color: var(--ink-strong);
+  }
+  .input-warm::placeholder { color: var(--ink-muted); }
+
+  /* ─── Buttons ─── */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-3
+           font-semibold text-sm rounded-xl text-white
+           transition-all duration-150 shadow-warm-sm
+           disabled:opacity-50 disabled:cursor-not-allowed;
+    background: linear-gradient(135deg, var(--terra-400) 0%, var(--terra-500) 60%, var(--terra-700) 100%);
+  }
+  .btn-primary:hover { box-shadow: 0 6px 24px rgba(194,86,46,0.35); transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-3
+           font-semibold text-sm rounded-xl
+           border transition-all duration-150
+           disabled:opacity-50 disabled:cursor-not-allowed;
+    color: var(--ink-strong);
+    border-color: rgba(61,40,24,0.20);
+    background: rgba(255,255,255,0.55);
+  }
+  .btn-secondary:hover { background: rgba(255,255,255,0.85); border-color: rgba(61,40,24,0.35); }
+
+  /* ─── Cards ─── */
+  .card-warm {
+    @apply rounded-2xl border;
+    background: rgba(255,255,255,0.55);
+    border-color: rgba(61,40,24,0.10);
+    backdrop-filter: blur(8px);
+  }
+
+  /* ─── Tags ─── */
+  .tag-warm    { @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium; background: rgba(61,40,24,0.08); color: var(--ink); }
+  .tag-primary { @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium; background: rgba(194,86,46,0.10); color: var(--terra-500); }
+  .tag-blue    { @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium; background: rgba(45,90,130,0.10); color: var(--blue); }
+  .tag-olive   { @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium; background: rgba(122,140,92,0.12); color: var(--olive-deep); }
+  .tag-gold    { @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium; background: rgba(184,137,58,0.12); color: var(--gold); }
+
+  /* ─── Kicker labels (Geist Mono uppercase) ─── */
+  .kicker {
+    @apply font-mono text-xs font-medium uppercase tracking-widest;
+  }
+
+  /* ─── Serif italic accent ─── */
+  .serif-italic {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-style: italic;
+    color: var(--coral);
+  }
+
+  /* ─── LoadingSpinner ─── */
+}
+
+/* ─── Grain texture overlay ─── */
+.grain::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.25;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23noise)' opacity='0.4'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  mix-blend-mode: multiply;
+}
+
+/* ─── Radial glow BG ─── */
+.glow-bg {
+  background:
+    radial-gradient(ellipse 60% 40% at 15% 20%, rgba(194,86,46,0.07) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 35% at 85% 15%, rgba(184,137,58,0.06) 0%, transparent 65%),
+    radial-gradient(ellipse 45% 40% at 10% 80%, rgba(45,90,130,0.05) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 45% at 90% 85%, rgba(122,140,92,0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 70% 50% at 50% 50%, rgba(194,86,46,0.03) 0%, transparent 70%),
+    var(--bg-base);
+}
+
+/* ─── Hero heading ─── */
+.hero-heading {
+  font-size: clamp(52px, 7.4vw, 100px);
+  letter-spacing: -0.045em;
+  line-height: 0.94;
+  font-weight: 800;
+  color: var(--ink-strong);
+}
+
+/* ─── Stat number ─── */
+.stat-number {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: clamp(44px, 5vw, 60px);
+  line-height: 1;
+  color: var(--ink-strong);
+}
+
+/* ─── Job card glow on hover ─── */
+.job-card {
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.25s, transform 0.2s;
+}
+.job-card:hover { transform: translateY(-2px); }
+.job-card::before {
+  content: '';
+  position: absolute;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(circle, rgba(194,86,46,0.12) 0%, transparent 70%);
+  transform: translate(-50%, -50%);
+  transition: opacity 0.3s;
+  left: var(--mouse-x, 50%);
+  top: var(--mouse-y, 50%);
+}
+.job-card:hover::before { opacity: 1; }
+
+/* ─── Modal backdrop ─── */
+.modal-backdrop {
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.modal-panel {
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }

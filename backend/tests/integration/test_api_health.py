@@ -19,7 +19,7 @@ async def test_api_v1_health_returns_sprint(client: AsyncClient) -> None:
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "ok"
-    assert data["sprint"] == 2
+    assert data["sprint"] == 3
     assert "version" in data
     assert "environment" in data
 

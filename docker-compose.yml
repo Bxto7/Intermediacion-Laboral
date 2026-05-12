@@ -1,4 +1,27 @@
+version: "3.9"
+
+x-backend-common: &backend-common
+  build:
+    context: ./backend
+    dockerfile: Dockerfile
+  env_file:
+    - ./backend/.env
+  environment:
+    DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/intermediacion_laboral
+    REDIS_URL: redis://redis:6379/0
+    ENV: development
+  depends_on:
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  volumes:
+    - ./backend:/app
+  networks:
+    - drtpe_net
+
 services:
+  # ─── Base de datos ───────────────────────────────────────────
   db:
     image: pgvector/pgvector:pg15
     environment:
@@ -16,66 +39,101 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+    networks:
+      - drtpe_net
 
+  # ─── Redis ───────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
       retries: 5
       start_period: 5s
+    networks:
+      - drtpe_net
 
+  # ─── Backend API ──────────────────────────────────────────────
   api:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    <<: *backend-common
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     ports:
       - "8000:8000"
-    volumes:
-      - ./backend:/app
-    env_file:
-      - ./backend/.env
-    environment:
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/intermediacion_laboral
-      REDIS_URL: redis://redis:6379/0
-      CELERY_BROKER_URL: redis://redis:6379/1
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/v1/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
 
-  celery_worker:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    volumes:
-      - ./backend:/app
-    env_file:
-      - ./backend/.env
-    environment:
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/intermediacion_laboral
-      REDIS_URL: redis://redis:6379/0
-      CELERY_BROKER_URL: redis://redis:6379/1
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      api:
-        condition: service_healthy
-    command: celery -A app.tasks worker --loglevel=info
+  # ─── Celery Workers (colas separadas) ────────────────────────
+  worker-embeddings:
+    <<: *backend-common
+    command: >
+      celery -A app.tasks worker
+      --loglevel=info
+      --queues=embeddings
+      --concurrency=2
+      --hostname=worker-embeddings@%h
+    deploy:
+      resources:
+        limits:
+          memory: 1G
 
+  worker-cv:
+    <<: *backend-common
+    command: >
+      celery -A app.tasks worker
+      --loglevel=info
+      --queues=cv_generation
+      --concurrency=2
+      --hostname=worker-cv@%h
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  worker-notifications:
+    <<: *backend-common
+    command: >
+      celery -A app.tasks worker
+      --loglevel=info
+      --queues=notifications,default
+      --concurrency=4
+      --hostname=worker-notifications@%h
+
+  worker-reports:
+    <<: *backend-common
+    command: >
+      celery -A app.tasks worker
+      --loglevel=info
+      --queues=reports
+      --concurrency=1
+      --hostname=worker-reports@%h
+
+  # ─── Celery Beat (scheduler) ─────────────────────────────────
+  celery-beat:
+    <<: *backend-common
+    command: >
+      celery -A app.tasks beat
+      --loglevel=info
+
+  # ─── Flower (monitoreo Celery) ────────────────────────────────
+  flower:
+    <<: *backend-common
+    command: >
+      celery -A app.tasks flower
+      --port=5555
+    ports:
+      - "5555:5555"
+
+  # ─── Frontend ────────────────────────────────────────────────
   frontend:
     image: node:20-alpine
     ports:
@@ -84,6 +142,46 @@ services:
       - ./frontend:/app
     working_dir: /app
     command: sh -c "npm install && npm run dev -- --host"
+    networks:
+      - drtpe_net
+
+  # ─── Prometheus ──────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.retention.time=15d"
+    networks:
+      - drtpe_net
+
+  # ─── Grafana ────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: changeme
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - drtpe_net
+
+networks:
+  drtpe_net:
+    driver: bridge
 
 volumes:
   postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:

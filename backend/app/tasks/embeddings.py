@@ -1,10 +1,24 @@
-# RF: RF076-RF079
+# RF: RF076-RF079, RNF001
+# Security: all task arguments that are UUIDs are validated before any DB query
+# to prevent task injection with malformed inputs (Sprint 3 audit).
+import uuid as _uuid_module
+
 import structlog
 from sqlalchemy import select
 
 from app.tasks import app
 
 logger = structlog.get_logger()
+
+
+def _validate_uuid(value: str, field_name: str = "id") -> bool:
+    """Return True if value is a valid UUID v4; log and return False otherwise."""
+    try:
+        _uuid_module.UUID(value, version=4)
+        return True
+    except (ValueError, AttributeError):
+        logger.error("invalid_uuid_in_task", field=field_name, value=repr(value))
+        return False
 
 
 def _get_sync_session():
@@ -20,6 +34,8 @@ def _get_sync_session():
 
 @app.task(name="generate_worker_embedding", queue="embeddings")
 def generate_worker_embedding(worker_id: str) -> None:
+    if not _validate_uuid(worker_id, "worker_id"):
+        return  # Silenced — invalid input, do not retry
     import time
 
     from app.models.portfolio import PortfolioEntry
@@ -95,6 +111,8 @@ def generate_worker_embedding(worker_id: str) -> None:
 
 @app.task(name="generate_job_embedding", queue="embeddings")
 def generate_job_embedding(job_offer_id: str) -> None:
+    if not _validate_uuid(job_offer_id, "job_offer_id"):
+        return  # Silenced — invalid input, do not retry
     from app.models.job_offer import JobOffer
     from app.nlp.embeddings.generator import generate_embedding, normalize_text
 
@@ -120,6 +138,8 @@ def generate_job_embedding(job_offer_id: str) -> None:
 
 @app.task(name="generate_portfolio_entry_embedding", queue="embeddings")
 def generate_portfolio_entry_embedding(entry_id: str) -> None:
+    if not _validate_uuid(entry_id, "entry_id"):
+        return  # Silenced — invalid input, do not retry
     from app.models.portfolio import PortfolioEntry
     from app.nlp.embeddings.generator import generate_embedding
 

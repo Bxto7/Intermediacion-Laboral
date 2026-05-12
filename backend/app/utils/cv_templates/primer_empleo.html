@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<style>
+  body { font-family: Arial, sans-serif; margin: 0; color: #2d3748; font-size: 11pt; }
+  .header { background: #4299e1; color: white; padding: 24px 32px; }
+  .header h1 { margin: 0; font-size: 22pt; }
+  .header .subtitle { font-size: 10pt; opacity: 0.9; margin-top: 4px; }
+  .contact-bar { background: #ebf8ff; padding: 8px 32px; font-size: 9pt; color: #2b6cb0; }
+  .section { padding: 16px 32px; border-bottom: 1px solid #e2e8f0; }
+  .section h2 { color: #4299e1; font-size: 13pt; margin-bottom: 8px; border-left: 4px solid #4299e1; padding-left: 8px; }
+  .skill-tag { display: inline-block; background: #bee3f8; color: #2b6cb0; padding: 2px 8px; border-radius: 4px; margin: 2px; font-size: 9pt; }
+  .activity { margin-bottom: 8px; }
+  .activity strong { color: #2d3748; }
+  .footer { text-align: center; font-size: 8pt; color: #a0aec0; padding: 16px; }
+  .badge { background: #c6f6d5; color: #276749; padding: 2px 8px; border-radius: 4px; font-size: 9pt; display: inline-block; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <h1>{{ full_name }}</h1>
+    <div class="subtitle">En busqueda de mi primer empleo &middot; {{ district }}, Junin</div>
+  </div>
+  <div class="contact-bar">
+    {{ phone }}{% if phone %} | {% endif %}{{ email }}
+    {% if linkedin %} | {{ linkedin }}{% endif %}
+  </div>
+  {% if objective %}
+  <div class="section">
+    <h2>Objetivo Profesional</h2>
+    <p>{{ objective }}</p>
+  </div>
+  {% endif %}
+  <div class="section">
+    <h2>Habilidades</h2>
+    {% for skill in skills %}
+    <span class="skill-tag">{{ skill }}</span>
+    {% endfor %}
+  </div>
+  <div class="section">
+    <h2>Educacion</h2>
+    {% for edu in education %}
+    <div class="activity">
+      <strong>{{ edu.institution }}</strong> &mdash; {{ edu.degree }}<br>
+      <span style="color:#718096">{{ edu.period }}</span>
+    </div>
+    {% else %}
+    <p style="color:#718096">Sin datos de educacion registrados.</p>
+    {% endfor %}
+  </div>
+  {% if activities %}
+  <div class="section">
+    <h2>Actividades y Experiencias Previas</h2>
+    {% for act in activities %}
+    <div class="activity">
+      <strong>{{ act.title }}</strong><br>
+      {{ act.description }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  <div class="footer">
+    CV generado por el Sistema de Intermediacion Laboral &middot; DRTPE-Junin
+    <span class="badge">Identidad verificada DRTPE</span>
+  </div>
+</body>
+</html>

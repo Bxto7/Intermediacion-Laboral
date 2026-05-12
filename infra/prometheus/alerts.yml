@@ -1,0 +1,84 @@
+groups:
+  - name: intermediacion_laboral
+    interval: 30s
+    rules:
+      # API caída
+      - alert: APIDown
+        expr: up{job="intermediacion-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "API backend caída"
+          description: "El servicio intermediacion-backend lleva más de 1 min sin responder."
+
+      # Latencia alta (p95 > 2s)
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(0.95,
+            rate(http_request_duration_seconds_bucket{job="intermediacion-backend"}[5m])
+          ) > 2.0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Latencia p95 > 2s"
+          description: "El percentil 95 de latencia supera los 2 segundos en los últimos 5 min."
+
+      # Tasa de errores HTTP 5xx > 5%
+      - alert: HighErrorRate
+        expr: |
+          rate(http_requests_total{job="intermediacion-backend",status=~"5.."}[5m])
+          /
+          rate(http_requests_total{job="intermediacion-backend"}[5m])
+          > 0.05
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Tasa de errores 5xx > 5%"
+          description: "Más del 5% de las solicitudes están fallando con error 5xx."
+
+      # F1 del modelo ML < umbral mínimo (0.70)
+      - alert: ModelF1Low
+        expr: ml_model_f1_score{job="intermediacion-backend"} < 0.70
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "F1 del modelo ML por debajo del umbral de alerta"
+          description: |
+            El F1-score del modelo de matching es {{ $value | humanizePercentage }}.
+            Umbral mínimo: 0.70. Revisar reentrenamiento urgente.
+
+      # Drift PSI alto (≥ 0.25)
+      - alert: ModelDriftAlert
+        expr: ml_model_psi_score{job="intermediacion-backend"} >= 0.25
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Drift PSI del modelo ≥ 0.25"
+          description: |
+            PSI = {{ $value }} para worker_type={{ $labels.worker_type }}.
+            Se recomienda reentrenar el modelo de matching.
+
+      # Redis caído
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis caído"
+          description: "Redis lleva más de 2 min sin responder. Cache y Celery afectados."
+
+      # Celery sin workers
+      - alert: CeleryWorkersDown
+        expr: celery_workers_active{job="intermediacion-backend"} == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Sin workers Celery activos"
+          description: "No hay workers Celery activos. Embeddings y generación de CVs detenidos."

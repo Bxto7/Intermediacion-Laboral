@@ -162,4 +162,4 @@ async def test_health_endpoint_returns_ok(client: AsyncClient) -> None:
     resp = await client.get("/api/v1/health")
     assert resp.status_code == 200
     assert resp.json()["status"] == "ok"
-    assert resp.json()["sprint"] == 2
+    assert resp.json()["sprint"] == 3

@@ -15,9 +15,31 @@ class PortfolioEntryCreate(BaseModel):
 
 
 class PortfolioEntryResponse(BaseModel):
+    """Internal response — used only for authenticated worker endpoints."""
+
     model_config = ConfigDict(from_attributes=True)
     id: str
     worker_id: str
+    title: str
+    description: str
+    extracted_skills: list[str]
+    photos: list[str]
+    period_start: date | None
+    period_end: date | None
+    client_rating: float | None
+    is_public: bool
+    created_at: datetime
+
+
+class PublicPortfolioEntryResponse(BaseModel):
+    """Public response — worker_id intentionally omitted (RNF001 / Sprint 3 audit).
+
+    The public portfolio endpoint must use this schema so that internal
+    UUIDs are never exposed to unauthenticated callers.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+    id: str
     title: str
     description: str
     extracted_skills: list[str]

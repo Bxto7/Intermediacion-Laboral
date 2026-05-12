@@ -68,6 +68,7 @@ def test_hash_embedding_fallback_produces_384_dims():
 
 def test_hash_embedding_is_normalized():
     import math
+
     from app.nlp.embeddings.generator import _hash_embedding
     result = _hash_embedding("gasfitero electricista carpintero")
     norm = math.sqrt(sum(v * v for v in result))

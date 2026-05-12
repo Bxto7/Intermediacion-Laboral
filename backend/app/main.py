@@ -11,10 +11,17 @@ from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.database import engine, init_db
 from app.core.logging import configure_logging
+from app.core.security_headers import SecurityHeadersMiddleware
 from app.nlp.embeddings.generator import apply_local_dictionary, load_embedding_model
 
 configure_logging()
 logger = structlog.get_logger()
+
+try:
+    from prometheus_fastapi_instrumentator import Instrumentator as _Instrumentator
+    _PROMETHEUS_AVAILABLE = True
+except ImportError:
+    _PROMETHEUS_AVAILABLE = False
 
 
 @asynccontextmanager
@@ -51,6 +58,9 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type"],
 )
 
+# Security headers — registered after CORSMiddleware
+app.add_middleware(SecurityHeadersMiddleware)
+
 
 @app.middleware("http")
 async def add_process_time(request: Request, call_next):
@@ -70,13 +80,16 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 app.include_router(api_router, prefix="/api/v1")
 
+if _PROMETHEUS_AVAILABLE:
+    _Instrumentator().instrument(app).expose(app, endpoint="/metrics")
+
 
 @app.get("/api/v1/health")
 async def health():
     return {
         "status": "ok",
         "version": "0.1.0",
-        "sprint": 2,
+        "sprint": 3,
         "environment": settings.ENVIRONMENT,
     }
 

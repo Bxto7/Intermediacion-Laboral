@@ -2,8 +2,8 @@ import uuid
 from datetime import date, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, Date, ForeignKey, Numeric, String, Text, UniqueConstraint
-from sqlalchemy.dialects.postgresql import ARRAY, TIMESTAMP, UUID
+from sqlalchemy import Boolean, Date, ForeignKey, JSON, Numeric, String, Text, UniqueConstraint
+from sqlalchemy.dialects.postgresql import TIMESTAMP, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
@@ -30,15 +30,15 @@ class Contract(Base):
     final_amount: Mapped[float | None] = mapped_column(Numeric(8, 2))
     payment_method: Mapped[str | None] = mapped_column(String(30))
     payment_confirmed: Mapped[bool] = mapped_column(Boolean, default=False)
-    work_evidence: Mapped[list[str] | None] = mapped_column(ARRAY(String))
+    work_evidence: Mapped[list[str] | None] = mapped_column(JSON)
     description_done: Mapped[str | None] = mapped_column(Text)
     cancelled_reason: Mapped[str | None] = mapped_column(String(50))
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now())
 
     job_request: Mapped["JobRequest"] = relationship("JobRequest", back_populates="contracts")
-    worker: Mapped["Worker"] = relationship("Worker", back_populates="contracts")
-    employer: Mapped["Employer"] = relationship("Employer", back_populates="contracts")
+    worker: Mapped["Worker"] = relationship("Worker")
+    employer: Mapped["Employer"] = relationship("Employer")
     ratings: Mapped[list["Rating"]] = relationship("Rating", back_populates="contract")
 
 

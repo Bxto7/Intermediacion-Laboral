@@ -14,12 +14,13 @@ import structlog
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import async_sessionmaker
+
 from app.core.config import settings
 from app.core.database import engine
 from app.models.audit_log import AuditLog
-from sqlalchemy import select, text
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 logger = structlog.get_logger()
 
@@ -70,7 +71,7 @@ async def rotate_keys() -> None:
                 if updates:
                     set_clauses = ", ".join(f"{k} = :{k}" for k in updates)
                     await db.execute(
-                        text(f"UPDATE workers SET {set_clauses} WHERE id = :id"),
+                        text(f"UPDATE workers SET {set_clauses} WHERE id = :id"),  # noqa: S608
                         {"id": wid, **{k: v for k, v in updates.items()}},
                     )
                     migrated_workers += 1
@@ -88,7 +89,7 @@ async def rotate_keys() -> None:
                 if updates:
                     set_clauses = ", ".join(f"{k} = :{k}" for k in updates)
                     await db.execute(
-                        text(f"UPDATE employers SET {set_clauses} WHERE id = :id"),
+                        text(f"UPDATE employers SET {set_clauses} WHERE id = :id"),  # noqa: S608
                         {"id": eid, **{k: v for k, v in updates.items()}},
                     )
                     migrated_employers += 1

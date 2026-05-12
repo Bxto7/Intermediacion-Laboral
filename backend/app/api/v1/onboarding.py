@@ -33,15 +33,19 @@ async def detect_type(
 ) -> OnboardingResponse:
     user_id = payload["sub"]
 
-    existing = await db.execute(select(Worker).where(Worker.user_id == user_id))
-    if existing.scalar_one_or_none():
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="El perfil ya fue creado",
-        )
+    existing_result = await db.execute(select(Worker).where(Worker.user_id == user_id))
+    existing_worker = existing_result.scalar_one_or_none()
 
     worker_type = detect_worker_type(body)
+
+    if existing_worker:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="El perfil del trabajador ya existe. Usa la API de edicion de perfil para modificarlo.",
+        )
+
     worker = await create_worker_profile(user_id, worker_type, body.trade_category, db)
+
     next_step = get_next_step_url(worker_type)
 
     logger.info("onboarding_completed", user_id=user_id, worker_type=worker_type.value)
@@ -51,6 +55,7 @@ async def detect_type(
         next_step=next_step,
         message=ONBOARDING_MESSAGES[worker_type.value],
     )
+
 
 
 @router.get("/status", response_model=OnboardingStatus)

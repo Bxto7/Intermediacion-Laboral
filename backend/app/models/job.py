@@ -22,7 +22,6 @@ from app.models.base import Base
 if TYPE_CHECKING:
     from app.models.contract import Contract
     from app.models.employer import Employer
-    from app.models.tracking import RecommendationLog, SearchLog
     from app.models.worker import Worker
 
 
@@ -46,15 +45,13 @@ class JobRequest(Base):
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now())
 
-    employer: Mapped["Employer"] = relationship("Employer", back_populates="job_requests")
-    applications: Mapped[list["Application"]] = relationship("Application", back_populates="job_request")
+    employer: Mapped["Employer"] = relationship("Employer")
+    applications: Mapped[list["JobRequestApplication"]] = relationship("JobRequestApplication", back_populates="job_request")
     contracts: Mapped[list["Contract"]] = relationship("Contract", back_populates="job_request")
-    recommendation_logs: Mapped[list["RecommendationLog"]] = relationship("RecommendationLog", back_populates="job_request")
-    search_logs: Mapped[list["SearchLog"]] = relationship("SearchLog", back_populates="job_request")
 
 
-class Application(Base):
-    __tablename__ = "applications"
+class JobRequestApplication(Base):
+    __tablename__ = "job_request_applications"
     __table_args__ = (UniqueConstraint("job_request_id", "worker_id", name="uq_application_job_worker"),)
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -66,4 +63,4 @@ class Application(Base):
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now())
 
     job_request: Mapped["JobRequest"] = relationship("JobRequest", back_populates="applications")
-    worker: Mapped["Worker"] = relationship("Worker", back_populates="applications")
+    worker: Mapped["Worker"] = relationship("Worker")

@@ -1,44 +1,93 @@
-import { useIntl } from 'react-intl'
+import { Routes, Route, Navigate } from 'react-router-dom'
+import { AuthGuard } from './guards/AuthGuard'
+import { WorkerTypeGuard } from './guards/WorkerTypeGuard'
+import { AdminGuard } from './guards/AdminGuard'
+import { LoginPage } from './pages/LoginPage'
+import { RegisterPage } from './pages/RegisterPage'
+import { OnboardingPage } from './onboarding/OnboardingPage'
+import { WorkerDashboard } from './shared/WorkerDashboard'
+import { EmployerDashboard } from './employer/EmployerDashboard'
+import { WizardLayout } from './modules/primer-empleo/wizard/WizardLayout'
+import { PortfolioPage } from './modules/oficio/portfolio/PortfolioPage'
+import { MatchesPage } from './matching/MatchesPage'
+import { AdminLayout } from './admin/AdminLayout'
+import { PublicPortfolioPage } from './pages/PublicPortfolioPage'
+import { NavBar } from './shared/NavBar'
 
-export default function App() {
-  const intl = useIntl()
-
-  return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
-      <div className="bg-white rounded-2xl shadow-lg p-10 max-w-lg w-full text-center">
-        <div className="mb-4">
-          <span className="inline-block bg-primary-100 text-primary-700 text-sm font-semibold px-3 py-1 rounded-full">
-            {intl.formatMessage({ id: 'app.sprint' })}
-          </span>
+const MarketplacePlaceholder: React.FC = () => (
+  <div className="min-h-screen bg-warm-50">
+    <NavBar />
+    <div className="flex items-center justify-center h-[60vh]">
+      <div className="text-center space-y-3">
+        <div className="w-14 h-14 mx-auto rounded-2xl bg-warm-100 border border-warm-200 flex items-center justify-center">
+          <svg className="w-7 h-7 text-bark-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
         </div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          {intl.formatMessage({ id: 'app.title' })}
-        </h1>
-        <p className="text-gray-500 mb-6">
-          {intl.formatMessage({ id: 'app.subtitle' })}
-        </p>
-        <div className="flex flex-col gap-3">
-          <a
-            href="http://localhost:8000/docs"
-            target="_blank"
-            rel="noreferrer"
-            className="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-6 rounded-lg transition-colors"
-          >
-            {intl.formatMessage({ id: 'app.api_docs' })}
-          </a>
-          <a
-            href="http://localhost:8000/health"
-            target="_blank"
-            rel="noreferrer"
-            className="border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-6 rounded-lg transition-colors"
-          >
-            {intl.formatMessage({ id: 'app.health_check' })}
-          </a>
-        </div>
-        <p className="text-xs text-gray-400 mt-6">
-          {intl.formatMessage({ id: 'app.footer' })}
-        </p>
+        <h2 className="text-lg font-bold text-bark-900">Marketplace de Servicios</h2>
+        <p className="text-bark-400 text-sm">Disponible en Sprint 5</p>
       </div>
     </div>
+  </div>
+)
+
+export default function App() {
+  return (
+    <Routes>
+      {/* Públicas */}
+      <Route path="/login"    element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/p/:slug"  element={<PublicPortfolioPage />} />
+
+      {/* Onboarding */}
+      <Route path="/onboarding" element={<AuthGuard><OnboardingPage /></AuthGuard>} />
+
+      {/* Dashboard diferenciado por tipo + empleadores */}
+      <Route path="/dashboard" element={<AuthGuard><WorkerDashboard /></AuthGuard>} />
+      <Route path="/employer/dashboard" element={<AuthGuard><EmployerDashboard /></AuthGuard>} />
+
+      {/* Wizard — solo PRIMER_EMPLEO */}
+      <Route path="/wizard/*" element={
+        <AuthGuard>
+          <WorkerTypeGuard allowedTypes={['primer_empleo']}>
+            <WizardLayout />
+          </WorkerTypeGuard>
+        </AuthGuard>
+      } />
+
+      {/* Portfolio — solo OFICIO */}
+      <Route path="/oficio/portfolio" element={
+        <AuthGuard>
+          <WorkerTypeGuard allowedTypes={['oficio']}>
+            <PortfolioPage />
+          </WorkerTypeGuard>
+        </AuthGuard>
+      } />
+
+      {/* Marketplace — EXCLUSIVO OFICIO */}
+      <Route path="/marketplace/*" element={
+        <AuthGuard>
+          <WorkerTypeGuard allowedTypes={['oficio']}>
+            <MarketplacePlaceholder />
+          </WorkerTypeGuard>
+        </AuthGuard>
+      } />
+
+      {/* Matching — todos los tipos */}
+      <Route path="/matches" element={<AuthGuard><MatchesPage /></AuthGuard>} />
+
+      {/* Admin */}
+      <Route path="/admin/*" element={
+        <AuthGuard>
+          <AdminGuard>
+            <AdminLayout />
+          </AdminGuard>
+        </AuthGuard>
+      } />
+
+      {/* Fallback */}
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
   )
 }
