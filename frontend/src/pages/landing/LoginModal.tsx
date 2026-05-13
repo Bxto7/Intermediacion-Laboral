@@ -26,7 +26,9 @@ export const LoginModal: React.FC<Props> = ({ onClose }) => {
     try {
       await login(email, password)
       onClose()
-      navigate('/dashboard')
+      const returnUrl = sessionStorage.getItem('login_return_url') || '/dashboard'
+      sessionStorage.removeItem('login_return_url')
+      navigate(returnUrl)
     } catch {
       setError('Credenciales incorrectas. Intenta nuevamente.')
     } finally {

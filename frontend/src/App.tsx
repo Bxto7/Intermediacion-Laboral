@@ -11,6 +11,7 @@ import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
 
 // ── Lazy loaded (split at route level) ──────────────────────────────────────
+const LandingPage         = lazy(() => import('./pages/LandingPage').then(m => ({ default: m.LandingPage })))
 const OnboardingPage      = lazy(() => import('./onboarding/OnboardingPage').then(m => ({ default: m.OnboardingPage })))
 const WorkerDashboard     = lazy(() => import('./shared/WorkerDashboard').then(m => ({ default: m.WorkerDashboard })))
 const EmployerDashboard   = lazy(() => import('./employer/EmployerDashboard').then(m => ({ default: m.EmployerDashboard })))
@@ -87,11 +88,9 @@ export default function App() {
           </WorkerTypeGuard>
         } />
 
-        {/* Marketplace — solo OFICIO */}
+        {/* Marketplace — accesible a todos los usuarios autenticados */}
         <Route path="/marketplace/*" element={
-          <WorkerTypeGuard allowedTypes={['oficio']}>
-            <Suspense fallback={<PageFallback />}><MarketplacePage /></Suspense>
-          </WorkerTypeGuard>
+          <Suspense fallback={<PageFallback />}><MarketplacePage /></Suspense>
         } />
 
         <Route path="/applications" element={
@@ -112,9 +111,9 @@ export default function App() {
         } />
       </Route>
 
-      {/* Fallback */}
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      {/* Ruta raíz → landing pública */}
+      <Route path="/" element={<Suspense fallback={<PageFallback />}><LandingPage /></Suspense>} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }

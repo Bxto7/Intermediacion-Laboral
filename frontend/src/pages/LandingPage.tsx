@@ -22,6 +22,13 @@ export const LandingPage: React.FC = () => {
 
   const filtered = activeFilter === 'Todos' ? JOBS : JOBS.filter(j => j.category === activeFilter)
 
+  const handleLoginClick = () => {
+    if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+      sessionStorage.setItem('login_return_url', window.location.pathname + window.location.search)
+    }
+    setLoginOpen(true)
+  }
+
   const useMouseGlow = () => {
     const ref = useRef<HTMLDivElement>(null)
     const move = (e: React.MouseEvent) => {
@@ -72,7 +79,7 @@ export const LandingPage: React.FC = () => {
 
   return (
     <div className="glow-bg grain min-h-screen">
-      <LandingNav onLoginClick={() => setLoginOpen(true)} scrolled={scrolled} />
+      <LandingNav onLoginClick={handleLoginClick} scrolled={scrolled} />
       {loginOpen && <LoginModal onClose={() => setLoginOpen(false)} />}
 
       {/* ═══ HERO ═══ */}

@@ -176,10 +176,16 @@ export const PublicPortfolioPage: React.FC = () => {
               Contactar a {worker.display_name.split(' ')[0]}
             </button>
           ) : (
-            <a href="/register" className="btn-primary inline-flex items-center gap-2 px-8 py-3.5 text-sm">
+            <button
+              onClick={() => {
+                sessionStorage.setItem('login_return_url', window.location.pathname)
+                window.location.href = '/login'
+              }}
+              className="btn-primary inline-flex items-center gap-2 px-8 py-3.5 text-sm cursor-pointer"
+            >
               <MessageCircle size={16} />
-              Regístrate para contactar
-            </a>
+              Inicia sesión para contactar
+            </button>
           )}
           <div className="flex items-center justify-center gap-1.5 text-xs" style={{ color: 'var(--ink-muted)' }}>
             <Shield size={12} style={{ color: 'var(--blue)' }} />

@@ -334,7 +334,8 @@ export const MarketplacePage: React.FC = () => {
   const { listings, isLoading: loadingMine, create, update, remove } = useMyListings()
   const { results, isLoading: loadingSearch, search } = useMarketplaceSearch()
 
-  const [tab, setTab] = useState<'mis-servicios' | 'buscar'>('mis-servicios')
+  const defaultTab = worker?.worker_type === 'oficio' ? 'mis-servicios' : 'buscar'
+  const [tab, setTab] = useState<'mis-servicios' | 'buscar'>(defaultTab)
   const [showModal, setShowModal] = useState(false)
   const [editTarget, setEditTarget] = useState<ServiceListing | null>(null)
   const [contactTarget, setContactTarget] = useState<ServiceListing | null>(null)
@@ -377,14 +378,16 @@ export const MarketplacePage: React.FC = () => {
               DRTPE-Junín · Identidad verificada
             </p>
           </div>
-          <button
-            onClick={() => { setEditTarget(null); setShowModal(true) }}
-            className="flex items-center gap-2 font-medium text-sm px-5 py-2.5 rounded-full transition-colors"
-            style={{ background: 'var(--on-dark)', color: 'var(--dark-deep)' }}
-          >
-            <Plus size={15} />
-            Publicar servicio
-          </button>
+          {worker?.worker_type === 'oficio' && (
+            <button
+              onClick={() => { setEditTarget(null); setShowModal(true) }}
+              className="flex items-center gap-2 font-medium text-sm px-5 py-2.5 rounded-full transition-colors"
+              style={{ background: 'var(--on-dark)', color: 'var(--dark-deep)' }}
+            >
+              <Plus size={15} />
+              Publicar servicio
+            </button>
+          )}
         </div>
       </div>
 
@@ -395,7 +398,10 @@ export const MarketplacePage: React.FC = () => {
       >
         <div className="max-w-5xl mx-auto px-4">
           <div className="flex gap-1 pt-2">
-            {(['mis-servicios', 'buscar'] as const).map(t => (
+            {(worker?.worker_type === 'oficio'
+              ? ['mis-servicios', 'buscar'] as const
+              : ['buscar'] as const
+            ).map(t => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
@@ -416,7 +422,7 @@ export const MarketplacePage: React.FC = () => {
       <div className="max-w-5xl mx-auto px-4 py-5">
 
         {/* Mis servicios */}
-        {tab === 'mis-servicios' && (
+        {worker?.worker_type === 'oficio' && tab === 'mis-servicios' && (
           loadingMine ? <LoadingSpinner /> : listings.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {listings.map(l => (

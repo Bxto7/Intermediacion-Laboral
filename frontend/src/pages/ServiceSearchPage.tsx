@@ -143,12 +143,15 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, onContact }) => {
             Contactar
           </button>
         ) : (
-          <a
-            href="/register"
-            className="btn-primary flex-1 py-2 text-xs text-center"
+          <button
+            onClick={() => {
+              sessionStorage.setItem('login_return_url', window.location.pathname + window.location.search)
+              window.location.href = '/login'
+            }}
+            className="btn-primary flex-1 py-2 text-xs cursor-pointer"
           >
-            Regístrate para contactar
-          </a>
+            Inicia sesión para contactar
+          </button>
         )}
       </div>
     </div>

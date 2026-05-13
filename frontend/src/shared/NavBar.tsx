@@ -52,14 +52,14 @@ export const NavBar: React.FC = () => {
                 </Link>
               )}
               {workerType === 'oficio' && (
-                <>
-                  <Link to="/oficio/portfolio" className="btn-ghost text-xs px-3 py-2" style={{ color: 'var(--ink-warm)' }}>
-                    Portfolio
-                  </Link>
-                  <Link to="/marketplace" className="btn-ghost text-xs px-3 py-2" style={{ color: 'var(--ink-warm)' }}>
-                    Marketplace
-                  </Link>
-                </>
+                <Link to="/oficio/portfolio" className="btn-ghost text-xs px-3 py-2" style={{ color: 'var(--ink-warm)' }}>
+                  Portfolio
+                </Link>
+              )}
+              {workerType && (
+                <Link to="/marketplace" className="btn-ghost text-xs px-3 py-2" style={{ color: 'var(--ink-warm)' }}>
+                  Buscar servicios
+                </Link>
               )}
               {workerType !== 'primer_empleo' && (
                 <Link to="/applications" className="btn-ghost text-xs px-3 py-2" style={{ color: 'var(--ink-warm)' }}>

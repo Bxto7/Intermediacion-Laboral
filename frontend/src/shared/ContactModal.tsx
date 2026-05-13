@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { MessageCircle, Shield, X, Send, CheckCircle } from 'lucide-react'
 import apiClient from '../api/client'
 
@@ -15,6 +16,8 @@ export const ContactModal: React.FC<Props> = ({ listingId, workerUsername, worke
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
   const [error, setError] = useState('')
+
+  const isAuthenticated = !!localStorage.getItem('access_token')
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -79,7 +82,44 @@ export const ContactModal: React.FC<Props> = ({ listingId, workerUsername, worke
           </button>
         </div>
 
-        {sent ? (
+        {!isAuthenticated ? (
+          <div className="px-6 py-8 text-center space-y-5">
+            <div
+              className="w-14 h-14 rounded-full mx-auto flex items-center justify-center"
+              style={{ background: 'var(--terra-100)' }}
+            >
+              <Shield size={24} style={{ color: 'var(--terra-500)' }} />
+            </div>
+            <div>
+              <h3 className="font-bold text-base" style={{ color: 'var(--ink-strong)' }}>
+                Inicia sesión para contactar
+              </h3>
+              <p className="text-sm mt-1.5 leading-relaxed" style={{ color: 'var(--ink-muted)' }}>
+                Para enviar un mensaje a <strong>{workerName}</strong> necesitas tener
+                una cuenta en Linku. Es gratis y toma menos de 2 minutos.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2.5 pt-1">
+              <Link
+                to="/login"
+                className="btn-primary w-full py-3 text-center block"
+                onClick={onClose}
+              >
+                Iniciar sesión
+              </Link>
+              <Link
+                to="/register"
+                className="btn-secondary w-full py-3 text-center block"
+                onClick={onClose}
+              >
+                Registrarse gratis
+              </Link>
+            </div>
+            <button onClick={onClose} className="text-xs cursor-pointer" style={{ color: 'var(--ink-muted)' }}>
+              Cancelar
+            </button>
+          </div>
+        ) : sent ? (
           <div className="px-6 py-10 text-center space-y-4">
             <div
               className="w-16 h-16 rounded-full mx-auto flex items-center justify-center"
