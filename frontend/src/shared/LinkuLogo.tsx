@@ -1,80 +1,139 @@
-// LinkuLogo — marca Linku (L + dot de "link")
-// Variantes: mark solo, mark en container terracota, wordmark completo
+// LinkuLogo — logo real de Linku con variantes de color
+// Variante default: sobre fondos claros
+// Variante white: sobre fondos oscuros (auth, footer, hero oscuro)
+// Variante mono-terra: sobre fondos de color medio
+// Variante contained: con contenedor terracota (favicon, avatar)
 
-interface MarkProps { size?: number; color?: string }
+export type LogoVariant = 'default' | 'white' | 'mono-terra' | 'contained'
 
-export const LinkuMark: React.FC<MarkProps> = ({ size = 18, color = 'currentColor' }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <path
-      d="M8 5 L8 16 Q8 19 11 19 L17 19"
-      stroke={color} strokeWidth="2.6" strokeLinecap="round" fill="none"
-    />
-    <circle cx="17" cy="19" r="1.7" fill={color} />
-  </svg>
-)
+interface Colors {
+  l: string
+  dot: string
+  blob: string
+}
 
-interface LogoProps { size?: number }
+function getColors(variant: LogoVariant): Colors {
+  switch (variant) {
+    case 'white':
+      return { l: '#ffffff', dot: 'rgba(255,255,255,0.65)', blob: 'rgba(255,255,255,0.55)' }
+    case 'mono-terra':
+      return { l: '#ffffff', dot: 'rgba(255,255,255,0.55)', blob: 'rgba(255,255,255,0.45)' }
+    case 'contained':
+      return { l: '#ffffff', dot: 'rgba(255,255,255,0.75)', blob: 'rgba(255,255,255,0.65)' }
+    default:
+      return { l: '#c2562e', dot: '#3d2818', blob: '#3d2818' }
+  }
+}
 
-export const LinkuLogo: React.FC<LogoProps> = ({ size = 34 }) => (
-  <span style={{
-    width: size,
-    height: size,
-    borderRadius: size * 0.27,
-    background: 'linear-gradient(135deg, #d97757, #c2562e)',
-    display: 'grid',
-    placeItems: 'center',
-    color: '#fff',
-    flexShrink: 0,
-    boxShadow: '0 4px 12px -4px rgba(194,86,46,0.5), inset 0 1px 0 rgba(255,255,255,0.2)',
-  }}>
-    <LinkuMark size={Math.round(size * 0.53)} color="#fff" />
-  </span>
-)
+interface MarkProps {
+  size?: number
+  variant?: LogoVariant
+}
 
-interface FullProps { size?: number; showSubtitle?: boolean; variant?: 'default' | 'white' | 'terracota' }
-
-export const LinkuLogoFull: React.FC<FullProps> = ({ size = 34, showSubtitle = true, variant = 'default' }) => {
-  const nameColor = variant === 'white' ? '#ffffff' : 'var(--ink-strong)'
-  const subtitleColor = variant === 'white' ? 'rgba(255,255,255,0.55)' : 'var(--ink-muted)'
-  const iconBg = variant === 'white'
-    ? 'rgba(255,255,255,0.15)'
-    : 'linear-gradient(135deg, #d97757, #c2562e)'
-  const iconBorder = variant === 'white' ? '1px solid rgba(255,255,255,0.20)' : 'none'
-
+// Solo el símbolo del logo (sin texto ni contenedor)
+export const LinkuMark: React.FC<MarkProps> = ({ size = 32, variant = 'default' }) => {
+  const c = getColors(variant)
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-      <span style={{
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 100 100"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      {/* L — trazo vertical */}
+      <rect x="18" y="10" width="22" height="65" rx="11" fill={c.l} />
+      {/* L — trazo horizontal */}
+      <rect x="18" y="55" width="52" height="22" rx="11" fill={c.l} />
+      {/* Círculo marrón — parte superior derecha */}
+      <circle cx="68" cy="36" r="10" fill={c.dot} />
+      {/* Gota/blob marrón — esquina inferior derecha */}
+      <ellipse cx="62" cy="72" rx="18" ry="16" fill={c.blob} />
+    </svg>
+  )
+}
+
+interface LogoProps {
+  size?: number
+  variant?: LogoVariant
+}
+
+// Logo con contenedor cuadrado redondeado (modo "app icon")
+export const LinkuLogo: React.FC<LogoProps> = ({ size = 36, variant = 'contained' }) => {
+  const isContained = variant === 'contained' || variant === 'default'
+  return (
+    <span
+      style={{
         width: size,
         height: size,
-        borderRadius: size * 0.27,
-        background: iconBg,
-        border: iconBorder,
+        borderRadius: size * 0.28,
+        background: isContained
+          ? 'linear-gradient(135deg, #d97757 0%, #c2562e 100%)'
+          : 'transparent',
+        border: variant === 'white' ? '1px solid rgba(255,255,255,0.18)' : 'none',
         display: 'grid',
         placeItems: 'center',
         flexShrink: 0,
-        boxShadow: variant !== 'white' ? '0 4px 12px -4px rgba(194,86,46,0.5), inset 0 1px 0 rgba(255,255,255,0.2)' : 'none',
-      }}>
-        <LinkuMark size={Math.round(size * 0.53)} color="#fff" />
-      </span>
+        boxShadow: isContained
+          ? '0 4px 14px -4px rgba(194,86,46,0.45), inset 0 1px 0 rgba(255,255,255,0.18)'
+          : 'none',
+        overflow: 'hidden',
+      }}
+    >
+      <LinkuMark
+        size={Math.round(size * 0.70)}
+        variant={isContained ? 'contained' : variant}
+      />
+    </span>
+  )
+}
+
+interface FullProps {
+  size?: number
+  variant?: LogoVariant
+  showSubtitle?: boolean
+}
+
+// Wordmark completo: ícono + "Linku" + subtítulo DRTPE
+export const LinkuLogoFull: React.FC<FullProps> = ({
+  size = 36,
+  variant = 'default',
+  showSubtitle = true,
+}) => {
+  const nameColor = variant === 'white' || variant === 'mono-terra'
+    ? '#ffffff'
+    : 'var(--ink-strong)'
+  const subtitleColor = variant === 'white' || variant === 'mono-terra'
+    ? 'rgba(255,255,255,0.50)'
+    : 'var(--ink-muted)'
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <LinkuLogo size={size} variant={variant} />
       <div>
-        <div style={{
-          fontSize: size * 0.47,
-          fontWeight: 600,
-          letterSpacing: '-0.02em',
-          color: nameColor,
-          lineHeight: 1.2,
-        }}>
+        <div
+          style={{
+            fontSize: size * 0.47,
+            fontWeight: 700,
+            letterSpacing: '-0.025em',
+            color: nameColor,
+            lineHeight: 1.15,
+          }}
+        >
           Linku
         </div>
         {showSubtitle && (
-          <div style={{
-            fontSize: 10.5,
-            color: subtitleColor,
-            fontFamily: 'Geist Mono, monospace',
-            letterSpacing: '0.06em',
-            textTransform: 'uppercase',
-            lineHeight: 1.2,
-          }}>
+          <div
+            style={{
+              fontSize: 10,
+              color: subtitleColor,
+              fontFamily: 'Geist Mono, monospace',
+              letterSpacing: '0.055em',
+              textTransform: 'uppercase',
+              lineHeight: 1.2,
+              marginTop: 1,
+            }}
+          >
             DRTPE Junín · Empleo formal
           </div>
         )}
@@ -83,32 +142,12 @@ export const LinkuLogoFull: React.FC<FullProps> = ({ size = 34, showSubtitle = t
   )
 }
 
-// Variante sobre fondo oscuro (sidenav oscuro, headers dark)
-export const LinkuLogoOnDark: React.FC<LogoProps> = ({ size = 34 }) => (
-  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-    <span style={{
-      width: size,
-      height: size,
-      borderRadius: size * 0.27,
-      background: 'rgba(255,255,255,0.10)',
-      border: '1px solid rgba(255,255,255,0.14)',
-      display: 'grid',
-      placeItems: 'center',
-      flexShrink: 0,
-    }}>
-      <LinkuMark size={Math.round(size * 0.53)} color="#fff" />
-    </span>
-    <div>
-      <div style={{ fontSize: size * 0.47, fontWeight: 600, letterSpacing: '-0.02em', color: '#fff', lineHeight: 1.2 }}>
-        Linku
-      </div>
-      <div style={{ fontSize: 10.5, color: 'rgba(253,246,234,0.55)', letterSpacing: '0.06em', textTransform: 'uppercase', lineHeight: 1.2 }}>
-        DRTPE Junín
-      </div>
-    </div>
-  </div>
+// Solo el ícono sin texto — alias conveniente
+export const LinkuLogoIcon: React.FC<LogoProps> = ({ size = 36, variant = 'contained' }) => (
+  <LinkuLogo size={size} variant={variant} />
 )
 
-export const LinkuLogoIcon: React.FC<{ size?: number; variant?: 'default' | 'white' | 'terracota' }> = ({ size = 34 }) => (
-  <LinkuLogo size={size} />
+// Alias para compatibilidad con código existente que usa LinkuLogoOnDark
+export const LinkuLogoOnDark: React.FC<{ size?: number }> = ({ size = 36 }) => (
+  <LinkuLogoFull size={size} variant="white" />
 )

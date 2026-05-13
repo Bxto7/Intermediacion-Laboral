@@ -48,7 +48,7 @@ export const LoginPage: React.FC = () => {
           <div className="absolute bottom-0 right-0 w-36 h-36 rounded-full opacity-20 blur-3xl pointer-events-none" style={{ background: '#7a8c5c' }} />
 
           <div className="relative z-10">
-            <LinkuLogoFull size={36} variant="terracota" />
+            <LinkuLogoFull size={36} variant="default" />
           </div>
 
           <div className="relative z-10 space-y-6">

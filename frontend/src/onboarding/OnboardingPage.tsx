@@ -70,7 +70,7 @@ export const OnboardingPage: React.FC = () => {
 
         {/* Header */}
         <div className="flex items-center justify-center mb-10">
-          <LinkuLogoFull size={40} variant="terracota" />
+          <LinkuLogoFull size={40} variant="default" />
         </div>
 
         {/* Progress bar */}

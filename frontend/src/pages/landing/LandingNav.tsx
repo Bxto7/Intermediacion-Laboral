@@ -19,7 +19,7 @@ export const LandingNav: React.FC<Props> = ({ onLoginClick, scrolled }) => {
       <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center gap-2.5">
-          <LinkuLogoIcon size={36} variant="terracota" />
+          <LinkuLogoIcon size={36} variant="default" />
           <div className="leading-tight">
             <p className="text-sm font-bold" style={{ color: '#3d2818', letterSpacing: '-0.02em' }}>Linku</p>
             <p className="text-[10px] font-mono uppercase tracking-wider" style={{ color: '#8a6648' }}>DRTPE-Junín · Empleo formal</p>

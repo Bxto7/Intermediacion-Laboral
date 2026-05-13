@@ -54,7 +54,7 @@ export const LoginModal: React.FC<Props> = ({ onClose }) => {
           <div className="absolute bottom-0 right-0 w-36 h-36 rounded-full opacity-20 blur-3xl" style={{ background: '#7a8c5c' }} />
 
           <div className="relative z-10">
-            <LinkuLogoFull size={32} variant="terracota" />
+            <LinkuLogoFull size={32} variant="default" />
           </div>
 
           <div className="relative z-10 space-y-5">

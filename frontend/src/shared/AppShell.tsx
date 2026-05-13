@@ -233,7 +233,7 @@ const TopBar: React.FC<{ onMenuToggle: () => void }> = ({ onMenuToggle }) => {
           </svg>
         </button>
         <NavLink to="/dashboard" className="md:hidden flex items-center gap-2">
-          <LinkuMark size={20} color="var(--terra-500)" />
+          <LinkuMark size={20} variant="default" />
           <span className="font-semibold text-sm" style={{ color: 'var(--ink-strong)', letterSpacing: '-0.02em' }}>Linku</span>
         </NavLink>
       </div>

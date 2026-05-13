@@ -27,7 +27,7 @@ export const NavBar: React.FC = () => {
 
         {/* Logo */}
         <Link to="/dashboard" className="flex items-center gap-2.5 group">
-          <LinkuLogoIcon size={30} variant="terracota" />
+          <LinkuLogoIcon size={30} variant="contained" />
           <div className="hidden sm:block leading-tight">
             <span className="font-bold text-sm tracking-tight block" style={{ color: 'var(--ink-strong)' }}>Linku</span>
             <span className="font-mono text-[9px] uppercase tracking-widest" style={{ color: 'var(--ink-muted)' }}>DRTPE-Junín</span>
