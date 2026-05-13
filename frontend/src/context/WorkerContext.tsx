@@ -34,9 +34,13 @@ export const WorkerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const { isAuthenticated, user } = useAuthContext()
   const [worker, setWorker] = useState<WorkerProfile | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [fetchAttempted, setFetchAttempted] = useState(false)
 
   const refreshWorker = async () => {
-    if (!isAuthenticated || user?.role !== 'worker') return
+    if (!isAuthenticated || user?.role !== 'worker') {
+      setFetchAttempted(true)
+      return
+    }
     setIsLoading(true)
     try {
       const { data } = await apiClient.get('/workers/me')
@@ -45,17 +49,24 @@ export const WorkerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setWorker(null)
     } finally {
       setIsLoading(false)
+      setFetchAttempted(true)
     }
   }
 
-  useEffect(() => { refreshWorker() }, [isAuthenticated])  // eslint-disable-line
+  useEffect(() => {
+    if (!isAuthenticated) { setWorker(null); setFetchAttempted(false); return }
+    refreshWorker()
+  }, [isAuthenticated])  // eslint-disable-line
+
+  // Mientras no se haya intentado el fetch para un worker autenticado, tratar como loading
+  const effectiveIsLoading = isLoading || (isAuthenticated && user?.role === 'worker' && !fetchAttempted)
 
   const setWorkerType = (t: WorkerType) => {
     setWorker(prev => prev ? { ...prev, worker_type: t } : { id: '', worker_type: t, district: null, trade_category: null, avg_rating: 0, profile_completeness: 0 })
   }
 
   return (
-    <WorkerContext.Provider value={{ workerType: worker?.worker_type ?? null, worker, isLoading, setWorkerType, refreshWorker }}>
+    <WorkerContext.Provider value={{ workerType: worker?.worker_type ?? null, worker, isLoading: effectiveIsLoading, setWorkerType, refreshWorker }}>
       {children}
     </WorkerContext.Provider>
   )

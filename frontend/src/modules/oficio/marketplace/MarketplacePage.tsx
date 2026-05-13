@@ -280,7 +280,7 @@ const ListingCard: React.FC<{
         <div className="flex items-center gap-3">
           {listing.price_reference && (
             <span className="font-semibold" style={{ color: 'var(--ink-warm)' }}>
-              S/. {listing.price_reference.toFixed(0)}
+              S/. {Number(listing.price_reference).toFixed(0)}
               {listing.price_unit && <span className="font-normal"> {PRICE_UNIT_LABELS[listing.price_unit]}</span>}
             </span>
           )}

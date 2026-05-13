@@ -36,15 +36,13 @@ export const NavBar: React.FC = () => {
 
         {/* Nav links */}
         <div className="flex items-center gap-1">
-          {isAuthenticated && (
-            <Link to="/servicios" className="btn-ghost text-xs px-3 py-2" style={{ color: 'var(--ink-warm)' }}>
-              Buscar servicios
-            </Link>
-          )}
           {isAuthenticated && workerType && (
             <>
               <Link to="/dashboard" className="btn-ghost text-xs px-3 py-2" style={{ color: 'var(--ink-warm)' }}>
                 {intl.formatMessage({ id: 'nav.dashboard' })}
+              </Link>
+              <Link to="/marketplace" className="btn-ghost text-xs px-3 py-2" style={{ color: 'var(--ink-warm)' }}>
+                Buscar servicios
               </Link>
               {workerType !== 'primer_empleo' && (
                 <Link to="/matches" className="btn-ghost text-xs px-3 py-2" style={{ color: 'var(--ink-warm)' }}>
@@ -54,11 +52,6 @@ export const NavBar: React.FC = () => {
               {workerType === 'oficio' && (
                 <Link to="/oficio/portfolio" className="btn-ghost text-xs px-3 py-2" style={{ color: 'var(--ink-warm)' }}>
                   Portfolio
-                </Link>
-              )}
-              {workerType && (
-                <Link to="/marketplace" className="btn-ghost text-xs px-3 py-2" style={{ color: 'var(--ink-warm)' }}>
-                  Buscar servicios
                 </Link>
               )}
               {workerType !== 'primer_empleo' && (

@@ -97,7 +97,7 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, onContact }) => {
         <div className="flex items-center justify-between text-xs">
           <span style={{ color: 'var(--ink-warm)' }}>
             {listing.price_reference
-              ? `S/. ${listing.price_reference.toFixed(2)} ${PRICE_UNIT_LABELS[listing.price_unit ?? ''] ?? ''}`
+              ? `S/. ${Number(listing.price_reference).toFixed(2)} ${PRICE_UNIT_LABELS[listing.price_unit ?? ''] ?? ''}`
               : 'Precio a coordinar'}
           </span>
           <span className="flex items-center gap-1" style={{ color: 'var(--ink-muted)' }}>

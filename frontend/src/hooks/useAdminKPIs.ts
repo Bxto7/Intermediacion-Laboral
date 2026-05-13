@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react'
 import apiClient from '../api/client'
 
-interface KPIData {
-  vil: Record<string, { avg_days: number; count: number }>
-  tf: Record<string, { tasa_percent: number; total: number; formalized: number }>
-  tcc: Record<string, { tcc_percent: number; total: number; with_cv: number }>
-  ivm: { ivm_percent: number; active_listings: number; total_oficio: number }
-  cold_start: Record<string, { rate_percent: number; total: number; with_matches: number }>
+export interface KPIData {
+  vil: Record<string, { avg_days: number; n: number }>
+  ivp: Record<string, unknown>
+  tf: Record<string, number>
+  rbs: { avg_pct: number; n_pairs: number }
+  tcc: Record<string, number>
+  ivm: { ivm_pct: number; total_oficio: number }
+  tcss: Record<string, number>
+  calculated_at: string
 }
 
 export const useAdminKPIs = () => {
@@ -14,7 +17,7 @@ export const useAdminKPIs = () => {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    apiClient.get('/admin/kpis')
+    apiClient.get('/admin/dashboard')
       .then(({ data }) => setKpis(data))
       .catch(() => setKpis(null))
       .finally(() => setIsLoading(false))

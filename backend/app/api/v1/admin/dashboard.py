@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.v1.admin import admin_router
 from app.core.database import get_db
 from app.core.redis_client import get_redis
+from app.core.security import decrypt_field
 from app.ml.matching_engine.model_loader import load_model_metrics
 from app.schemas.admin import DashboardResponse, WorkerStatsResponse
 from app.services.reports.kpi_calculator import calculate_all_kpis
@@ -105,3 +106,52 @@ async def invalidate_dashboard_cache():
     except Exception:
         pass
     return {"invalidated": True}
+
+
+@admin_router.get("/workers")
+async def list_workers(
+    limit: int = 100,
+    offset: int = 0,
+    db: AsyncSession = Depends(get_db),
+):
+    """Lista de trabajadores con datos básicos para el panel admin."""
+    sql = text("""
+        SELECT
+            w.id,
+            u.email,
+            w.full_name,
+            w.worker_type,
+            w.district,
+            w.trade_category,
+            w.profile_completeness,
+            w.is_available,
+            u.created_at
+        FROM workers w
+        JOIN users u ON u.id = w.user_id
+        ORDER BY u.created_at DESC
+        LIMIT :limit OFFSET :offset
+    """)
+    rows = (await db.execute(sql, {"limit": limit, "offset": offset})).fetchall()
+
+    total_sql = text("SELECT COUNT(*) FROM workers")
+    total = (await db.execute(total_sql)).scalar() or 0
+
+    workers = []
+    for r in rows:
+        try:
+            name = decrypt_field(r.full_name) if r.full_name else r.email
+        except Exception:
+            name = r.email
+        workers.append({
+            "id": str(r.id),
+            "email": r.email,
+            "name": name,
+            "worker_type": r.worker_type,
+            "district": r.district or "—",
+            "trade_category": r.trade_category or "—",
+            "profile_completeness": r.profile_completeness,
+            "is_available": r.is_available,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+        })
+
+    return {"workers": workers, "total": total}

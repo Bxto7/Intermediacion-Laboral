@@ -26,7 +26,9 @@ export const LoginPage: React.FC = () => {
     setError('')
     try {
       await login(data.email, data.password)
-      navigate('/dashboard')
+      const returnUrl = sessionStorage.getItem('login_return_url') || '/dashboard'
+      sessionStorage.removeItem('login_return_url')
+      navigate(returnUrl)
     } catch {
       setError(intl.formatMessage({ id: 'auth.login.error' }))
     }
