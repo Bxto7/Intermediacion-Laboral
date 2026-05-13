@@ -17,4 +17,26 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // React core + router juntos (react-dom requiere react, Rollup los une de todas formas)
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          // Recharts es pesado (~400 kB) y solo se usa en admin
+          'vendor-charts': ['recharts'],
+          // Internacionalización
+          'vendor-intl': ['react-intl'],
+          // Formularios
+          'vendor-forms': ['react-hook-form', 'zod', '@hookform/resolvers'],
+          // Utilidades pequeñas agrupadas
+          'vendor-utils': ['axios', 'ts-pattern', 'zustand'],
+          // UI
+          'vendor-icons': ['lucide-react'],
+        },
+      },
+    },
+    // Advertir en chunks > 400 kB (antes era 500 kB por defecto)
+    chunkSizeWarningLimit: 400,
+  },
 })

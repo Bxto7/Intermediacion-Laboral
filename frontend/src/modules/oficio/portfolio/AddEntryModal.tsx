@@ -72,7 +72,8 @@ export const AddEntryModal: React.FC<Props> = ({ onClose }) => {
           <h2 className="font-bold" style={{ color: 'var(--ink-strong)' }}>Agregar trabajo realizado</h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+            aria-label="Cerrar modal"
+            className="w-11 h-11 rounded-full flex items-center justify-center transition-colors cursor-pointer"
             style={{ color: 'var(--ink-muted)' }}
             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(61,40,24,0.07)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
@@ -83,8 +84,9 @@ export const AddEntryModal: React.FC<Props> = ({ onClose }) => {
 
         <div className="p-5 space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--ink-warm)' }}>Título del trabajo *</label>
+            <label htmlFor="entry-title" className="block text-sm font-medium mb-1" style={{ color: 'var(--ink-warm)' }}>Título del trabajo *</label>
             <input
+              id="entry-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Ej: Instalación eléctrica residencial en El Tambo"
@@ -94,8 +96,9 @@ export const AddEntryModal: React.FC<Props> = ({ onClose }) => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--ink-warm)' }}>Descripción *</label>
+            <label htmlFor="entry-desc" className="block text-sm font-medium mb-1" style={{ color: 'var(--ink-warm)' }}>Descripción *</label>
             <textarea
+              id="entry-desc"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
@@ -130,7 +133,8 @@ export const AddEntryModal: React.FC<Props> = ({ onClose }) => {
                     <img src={URL.createObjectURL(f)} alt="" className="w-full h-full object-cover" />
                     <button
                       onClick={() => setFiles((p) => p.filter((_, j) => j !== i))}
-                      className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full flex items-center justify-center text-white"
+                      aria-label={`Eliminar foto ${i + 1}`}
+                      className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full flex items-center justify-center text-white cursor-pointer"
                       style={{ background: 'var(--terra-500)' }}
                     >
                       <X size={10} />

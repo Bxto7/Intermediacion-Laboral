@@ -21,15 +21,21 @@ def _validate_uuid(value: str, field_name: str = "id") -> bool:
         return False
 
 
+_sync_session_factory = None
+
+
 def _get_sync_session():
-    from sqlalchemy import create_engine
-    from sqlalchemy.orm import sessionmaker
+    global _sync_session_factory  # noqa: PLW0603
+    if _sync_session_factory is None:
+        from sqlalchemy import create_engine
+        from sqlalchemy.orm import sessionmaker
 
-    from app.core.config import settings
+        from app.core.config import settings
 
-    sync_url = settings.DATABASE_URL.replace("+asyncpg", "")
-    engine = create_engine(sync_url)
-    return sessionmaker(bind=engine)
+        sync_url = settings.DATABASE_URL.replace("+asyncpg", "")
+        engine = create_engine(sync_url, pool_pre_ping=True, pool_size=5, max_overflow=10)
+        _sync_session_factory = sessionmaker(bind=engine)
+    return _sync_session_factory
 
 
 @app.task(name="generate_worker_embedding", queue="embeddings")
@@ -189,24 +195,19 @@ def regenerate_all_embeddings(worker_type: str = "all") -> None:
     from app.models.worker import Worker
 
     session_factory = _get_sync_session()
-    batch_size = 50
+    CHUNK = 50
+    processed = 0
 
     with session_factory() as db:
-        query = select(Worker)
+        query = select(Worker.id)
         if worker_type != "all":
             query = query.where(Worker.worker_type == worker_type)
 
-        workers = db.execute(query).scalars().all()
-        total = len(workers)
-        processed = 0
-
-        for i in range(0, total, batch_size):
-            batch = workers[i : i + batch_size]
+        # Stream IDs only — no ORM objects in memory, avoids loading full worker rows
+        for (worker_id,) in db.execute(query).yield_per(CHUNK):
+            generate_worker_embedding.apply(args=[str(worker_id)])
+            processed += 1
             if processed % 100 == 0:
-                logger.info("regenerate_progress", processed=processed, total=total)
+                logger.info("regenerate_progress", processed=processed, worker_type=worker_type)
 
-            for w in batch:
-                generate_worker_embedding.apply(args=[w.id])
-                processed += 1
-
-    logger.info("regenerate_all_embeddings_complete", worker_type=worker_type, total=total)
+    logger.info("regenerate_all_embeddings_complete", worker_type=worker_type, total=processed)

@@ -34,6 +34,7 @@ from app.schemas.auth import (
     UserResponse,
     VerifyEmailRequest,
 )
+from app.core.config import settings
 from app.tasks.notifications import send_reset_email
 
 router = APIRouter(prefix="/auth", tags=["Autenticacion"])
@@ -263,8 +264,6 @@ async def reset_password(
     body: ResetPasswordRequest,
     db: AsyncSession = Depends(get_db),
 ) -> MessageResponse:
-    from app.core.config import settings
-
     redis = get_redis()
     user_id = await redis.get(f"pwd_reset:{body.token}")
     if not user_id:

@@ -104,7 +104,7 @@ const ListingModal: React.FC<ListingModalProps> = ({ initial, onClose, onCreate,
           <h2 className="font-bold text-base" style={{ color: 'var(--ink-strong)' }}>
             {initial ? 'Editar servicio' : 'Publicar nuevo servicio'}
           </h2>
-          <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center transition-colors" style={{ color: 'var(--ink-muted)' }}>
+          <button onClick={onClose} aria-label="Cerrar" className="w-11 h-11 rounded-full flex items-center justify-center transition-colors cursor-pointer" style={{ color: 'var(--ink-muted)' }} onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(61,40,24,0.07)' }} onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}>
             <X size={16} />
           </button>
         </div>

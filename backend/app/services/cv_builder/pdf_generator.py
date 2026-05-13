@@ -20,6 +20,9 @@ TEMPLATE_MAP = {
     "experiencia": "experiencia.html",
 }
 
+# Module-level singleton: building Environment per call is expensive (filesystem scan + caching)
+_jinja_env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)), autoescape=True)
+
 
 async def generate_cv_pdf(
     worker_id: UUID | str,
@@ -35,8 +38,7 @@ async def generate_cv_pdf(
     template_file = TEMPLATE_MAP.get(worker_type, "experiencia.html")
     context = await _build_template_context(worker, worker_type, db)
 
-    env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)), autoescape=True)
-    template = env.get_template(template_file)
+    template = _jinja_env.get_template(template_file)
     html_content = template.render(**context)
 
     try:

@@ -172,6 +172,7 @@ async def get_public_portfolio(
         select(PortfolioEntry)
         .where(PortfolioEntry.worker_id == str(worker.id), PortfolioEntry.is_public.is_(True))
         .order_by(PortfolioEntry.created_at.desc())
+        .limit(50)
     )
     # Use PublicPortfolioEntryResponse to exclude worker_id UUID (RNF001 audit)
     entries = [_build_public_entry_response(e) for e in entries_result.scalars().all()]
@@ -263,6 +264,14 @@ async def delete_portfolio_entry(
     generate_worker_embedding.delay(str(worker.id))
 
 
+def _sanitize_filename(filename: str | None, fallback: str = "photo.jpg") -> str:
+    """Strip directory components and keep only the bare filename to prevent path traversal."""
+    name = Path(filename or fallback).name
+    # Keep only safe characters: alphanumeric, dot, dash, underscore
+    safe = "".join(c for c in name if c.isalnum() or c in (".", "-", "_"))
+    return safe or fallback
+
+
 @router.post("/entries/{entry_id}/photos", response_model=list[str])
 async def upload_portfolio_photos(
     entry_id: str,
@@ -289,6 +298,7 @@ async def upload_portfolio_photos(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Entrada no encontrada")
 
     from app.core.config import settings
+    from app.services.storage import upload_portfolio_photo, generate_signed_url
 
     new_urls: list[str] = []
     for f in files:
@@ -304,16 +314,23 @@ async def upload_portfolio_photos(
                 detail=f"La foto '{f.filename}' supera el limite de 5 MB",
             )
 
+        safe_name = _sanitize_filename(f.filename)
+
         if settings.ENVIRONMENT == "development":
             save_dir = Path(f"/tmp/portfolio_photos/{entry_id}")  # noqa: S108
             save_dir.mkdir(parents=True, exist_ok=True)
-            safe_name = f.filename or "photo.jpg"
             file_path = save_dir / safe_name
             file_path.write_bytes(content)
             url = f"http://localhost:8000/static/{entry_id}/{safe_name}"
         else:
-            # TODO: Sprint 4 — upload to GCS/S3 using google-cloud-storage or boto3
-            url = f"http://localhost:8000/static/{entry_id}/{f.filename}"
+            try:
+                blob_name = upload_portfolio_photo(content, str(worker.id), safe_name)
+                url = generate_signed_url(blob_name)
+            except ValueError as exc:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail=str(exc),
+                ) from exc
 
         new_urls.append(url)
 

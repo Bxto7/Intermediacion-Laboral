@@ -12,6 +12,11 @@ interface WorkerProfile {
   avg_rating: number
   profile_completeness: number
   display_name?: string
+  full_name?: string
+  job_title?: string | null
+  bio?: string | null
+  is_available?: boolean
+  years_experience?: number
   slug?: string
 }
 

@@ -1,7 +1,9 @@
-import { MapPin } from 'lucide-react'
+import { useState } from 'react'
+import { MapPin, CheckCircle } from 'lucide-react'
 import { useIntl } from 'react-intl'
 import { SkillTag } from '../shared/SkillTag'
 import type { JobMatch } from '../hooks/useMatches'
+import apiClient from '../api/client'
 
 interface Props {
   match: JobMatch
@@ -26,10 +28,42 @@ export const JobMatchCard: React.FC<Props> = ({ match, compact = false }) => {
   const { pct, color } = scoreBar(match.combined_score)
   const label = match.explanation.compatibility_label as keyof typeof labelColors
 
+  const [showApply, setShowApply] = useState(false)
+  const [coverMsg, setCoverMsg] = useState('')
+  const [applying, setApplying] = useState(false)
+  const [applied, setApplied] = useState(false)
+  const [applyError, setApplyError] = useState('')
+
+  const handleApply = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setApplying(true)
+    setApplyError('')
+    try {
+      await apiClient.post('/applications', {
+        job_offer_id: match.job_id,
+        cover_message: coverMsg || null,
+        proposed_rate: null,
+      })
+      setApplied(true)
+      setShowApply(false)
+      setCoverMsg('')
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status
+      if (status === 409) {
+        setApplied(true)
+        setShowApply(false)
+      } else {
+        setApplyError('Error al postular. Intenta de nuevo.')
+      }
+    } finally {
+      setApplying(false)
+    }
+  }
+
   return (
     <div
       className="card-warm hover:-translate-y-0.5 transition-all duration-200"
-      style={{ cursor: 'default', padding: compact ? '12px' : '16px' }}
+      style={{ padding: compact ? '12px' : '16px' }}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
@@ -67,15 +101,49 @@ export const JobMatchCard: React.FC<Props> = ({ match, compact = false }) => {
 
       {!compact && <p className="text-xs mt-2 italic" style={{ color: 'var(--ink-muted)' }}>{match.explanation.message}</p>}
 
-      <div className="mt-3 flex items-center justify-between">
-        <span className="text-xs" style={{ color: 'var(--ink-muted)' }}>Rank #{match.rank}</span>
-        <button
-          className="btn-primary text-xs px-3 py-1.5"
-          style={{ borderRadius: '999px' }}
-        >
-          {intl.formatMessage({ id: 'match.select' })}
-        </button>
-      </div>
+      {/* Apply section */}
+      {applied ? (
+        <div className="mt-3 flex items-center justify-between">
+          <span className="text-xs" style={{ color: 'var(--ink-muted)' }}>Rank #{match.rank}</span>
+          <span className="text-xs font-semibold flex items-center gap-1" style={{ color: 'var(--olive-deep)' }}>
+            <CheckCircle size={13} /> {intl.formatMessage({ id: 'match.applied' })}
+          </span>
+        </div>
+      ) : showApply ? (
+        <form onSubmit={handleApply} className="mt-3 space-y-2">
+          <textarea
+            value={coverMsg}
+            onChange={e => setCoverMsg(e.target.value)}
+            placeholder="Mensaje breve al empleador (opcional)..."
+            rows={2}
+            maxLength={500}
+            className="w-full px-3 py-2 rounded-xl text-xs resize-none focus:outline-none"
+            style={{ border: '1px solid var(--line-strong)', background: 'var(--bg-soft)', color: 'var(--ink-strong)' }}
+            onFocus={e => { e.currentTarget.style.borderColor = 'var(--terra-500)'; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(194,86,46,0.12)' }}
+            onBlur={e => { e.currentTarget.style.borderColor = 'var(--line-strong)'; e.currentTarget.style.boxShadow = 'none' }}
+          />
+          {applyError && <p role="alert" className="text-[11px]" style={{ color: 'var(--terra-500)' }}>{applyError}</p>}
+          <div className="flex gap-2">
+            <button type="button" onClick={() => { setShowApply(false); setApplyError('') }} className="btn-secondary flex-1 py-1.5 text-xs">
+              Cancelar
+            </button>
+            <button type="submit" disabled={applying} className="btn-primary flex-1 py-1.5 text-xs">
+              {applying ? 'Enviando...' : 'Confirmar'}
+            </button>
+          </div>
+        </form>
+      ) : (
+        <div className="mt-3 flex items-center justify-between">
+          <span className="text-xs" style={{ color: 'var(--ink-muted)' }}>Rank #{match.rank}</span>
+          <button
+            onClick={() => setShowApply(true)}
+            className="btn-primary text-xs px-3 py-1.5"
+            style={{ borderRadius: '999px' }}
+          >
+            {intl.formatMessage({ id: 'match.select' })}
+          </button>
+        </div>
+      )}
     </div>
   )
 }

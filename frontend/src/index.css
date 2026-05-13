@@ -77,8 +77,18 @@
   body { background-color: var(--bg-base); }
 
   *:focus-visible {
-    outline: 2px solid var(--terra-500);
+    outline: 2.5px solid var(--terra-500);
     outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 
   ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -106,7 +116,7 @@
   /* ─── Botones — SIEMPRE pill (radius 999px) ─── */
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 px-6 py-3
-           font-medium text-sm text-white
+           font-medium text-sm text-white cursor-pointer
            transition-all duration-150
            disabled:opacity-50 disabled:cursor-not-allowed;
     border-radius: 999px;
@@ -114,12 +124,12 @@
     box-shadow: 0 1px 0 rgba(255,255,255,0.18) inset,
                 0 8px 24px -10px rgba(194,86,46,0.5);
   }
-  .btn-primary:hover { transform: translateY(-1px); filter: brightness(1.05); }
-  .btn-primary:active { transform: translateY(0); }
+  .btn-primary:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.05); }
+  .btn-primary:active:not(:disabled) { transform: translateY(0) scale(0.97); }
 
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 px-6 py-3
-           font-medium text-sm
+           font-medium text-sm cursor-pointer
            transition-all duration-150
            disabled:opacity-50 disabled:cursor-not-allowed;
     border-radius: 999px;
@@ -127,15 +137,17 @@
     color: var(--ink-strong);
     background: transparent;
   }
-  .btn-secondary:hover { border-color: var(--ink-strong); background: rgba(61,40,24,0.04); }
+  .btn-secondary:hover:not(:disabled) { border-color: var(--ink-strong); background: rgba(61,40,24,0.04); }
+  .btn-secondary:active:not(:disabled) { transform: scale(0.97); }
 
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2.5
-           font-medium text-sm transition-all duration-150;
+           font-medium text-sm cursor-pointer transition-all duration-150;
     border-radius: 999px;
     color: var(--ink-warm);
   }
   .btn-ghost:hover { background: rgba(61,40,24,0.05); }
+  .btn-ghost:active { transform: scale(0.97); }
 
   /* ─── Cards ─── */
   .card-warm {
@@ -187,7 +199,7 @@
 
   /* ─── Sidenav item active ─── */
   .nav-item {
-    @apply flex items-center gap-2.5 px-2.5 py-2 rounded-[10px] text-sm font-medium transition-all duration-150 w-full;
+    @apply flex items-center gap-2.5 px-2.5 py-2 rounded-[10px] text-sm font-medium transition-all duration-150 w-full cursor-pointer;
     color: var(--ink-muted);
   }
   .nav-item:hover { background: rgba(61,40,24,0.05); color: var(--ink-warm); }

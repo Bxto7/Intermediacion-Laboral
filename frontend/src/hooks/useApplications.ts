@@ -33,5 +33,21 @@ export const useApplications = () => {
     setApplications(prev => prev.map(a => a.id === id ? { ...a, status: 'WITHDRAWN' } : a))
   }
 
-  return { applications, isLoading, withdraw, refresh: load }
+  const apply = async (jobOfferId: string, coverMessage?: string, proposedRate?: number): Promise<'ok' | 'duplicate' | 'error'> => {
+    try {
+      const { data } = await apiClient.post('/applications', {
+        job_offer_id: jobOfferId,
+        cover_message: coverMessage || null,
+        proposed_rate: proposedRate || null,
+      })
+      setApplications(prev => [data, ...prev])
+      return 'ok'
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status
+      if (status === 409) return 'duplicate'
+      return 'error'
+    }
+  }
+
+  return { applications, isLoading, withdraw, apply, refresh: load }
 }
