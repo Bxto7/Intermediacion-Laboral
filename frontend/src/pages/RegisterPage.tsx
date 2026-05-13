@@ -47,11 +47,21 @@ export const RegisterPage: React.FC = () => {
         
         {/* Lado derecho - Visual / Branding */}
         <div className="hidden lg:flex lg:w-[48%] flex-col justify-between p-12 relative overflow-hidden"
-             style={{ background: 'linear-gradient(160deg, #1e3a5f 0%, #2d5a82 100%)' }}>
-          
-          {/* Radial Glows */}
-          <div className="absolute top-0 left-0 w-48 h-48 rounded-full opacity-30 blur-3xl pointer-events-none" style={{ background: '#4d6a8a' }} />
-          <div className="absolute bottom-0 right-0 w-64 h-64 rounded-full opacity-20 blur-3xl pointer-events-none" style={{ background: '#7a8c5c' }} />
+             style={{ background: 'var(--grad-auth)', position: 'relative', overflow: 'hidden' }}>
+
+          {/* Glows de fondo */}
+          <div className="absolute -top-20 -left-20 w-72 h-72 rounded-full opacity-20 blur-3xl pointer-events-none"
+            style={{ background: 'var(--grad-glow-blue)' }} />
+          <div className="absolute -bottom-20 -right-20 w-80 h-80 rounded-full opacity-15 blur-3xl pointer-events-none"
+            style={{ background: 'var(--grad-glow-terra)' }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full opacity-10 blur-3xl pointer-events-none"
+            style={{ background: 'radial-gradient(ellipse, rgba(122,140,92,0.4) 0%, transparent 70%)' }} />
+          {/* Grid de puntos decorativo */}
+          <div className="absolute inset-0 opacity-5 pointer-events-none"
+            style={{
+              backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.6) 1px, transparent 1px)',
+              backgroundSize: '28px 28px',
+            }} />
 
           <div className="relative z-10">
             <LinkuLogoFull size={36} variant="white" />

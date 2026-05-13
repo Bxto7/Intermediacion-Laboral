@@ -45,12 +45,25 @@ async def create_worker_profile(
     trade_category: TradeCategory | None,
     db: AsyncSession,
 ) -> Worker:
+    from app.core.redis_client import get_redis
+
+    redis = get_redis()
+    identity_raw = await redis.get(f"reg_identity:{user_id}")
+    full_name_plain = "pendiente"
+    dni_plain = "00000000"
+    if identity_raw:
+        parts = identity_raw.split("|", 1)
+        if len(parts) == 2:
+            full_name_plain = parts[0] or "pendiente"
+            dni_plain = parts[1] or "00000000"
+        await redis.delete(f"reg_identity:{user_id}")
+
     username = await _generate_unique_username(f"usuario{user_id[:6]}", db)
     worker = Worker(
         user_id=user_id,
         worker_type=worker_type.value,
-        full_name=encrypt_field("pendiente"),
-        dni=encrypt_field("00000000"),
+        full_name=encrypt_field(full_name_plain),
+        dni=encrypt_field(dni_plain),
         trade_category=trade_category.value if trade_category else None,
         profile_completeness=0,
         username=username,

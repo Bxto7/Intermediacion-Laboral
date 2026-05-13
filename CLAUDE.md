@@ -1,6 +1,6 @@
 # CLAUDE.md — Sistema de Intermediación Laboral ML/NLP
 # DRTPE-Junín | Huancayo, Perú | 2026
-# Última actualización: Sprint 1 — Rojas Peña W. / Tovar Sanchez C.
+# Última actualización: Sprint 5 — Rojas Peña W. / Tovar Sanchez C.
 
 ---
 
@@ -8,839 +8,596 @@
 
 **Título:** IMPLEMENTACIÓN DE UN SISTEMA DE INTERMEDIACIÓN LABORAL MEDIANTE MACHINE LEARNING Y NLP PARA LA REDUCCIÓN DE BRECHAS DE ACCESO AL EMPLEO EN ARTICULACIÓN CON LA DIRECCIÓN REGIONAL DE TRABAJO Y PROMOCIÓN DEL EMPLEO JUNÍN
 
+**Nombre comercial:** Linku
 **Investigadores:** Rojas Peña, William Mikeiel | Tovar Sanchez, Carlos Alberto
-**Stack:** FastAPI + PostgreSQL/pgvector + React + Celery/Redis + Docker + GCP/AWS
+**Stack:** FastAPI + PostgreSQL/pgvector + React 18 + Celery/Redis + Docker + GCP/AWS
 **Metodología:** Scrum (sprints de 2 semanas) | Investigación aplicada cuantitativa explicativa
 **Institución socia:** DRTPE-Junín — integración con la Bolsa de Trabajo oficial
+**Estado actual:** Sprint 5 completado. Backend en producción. Frontend funcional.
 **Documento normativo de RF/RNF:** Subcap. 4.3.2 (165 RF + 23 RNF) — toda implementación debe trazarse a un RF.
 
-### Problema central que resuelve
+---
 
-La plataforma atiende a **tres grupos poblacionales** con brechas distintas de acceso al empleo formal en la región Junín (informalidad superior al 75% de la PEA). El onboarding clasifica al usuario en uno de estos tipos y todo el resto del producto se diferencia a partir de allí.
+## 🗺️ ESTADO DEL PROYECTO POR SPRINT
 
-| Grupo | Problema específico | Solución en la plataforma |
-|-------|---------------------|--------------------------|
-| **PRIMER_EMPLEO** | Sin historial laboral; no saben describir habilidades ni armar CV | Onboarding guiado paso a paso + generación asistida de CV con NLP |
-| **EXPERIENCIA** | Perfil disperso o solo físico; difícil visibilidad digital | Creación/importación rápida de perfil + bolsa de empleo formal |
-| **OFICIO** | Competencias prácticas no certificadas, invisibles digitalmente | Portfolio visual de trabajos + CV automático + marketplace de servicios |
-
-### Trazabilidad RF → módulo del código
-
-Cada módulo del backend implementa un rango concreto de RF del subcapítulo 4.3.2. Al abrir un PR siempre debe declararse qué RF cubre.
-
-| Módulo del subcap. 4.3.2 | Rango RF | Carpeta backend principal |
-|---|---|---|
-| M01 Identidad y Autenticación | RF001–RF015 | `app/api/auth`, `app/core/security` |
-| M02 Perfil del Trabajador | RF016–RF035 | `app/services/onboarding`, `app/services/cv_builder` |
-| M03 Empleadores y Ofertas | RF036–RF055 | `app/services/job_board` |
-| M04 NLP de Competencias | RF056–RF075 | `app/nlp/` |
-| M05 Motor ML de Emparejamiento | RF076–RF095 | `app/ml/matching_engine` |
-| M06 Asistente de Identidad Laboral | RF096–RF110 | `app/services/cv_builder` (wizard) |
-| M07 Búsqueda y Recomendación | RF111–RF125 | `app/services/matching`, `app/services/marketplace` |
-| M08 Notificaciones | RF126–RF135 | `app/tasks/notifications` |
-| M09 Reportes DRTPE | RF136–RF145 | `app/api/admin`, `app/tasks/reports` |
-| M10 Equidad y Explicabilidad | RF146–RF155 | `app/ml/equity_ranker`, `app/ml/explainer` |
-| M11 Administración | RF156–RF160 | `app/api/admin` |
-| M12 Integración Institucional | RF161–RF165 | `app/integrations/drtpe` |
+| Sprint | Estado | Qué se entregó |
+|--------|--------|----------------|
+| Sprint 1 | ✅ Completo | Auth JWT, onboarding, modelos BD, migraciones, Docker |
+| Sprint 2 | ✅ Completo | NLP real, empleadores, wizard PRIMER_EMPLEO, portfolio OFICIO, marketplace |
+| Sprint 3 | ✅ Completo | Motor ML matching, embeddings reales, equity ranker, cold-start |
+| Sprint 4 | ✅ Completo | Contratos, consentimiento Ley 29733, notificaciones WebSocket, admin DRTPE |
+| Sprint 5 | ✅ Completo | KPIs, reportes, encuestas económicas, integración DRTPE, tests finales |
+| Bugfix pendiente | ⚠️ En curso | 7 bugs de flujo público/marketplace frontend (ver sección BUGS CONOCIDOS) |
 
 ---
 
-## 🏗️ ARQUITECTURA DEL SISTEMA
+## 👤 TIPOS DE USUARIO Y FLUJOS
+
+La plataforma atiende a **tres grupos poblacionales**. El onboarding clasifica al usuario y todo el producto se diferencia desde ese punto.
+
+| Grupo | Problema | Solución |
+|-------|----------|----------|
+| **PRIMER_EMPLEO** | Sin historial laboral, no saben describir habilidades ni armar CV | Wizard guiado 6 pasos + generación asistida de CV con NLP |
+| **EXPERIENCIA** | Perfil disperso o solo físico, difícil visibilidad digital | Bolsa formal tipo LinkedIn + matching ML |
+| **OFICIO** | Competencias prácticas no certificadas, invisibles digitalmente | Portfolio visual + marketplace de servicios + CV automático |
+
+### Reglas de flujo por tipo — CRÍTICAS
 
 ```
-frontend/
-  src/
-    onboarding/        → Detección de tipo de usuario (3 rutas)
-    modules/
-      primer-empleo/   → Wizard guiado CV + orientación laboral
-      experiencia/     → Dashboard tipo bolsa profesional
-      oficio/          → Portfolio visual + marketplace de servicios
-    shared/            → Componentes comunes, i18n, hooks
-    matching/          → Vista de recomendaciones explicables
-    employer/          → Dashboard de empleadores (publicar, buscar)
-    admin/             → Panel DRTPE-Junín
+PRIMER_EMPLEO puede:
+  ✅ Usar el wizard de 6 pasos
+  ✅ Generar CV desde el wizard
+  ✅ Ver ofertas de empleo (bolsa formal)
+  ✅ Ver el marketplace público (/servicios y /marketplace) como visitante
+  ✅ Postular a ofertas de trabajo
+  ❌ No puede crear portfolio (usa el wizard)
+  ❌ No puede publicar en el marketplace
 
-backend/
-  app/
-    api/               → Routers FastAPI por módulo (v1)
-    core/              → Config, seguridad JWT, DB, Redis
-    models/            → SQLAlchemy ORM models
-    schemas/           → Pydantic v2 schemas
-    services/
-      onboarding/      → Lógica de detección y enrutamiento por tipo
-      cv_builder/      → Wizard + generación asistida de CV
-      portfolio/       → Gestión del portfolio visual (oficio)
-      job_board/       → Bolsa formal + integración DRTPE
-      marketplace/     → Publicación y búsqueda de servicios de oficio
-      matching/        → Motor de emparejamiento diferenciado
-    nlp/
-      skill_extractor/ → NER de habilidades (spaCy)
-      embeddings/      → Vectorización de perfiles y ofertas
-      cv_parser/       → Parser de CVs subidos (PDF/DOCX)
-      skill_suggester/ → Sugerencia de habilidades (primer empleo)
-      portfolio_nlp/   → Extracción semántica desde descripciones de trabajos
-    ml/
-      matching_engine/ → Emparejamiento supervisado
-      equity_ranker/   → Re-ranking equitativo por género/zona
-      cold_start/      → Resolución de arranque en frío
-      explainer/       → Razones de recomendación (RF146–RF150)
-    integrations/
-      drtpe/           → Conector con la Bolsa de Trabajo DRTPE-Junín
-    tasks/             → Celery: embeddings, reportes, notificaciones, emails
-    utils/
-      local_dict/      → Diccionario de equivalencias Huancayo
-      cv_templates/    → Plantillas de CV por tipo de usuario
-  migrations/          → Alembic
-  tests/               → pytest (cobertura ≥ 80%)
+EXPERIENCIA puede:
+  ✅ Subir CV existente (PDF/DOCX) o crear perfil manual
+  ✅ Ver y postular a la bolsa formal de empleo
+  ✅ Ver el marketplace público (/servicios y /marketplace)
+  ✅ Contactar trabajadores de oficio
+  ❌ No puede crear portfolio (solo OFICIO)
+  ❌ No puede publicar en el marketplace
 
-docker-compose.yml
-CLAUDE.md              → Este archivo
+OFICIO puede:
+  ✅ Crear portfolio visual de trabajos
+  ✅ Publicar en el marketplace de servicios
+  ✅ Generar CV automático desde el portfolio
+  ✅ Ver la bolsa formal de empleo
+  ✅ Ver y administrar sus listings del marketplace
+
+VISITANTE (sin cuenta) puede:
+  ✅ Ver la landing page (/)
+  ✅ Ver el marketplace público (/servicios)
+  ✅ Ver perfiles públicos de portfolios (/p/{slug})
+  ✅ Ver el feed de empleos (/jobs/feed)
+  ⚠️ Al intentar contactar → modal de "Inicia sesión para contactar"
+  ⚠️ El modal redirige a /login guardando la URL de retorno en sessionStorage
 ```
 
 ---
 
-## 👤 FLUJOS DE USUARIO — NÚCLEO DEL SISTEMA
+## 🏗️ ARQUITECTURA REAL DEL SISTEMA
 
-### Flujo 0 — Onboarding de detección de tipo (obligatorio)
-
-Antes de cualquier funcionalidad, el sistema clasifica al usuario en uno de los tres tipos. La detección se hace con dos preguntas conversacionales y el resultado se persiste en `workers.worker_type`. Cambiar el tipo después solo es posible con solicitud explícita del usuario y confirmación.
+### Backend — estructura actual de archivos
 
 ```
-Registro → Pantalla de detección →
-  Pregunta 1: "¿Estás buscando tu primer empleo?"
-    SI → tipo = PRIMER_EMPLEO
-    NO → Pregunta 2: "¿Trabajas en un oficio? (electricista, gasfitero, carpintero, etc.)"
-      SI → tipo = OFICIO
-      NO → tipo = EXPERIENCIA
+backend/app/
+  api/v1/
+    admin/dashboard.py       → Panel DRTPE-Junín (RF156–RF160)
+    alerts.py                → Alertas de empleo configurables
+    applications.py          → Postulaciones (RF051–RF055)
+    auth.py                  → Autenticación JWT (RF001–RF015)
+    contracts.py             → Contratos formales (RF161–RF165)
+    cv.py                    → Generación de CVs PDF
+    employers.py             → Empleadores y ofertas (RF036–RF050)
+    jobs.py                  → Feed público de ofertas (RF055)
+    marketplace.py           → Marketplace de servicios OFICIO (RF118–RF125)
+    matching.py              → Motor de emparejamiento (RF076–RF095)
+    nlp.py                   → Endpoints NLP (RF056–RF079)
+    onboarding.py            → Detección de tipo (RF016–RF025)
+    portfolio.py             → Portfolio OFICIO (RF056–RF065)
+    router.py                → Router principal que agrupa todos
+    surveys.py               → Encuestas económicas (KPIs)
+    wizard.py                → Wizard PRIMER_EMPLEO (RF096–RF110)
+    workers.py               → Perfil base trabajadores (RF026–RF035)
+    ws_notifications.py      → WebSocket notificaciones en tiempo real
+
+  core/
+    config.py                → Settings Pydantic (lee .env)
+    consent.py               → Consentimiento Ley N°29733
+    database.py              → AsyncEngine SQLAlchemy + get_db()
+    logging.py               → structlog JSON
+    rate_limit.py            → Sliding window Redis, X-Forwarded-For en prod
+    rate_limiter.py          → Decoradores de rate limit por endpoint
+    redis_client.py          → Cliente Redis async singleton
+    security.py              → JWT RS256, AES-256, bcrypt, RBAC
+    security_headers.py      → Middleware headers de seguridad
+
+  models/
+    application.py           → Postulaciones
+    audit_log.py             → Logs inmutables de auditoría
+    base.py                  → Base declarativa SQLAlchemy
+    consent_record.py        → Registros de consentimiento
+    contract.py              → Contratos formalizados
+    economic_survey.py       → Encuestas económicas KPI
+    employer.py              → Empleadores
+    equity_audit_log.py      → Log de auditoría de equidad ML
+    generated_cv.py          → CVs generados
+    job.py                   → Trabajos/empleos
+    job_alert.py             → Alertas configuradas
+    job_offer.py             → Ofertas de empleo
+    match_event.py           → Eventos de matching (KPI)
+    model_version.py         → Versiones del modelo ML
+    notification.py          → Notificaciones persistentes
+    portfolio.py             → Portfolio entries OFICIO
+    search_log.py            → Logs de búsqueda (KPI IVP)
+    service_listing.py       → Listings marketplace OFICIO
+    tracking.py              → Tracking de acciones
+    user.py                  → Usuarios del sistema
+    wizard.py                → Progreso wizard PRIMER_EMPLEO
+    worker.py                → Perfil trabajador (todos los tipos)
+
+  nlp/
+    cv_parser/parser.py      → PyPDF2 + python-docx + spaCy NER
+    embeddings/generator.py  → sentence-transformers MiniLM-L12-v2 (384 dims)
+    portfolio_nlp/trade_extractor.py → Extracción skills desde descripciones oficio
+    skill_extractor/first_job_extractor.py → Extracción coloquial PRIMER_EMPLEO
+
+  ml/
+    cold_start/resolver.py   → Cold-start PRIMER_EMPLEO y OFICIO sin historial
+    equity_ranker/ranker.py  → Re-ranking equitativo (disparate impact ≥ 0.80)
+    explainer/explainer.py   → Explicaciones de recomendaciones
+    matching_engine/
+      dataset_builder.py     → Construcción dataset de entrenamiento
+      drift_detector.py      → Detección de drift PSI
+      features.py            → Feature engineering
+      model_loader.py        → Carga de modelo entrenado
+      scorer.py              → Scoring combinado por worker_type
+      trainer.py             → Entrenamiento del modelo
+
+  integrations/drtpe/connector.py → Conector Bolsa de Trabajo DRTPE-Junín
+
+  services/
+    cv_builder/
+      pdf_generator.py       → WeasyPrint, plantillas por tipo
+      wizard_service.py      → Lógica del wizard 6 pasos
+    marketplace/marketplace_service.py → CRUD listings + búsqueda semántica
+    matching/job_alerts.py   → Alertas de empleo
+    onboarding/detector.py   → Detección de tipo + creación de perfil
+    reports/kpi_calculator.py → Cálculo de los 8 KPIs de investigación
+
+  tasks/
+    celery_app.py            → Instancia Celery + broker Redis
+    cv_generator.py          → Generación asíncrona de CVs PDF
+    emails.py                → Envío de emails (stub en dev)
+    embeddings.py            → generate_worker/job/portfolio/listing_embedding
+    ml_tasks.py              → Reentrenamiento del modelo ML
+    notifications.py         → Notificaciones push + WebSocket
+    reports.py               → Reportes DRTPE asíncronos
+
+  utils/
+    file_validator.py        → Validación MIME + tamaño archivos
+    local_dict/              → huancayo_trades.json
+    seed_jobs.py             → Seed de datos de prueba
+
+migrations/versions/
+  0001_initial_schema.py
+  0002_job_offers.py
+  0003_worker_profile_fields.py
+  0004_add_match_events.py
+  0005_ml_matching_tables.py
+  466614a36609_sprint4_consent_records.py
+  7d5a80f3517d_add_job_requests_and_contracts.py
 ```
 
-```python
-# ✅ Schema de onboarding — punto de entrada (M02 / RF016–RF020)
-class OnboardingAnswers(BaseModel):
-    is_first_job: bool
-    is_trade_worker: bool                # solo relevante si is_first_job = False
-    trade_category: TradeCategory | None = None  # solo si is_trade_worker = True
+### Frontend — estructura actual de archivos
 
-class WorkerType(str, Enum):
-    PRIMER_EMPLEO = "primer_empleo"
-    EXPERIENCIA   = "experiencia"
-    OFICIO        = "oficio"
+```
+frontend/src/
+  pages/
+    LandingPage.tsx          → Landing pública (/) — DEBE ser la ruta raíz
+    LoginPage.tsx            → Login con modal integrado
+    RegisterPage.tsx         → Registro + onboarding
+    PublicPortfolioPage.tsx  → /p/{slug} — perfil público OFICIO
+    ServiceSearchPage.tsx    → /servicios — marketplace público sin auth
+    ApplicationsPage.tsx     → Postulaciones del trabajador
+    EconomicSurveyPage.tsx   → Encuesta económica KPI
+    SettingsPage.tsx         → Configuración de cuenta
+    employer/
+      EmployerPublishPage.tsx
+      EmployerCandidatesPage.tsx
+      EmployerMessagesPage.tsx
+    landing/
+      LandingNav.tsx         → Nav de la landing (tiene link a /servicios)
+      LoginModal.tsx         → Modal de login con return_url
+      data.ts                → Datos estáticos de la landing
 
-# ✅ Reglas:
-#   - El tipo NO cambia sin solicitud explícita del usuario + confirmación
-#   - Siempre pasar WorkerType en queries de matching, recomendación y reportes
-#   - Mezclar lógica de tipos en un mismo servicio está prohibido
+  modules/
+    primer-empleo/
+      PrimerEmpleoDashboard.tsx
+      wizard/
+        WizardLayout.tsx     → Contenedor del wizard 6 pasos
+        WizardProgressBar.tsx
+        WizardNavigation.tsx
+        CVLivePreview.tsx    → Preview en tiempo real
+        steps/
+          Step1PersonalData.tsx
+          Step2Education.tsx
+          Step3Skills.tsx
+          Step4Activities.tsx
+          Step5Interests.tsx
+          Step6Preview.tsx
+    experiencia/
+      ExperienciaDashboard.tsx
+    oficio/
+      OficioDashboard.tsx
+      portfolio/
+        PortfolioPage.tsx
+        PortfolioCard.tsx
+        AddEntryModal.tsx
+      marketplace/
+        MarketplacePage.tsx  → Vista autenticada del marketplace
+                               Tab "mis-servicios" solo para OFICIO
+                               Tab "buscar" para todos los autenticados
+                               Botón "Publicar" solo visible para OFICIO
+
+  shared/
+    AppShell.tsx             → Shell con NavBar para rutas autenticadas
+    NavBar.tsx               → Nav autenticado
+                               "Buscar servicios" → /marketplace (TODOS los auth)
+                               "Portfolio" → /oficio/portfolio (solo OFICIO)
+    ContactModal.tsx         → Modal de contacto
+                               Verifica auth antes de mostrar formulario
+                               Sin auth → panel "Inicia sesión para contactar"
+    WorkerDashboard.tsx      → Enrutador por worker_type
+    LoadingSpinner.tsx
+    LinkuLogo.tsx
+    NotificationBell.tsx
+
+  context/
+    AuthContext.tsx          → Estado de autenticación global
+    WorkerContext.tsx        → Estado del perfil del trabajador
+
+  guards/
+    AuthGuard.tsx            → Redirige a /login si no autenticado
+    WorkerTypeGuard.tsx      → Redirige a /dashboard si tipo incorrecto
+    AdminGuard.tsx           → Redirige a /dashboard si no es admin
+
+  hooks/
+    useMarketplace.ts        → useMarketplaceSearch + useMyListings
+    useMatches.ts            → Motor de matching
+    usePortfolio.ts          → Portfolio OFICIO
+    useApplications.ts       → Postulaciones
+    useEmployer.ts           → Dashboard empleador
+    useNotifications.ts      → WebSocket notificaciones
+    useAdminKPIs.ts          → KPIs panel admin
+
+  api/client.ts              → Axios con interceptores JWT
+
+  App.tsx                    → Rutas principales (ver sección RUTAS)
 ```
 
 ---
 
-### Flujo A — PRIMER_EMPLEO
-
-**Objetivo:** Reducir la barrera de entrada al mercado laboral para personas sin CV ni experiencia documentada. Cubre M06 (RF096–RF110) y parte de M02.
-
-#### Wizard de construcción de CV guiado (6 pasos)
-
-```
-Paso 1 — Datos personales (DNI, nombre, zona, foto)
-Paso 2 — Educación (colegio, instituto, universidad — cualquiera sirve)
-Paso 3 — Habilidades blandas: pregunta conversacional NLP-asistida
-          "¿Eres puntual? ¿Trabajas bien en equipo? ¿Qué haces bien?"
-          → NLP extrae skills y los mapea a taxonomía estándar
-Paso 4 — Actividades previas (voluntariado, proyectos escolares, ayuda familiar)
-          → NLP convierte experiencias informales en competencias transferibles
-Paso 5 — Intereses laborales: el sistema sugiere sectores compatibles
-Paso 6 — Vista previa del CV generado + edición + descarga PDF
-```
-
-```python
-# ✅ NLP para primer empleo — extracción de habilidades desde texto libre
-async def extract_skills_from_conversation(
-    user_text: str,
-    context: FirstJobContext,
-    db: AsyncSession,
-) -> SkillExtractionResult:
-    """
-    Usa spaCy NER + diccionario de habilidades blandas/duras para
-    mapear lenguaje coloquial a competencias estandarizadas.
-    Ej: "ayudo a mi papá en su carpintería" →
-        skills: ["trabajo manual", "trabajo en madera", "colaboración familiar"]
-        suggested_trades: ["Carpintería", "Ebanistería"]
-    """
-    ...
-
-# ✅ Cold-start: generar embedding inicial desde respuestas del wizard
-async def generate_cold_start_profile(
-    answers: WizardAnswers,
-    db: AsyncSession,
-) -> WorkerEmbedding:
-    """
-    Sin historial: construir texto de perfil sintético desde el wizard
-    y generar embedding inicial. Cubre RF096–RF105.
-    """
-    profile_text = build_first_job_profile_text(answers)
-    return await generate_embedding_async(profile_text)
-```
+## 🗺️ RUTAS DEL FRONTEND — DISEÑO CORRECTO
 
 ```tsx
-// ✅ Frontend Wizard — Ruta: /onboarding/primer-empleo
-// - Lenguaje simple y motivador (evitar términos técnicos de RRHH)
-// - Tooltips en cada campo
-// - Barra de progreso (paso X de 6)
-// - Autoguardado por paso (no perder progreso)
-// - Preview de CV en tiempo real en panel derecho
-```
+// Rutas PÚBLICAS (sin AuthGuard, sin WorkerTypeGuard)
+/ → LandingPage                    // primera página para cualquier visitante
+/servicios → ServiceSearchPage     // marketplace público, sin auth
+/p/:slug → PublicPortfolioPage     // portfolio público de trabajador OFICIO
+/login → LoginPage
+/register → RegisterPage
 
-#### Dashboard PRIMER_EMPLEO
+// Rutas con AuthGuard pero sin WorkerTypeGuard (cualquier usuario autenticado)
+/dashboard → WorkerDashboard       // enruta según worker_type
+/marketplace → MarketplacePage     // marketplace para todos los autenticados
+                                   // internamente: tab mis-servicios solo si OFICIO
+                                   // internamente: botón publicar solo si OFICIO
+/applications → ApplicationsPage
+/matches → MatchesPage             // no aplica a PRIMER_EMPLEO
+/settings → SettingsPage
+/survey/economic → EconomicSurveyPage
 
-```
-Panel principal:
-  ├── Mi CV (editable, descargable en PDF)
-  ├── Recomendaciones de empleo (entrada, prácticas, part-time)
-  ├── Orientación laboral:
-  │     ├── "¿Cómo ir a una entrevista?"
-  │     ├── "¿Qué ropa usar?" (contextual por sector)
-  │     ├── "¿Cómo negociar mi primer sueldo?"
-  │     └── Tips semanales personalizados por NLP
-  ├── Empleos del DRTPE-Junín compatibles (entrada)
-  └── Progreso del perfil (% completado + sugerencias)
-```
+// Rutas con WorkerTypeGuard específico
+/wizard/* → WizardLayout           // solo PRIMER_EMPLEO
+/oficio/portfolio → PortfolioPage  // solo OFICIO
 
----
+// Rutas de empleador
+/employer/dashboard → EmployerDashboard
+/employer/publish → EmployerPublishPage
+/employer/candidates → EmployerCandidatesPage
+/employer/messages → EmployerMessagesPage
 
-### Flujo B — EXPERIENCIA
-
-**Objetivo:** Visibilidad digital rápida y conexión con empleo formal. Cubre M02, M03 y M07.
-
-#### Creación de perfil — dos rutas
-
-```
-Ruta B1 — Subir CV existente (PDF/DOCX):
-  → NLP parser extrae nombre, educación, experiencias y skills
-  → El usuario revisa y edita lo extraído
-  → Se genera embedding semántico del perfil
-  → Tiempo estimado: 3 minutos
-
-Ruta B2 — Crear perfil manual (formulario estructurado):
-  → Formulario simplificado tipo bolsa profesional
-  → NLP sugiere habilidades adicionales mientras escribe
-  → Validación en tiempo real de completitud
-  → Tiempo estimado: 8 minutos
-```
-
-```python
-# ✅ Parser de CV — solo para EXPERIENCIA (RF066–RF070)
-async def parse_uploaded_cv(
-    file_content: bytes,
-    file_type: Literal["pdf", "docx"],
-    db: AsyncSession,
-) -> ParsedCVResult:
-    """
-    Extrae entidades del CV subido:
-    - Nombre completo, contacto
-    - Educación (institución, carrera, año)
-    - Experiencias laborales (empresa, cargo, fechas, tareas)
-    - Habilidades explícitas
-    - Certificaciones
-
-    Confianza mínima para prellenar: 0.75.
-    Si confianza < 0.75 → campo vacío con sugerencia al usuario.
-    """
-    ...
-```
-
-#### Dashboard EXPERIENCIA
-
-```
-Panel principal:
-  ├── Perfil profesional (foto, titular, resumen, experiencias)
-  ├── Bolsa formal (DRTPE-Junín + empleadores registrados):
-  │     ├── Feed de ofertas ordenado por score de compatibilidad
-  │     ├── Filtros: sector, distrito, modalidad, rango salarial
-  │     ├── Cada oferta muestra el % de compatibilidad y el porqué
-  │     └── Botón "Postular" → envía perfil al empleador
-  ├── Conexiones: otros trabajadores del sector (red profesional básica)
-  ├── Alertas configurables (keyword, sector, salario)
-  └── Estado de postulaciones (en revisión / entrevista / descartado)
-```
-
-```python
-# ✅ Matching para EXPERIENCIA (M05 / RF076–RF090)
-async def match_experienced_worker(
-    worker_id: UUID,
-    db: AsyncSession,
-    top_k: int = 20,
-) -> list[JobMatchResult]:
-    """
-    1. Recuperar embedding del perfil del trabajador
-    2. Buscar top-K vacantes por cosine similarity (pgvector)
-    3. Re-ranking con modelo supervisado (historial de postulaciones)
-    4. Aplicar filtro equitativo (disparate impact ≥ 0.80)
-    5. Retornar con explicación: skills que coinciden y skills faltantes
-    """
-    ...
+// Admin
+/admin/* → AdminLayout             // solo role=admin
 ```
 
 ---
 
-### Flujo C — OFICIO
+## 🐛 BUGS CONOCIDOS — PENDIENTES DE CORRECCIÓN
 
-**Objetivo:** Convertir la experiencia práctica no documentada en visibilidad digital real. Cubre M02, M04, M07 y partes específicas de M06 (CV automático desde portfolio).
+Estos bugs fueron identificados revisando el código del repo. Están documentados en `docs/sprints/bugfix_frontend_completo.md`.
 
-OFICIO tiene **dos superficies diferenciadas** que conviven:
-
-```
-Superficie C1 — PORTFOLIO VISUAL (identidad laboral digital):
-  Propósito: mostrar "qué sé hacer y qué he hecho"
-
-Superficie C2 — MARKETPLACE DE SERVICIOS (conseguir trabajo ahora):
-  Propósito: publicitar disponibilidad y ser encontrado por clientes/empleadores
-```
-
-#### C1 — Portfolio Visual
-
-```
-Estructura:
-  ├── Header: foto, nombre, oficio principal, zona, disponibilidad (on/off)
-  ├── Tarjetas de trabajos realizados:
-  │     ├── Foto(s) del trabajo (antes/después si aplica)
-  │     ├── Descripción breve en lenguaje propio del trabajador
-  │     ├── NLP convierte la descripción en etiquetas técnicas
-  │     ├── Año/período, cliente (opcional, anónimo)
-  │     └── Calificación del cliente si la hay
-  ├── Habilidades extraídas automáticamente desde los trabajos
-  ├── "CV Automático": botón que genera PDF a partir del portfolio
-  └── Enlace público compartible (URL: /p/{slug})
-```
-
-```python
-# ✅ NLP para portfolio de oficio (RF071–RF075)
-async def extract_skills_from_job_entry(
-    job_description: str,
-    trade_category: TradeCategory,
-    db: AsyncSession,
-) -> JobSkillExtraction:
-    """
-    Transforma descripción informal en habilidades estructuradas.
-    Ej: "instalé el cableado de una casa de 2 pisos en El Tambo,
-         puse los tomacorrientes y el tablero"
-    → habilidades: ["instalación eléctrica residencial", "cableado estructurado",
-                    "tableros eléctricos", "tomacorrientes", "trabajo en altura"]
-    → nivel estimado: intermedio-avanzado
-    """
-    normalized = apply_local_dictionary(job_description)        # 1. Diccionario Huancayo
-    entities = nlp_oficio_pipeline(normalized)                  # 2. NER spaCy ajustado
-    skills = map_to_standard_taxonomy(entities, trade_category) # 3. Taxonomía estándar
-    return JobSkillExtraction(skills=skills, confidence_scores=...)
-
-# ✅ Generación de CV automático desde portfolio (RF106–RF110)
-async def generate_cv_from_portfolio(
-    worker_id: UUID,
-    template: CVTemplate,
-    db: AsyncSession,
-) -> bytes:  # PDF bytes
-    """
-    Compila los trabajos del portfolio en un CV estructurado:
-    - Experiencia: lista ordenada por fecha
-    - Habilidades: skills consolidadas
-    - Calificaciones: promedio de ratings
-    Usa plantillas diferenciadas por oficio.
-    """
-    ...
-
-# ✅ Embedding para OFICIO — incluir habilidades del portfolio (M04 / RF056–RF065)
-def build_trade_profile_text(worker: Worker, portfolio_entries: list[PortfolioEntry]) -> str:
-    all_skills = consolidate_skills_from_portfolio(portfolio_entries)
-    return (
-        f"{worker.trade_category} | {worker.years_experience} años | "
-        f"{worker.district} | {worker.avg_rating:.1f}/5.0 | "
-        f"habilidades: {', '.join(all_skills)} | "
-        f"trabajos realizados: {len(portfolio_entries)}"
-    )
-```
-
-```tsx
-// ✅ Frontend Portfolio — Ruta: /oficio/portfolio
-// - Tarjetas visuales (imagen principal + descripción)
-// - "Agregar trabajo" → formulario simple con cámara/galería
-// - Tags de habilidades autogenerados (editables)
-// - Vista pública compartible (/p/{slug})
-// - "Generar mi CV" → PDF descargable
-// - Toggle de disponibilidad en el header
-// - Lenguaje de oficio, no de RRHH
-```
-
-#### C2 — Marketplace de Servicios de Oficio
-
-Plataforma institucional respaldada por la DRTPE-Junín, con verificación de identidad por DNI, calificaciones verificadas y posibilidad de formalización contractual desde la propia plataforma. Cubre RF118–RF125.
-
-```
-Publicación de servicio:
-  ├── Foto profesional del trabajador
-  ├── Categoría del oficio (desplegable con íconos)
-  ├── Título: "Instalación eléctrica residencial en Huancayo"
-  ├── Descripción: lenguaje propio + NLP enriquece con keywords técnicas
-  ├── Zona de cobertura: Huancayo / El Tambo / Chilca / región
-  ├── Precio referencial: S/. por hora o por proyecto (opcional)
-  ├── Disponibilidad: inmediata / esta semana / este mes
-  ├── Botones: "Contactar" → chat interno | "Ver portfolio"
-  └── Badge DRTPE: ✅ Identidad verificada | ⭐ X trabajos realizados
-
-Feed del marketplace:
-  ├── Categorías con íconos (Electricidad, Gasfitería, Carpintería, etc.)
-  ├── Búsqueda por texto libre (NLP interpreta intención)
-  ├── Filtro por distrito (Huancayo / El Tambo / Chilca)
-  ├── Ordenamiento: más calificado / más cercano / disponible ahora
-  └── Mapa de disponibilidad opcional (marcadores por distrito)
-```
-
-```python
-# ✅ NLP para búsqueda en marketplace (RF118–RF122)
-async def search_marketplace(
-    query: str,
-    district_filter: list[District] | None,
-    db: AsyncSession,
-) -> list[ServiceListing]:
-    """
-    Usuario: "necesito alguien que me arregle las cañerías del baño"
-    → categoría: GASFITERIA
-    → keywords: ["cañería", "baño", "plomería"]
-    → similitud semántica + filtro de distrito
-    → orden: 0.5×similitud + 0.3×rating + 0.2×disponibilidad
-    """
-    normalized_query = apply_local_dictionary(query)
-    query_embedding = await generate_embedding_async(normalized_query)
-    # pgvector cosine search sobre embeddings de listings
-    ...
-```
+| # | Archivo | Bug | Estado |
+|---|---------|-----|--------|
+| 1 | App.tsx | Ruta `/` redirige a dashboard en lugar de mostrar LandingPage | ⚠️ Pendiente |
+| 2 | App.tsx | `/marketplace` bloqueado con WorkerTypeGuard solo para OFICIO | ⚠️ Pendiente |
+| 3 | MarketplacePage.tsx | Botón "Publicar servicio" visible para todos los tipos | ⚠️ Pendiente |
+| 4 | ContactModal.tsx | Abre sin verificar auth, devuelve error 401 crudo | ⚠️ Pendiente |
+| 5 | PublicPortfolioPage + ServiceSearchPage | CTA sin auth manda a /register en vez de /login con return_url | ⚠️ Pendiente |
+| 6 | LoginModal.tsx | Después del login siempre redirige a /dashboard, ignora return_url | ⚠️ Pendiente |
+| 7 | NavBar.tsx | Link a marketplace solo visible para OFICIO | ⚠️ Pendiente |
 
 ---
 
-## ⚙️ STACK TECNOLÓGICO EXACTO
+## ⚙️ STACK TECNOLÓGICO
 
 ### Backend
 - **Python 3.11** — sin excepciones, no usar 3.10 ni 3.12
 - **FastAPI** — routers por módulo, prefijo `/api/v1/`
-- **Pydantic v2** — validación de todos los schemas, no usar v1
-- **SQLAlchemy 2.x** — ORM async, no escribir SQL crudo
+- **Pydantic v2** — validación de todos los schemas
+- **SQLAlchemy 2.x** — ORM async, sin SQL crudo nunca
 - **Alembic** — todas las migraciones, nunca modificar tablas manualmente
-- **PostgreSQL 15+** con extensión **pgvector** — columnas `vector(384)`
-- **Redis** — caché, blacklist de tokens y broker de Celery
-- **Celery** — todas las tareas pesadas son asíncronas (embeddings, generación CV, reportes, emails)
-- **sentence-transformers** — modelo `paraphrase-multilingual-MiniLM-L12-v2` (384 dims)
-- **spaCy** — modelo `es_core_news_md` para NER en español + pipeline custom para oficios
-- **NLTK** — stopwords en español
+- **PostgreSQL 15+** con **pgvector** — columnas `vector(384)`
+- **Redis** — caché, blacklist de tokens y broker Celery
+- **Celery** — tareas pesadas asíncronas (embeddings, CVs, reportes, emails)
+- **sentence-transformers** — `paraphrase-multilingual-MiniLM-L12-v2` (384 dims)
+- **spaCy** — `es_core_news_md` + pipeline custom para oficios
+- **NLTK** — stopwords español
 - **scikit-learn** — modelos supervisados, métricas, re-ranking equitativo
-- **WeasyPrint** — generación de CVs en PDF desde plantillas HTML/CSS
-- **PyPDF2 + python-docx** — parsing de CVs subidos (flujo EXPERIENCIA)
-- **structlog** — logging estructurado en JSON, nunca usar print()
-- **bcrypt** — cost factor mínimo 12 para contraseñas
-- **JWT RS256** — access token 24h, refresh token 7d
+- **WeasyPrint** — generación de CVs en PDF
+- **PyPDF2 + python-docx** — parsing de CVs subidos
+- **structlog** — logging JSON, nunca usar print()
+- **bcrypt** — cost factor mínimo 12
+- **JWT RS256** — access token 24h, refresh token 7d, blacklist en Redis
+- **AES-256-GCM** — cifrado de campos sensibles (DNI, teléfono, nombre). La clave se almacena en base64 en .env y decodifica a 32 bytes exactos.
 
 ### Frontend
 - **React 18** + **Vite**
-- **Tailwind CSS** — sin CSS personalizado salvo variables
+- **Tailwind CSS** — sin CSS personalizado salvo variables CSS
 - **react-hook-form** + **zod** — validación de formularios
 - **react-intl** — i18n español peruano (es-PE)
 - **Axios** — cliente HTTP con interceptores JWT
 - **Recharts** — gráficos del dashboard
 - **react-dropzone** — upload de fotos para portfolio y CVs
-- **WebSocket** — notificaciones en tiempo real (chat, postulaciones)
-- **react-pdf** — preview de CVs sin descargar
+- **WebSocket** — notificaciones en tiempo real
+- **lucide-react** — iconografía
 
 ### Infraestructura
-- **Docker** + **docker-compose** — entorno completo reproducible
+- **Docker** + **docker-compose** — imagen base `pgvector/pgvector:pg15` (no postgres:15-alpine)
 - **GitHub Actions** — CI/CD: lint → tests → build → staging → prod
 - **GCP Cloud Run / AWS ECS** — despliegue en producción
-- **GCS / S3** — almacenamiento de fotos de portfolio, CVs generados y subidos
-- **Prometheus + Grafana** — monitoreo de métricas
+- **GCS / S3** — fotos de portfolio y CVs
+- **Prometheus + Grafana** — monitoreo (infra/ y monitoring/)
 - **OWASP ZAP** — DAST en pipeline CI/CD
+- **Nginx** — reverse proxy (nginx/nginx.conf)
 
 ---
 
-## 🗄️ BASE DE DATOS — MODELO DE DATOS CLAVE
+## 🗄️ BASE DE DATOS
 
-```sql
--- ✅ Tabla principal de trabajadores — incluye tipo obligatorio
-CREATE TABLE workers (
-    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id         UUID NOT NULL REFERENCES users(id),
-    worker_type     VARCHAR(20) NOT NULL CHECK (worker_type IN ('primer_empleo','experiencia','oficio')),
-    full_name       BYTEA NOT NULL,       -- AES-256 cifrado
-    dni             BYTEA NOT NULL,       -- AES-256 cifrado
-    phone           BYTEA,                -- AES-256 cifrado
-    district        VARCHAR(50),
-    trade_category  VARCHAR(50),          -- solo para OFICIO
-    years_experience INTEGER DEFAULT 0,
-    avg_rating      DECIMAL(3,2) DEFAULT 0.00,
-    is_available    BOOLEAN DEFAULT true,
-    profile_completeness INTEGER DEFAULT 0, -- 0-100
-    embedding       vector(384),
-    created_at      TIMESTAMPTZ DEFAULT now(),
-    updated_at      TIMESTAMPTZ DEFAULT now()
-);
-
--- ✅ Portfolio de trabajos — solo para OFICIO
-CREATE TABLE portfolio_entries (
-    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    worker_id       UUID NOT NULL REFERENCES workers(id),
-    title           VARCHAR(200) NOT NULL,
-    description     TEXT NOT NULL,          -- descripción original del trabajador
-    extracted_skills JSONB DEFAULT '[]',    -- habilidades extraídas por NLP
-    photos          JSONB DEFAULT '[]',     -- URLs en GCS/S3
-    period_start    DATE,
-    period_end      DATE,
-    client_rating   DECIMAL(3,2),
-    is_public       BOOLEAN DEFAULT true,
-    embedding       vector(384),            -- búsqueda semántica
-    created_at      TIMESTAMPTZ DEFAULT now()
-);
-
--- ✅ Publicaciones de marketplace — solo para OFICIO
-CREATE TABLE service_listings (
-    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    worker_id       UUID NOT NULL REFERENCES workers(id),
-    trade_category  VARCHAR(50) NOT NULL,
-    title           VARCHAR(200) NOT NULL,
-    description     TEXT NOT NULL,
-    enriched_keywords JSONB DEFAULT '[]',  -- keywords añadidas por NLP
-    districts       JSONB DEFAULT '[]',    -- zonas de cobertura
-    price_reference DECIMAL(10,2),
-    price_unit      VARCHAR(20),           -- 'hora', 'proyecto', 'día'
-    availability    VARCHAR(20),           -- 'inmediata','semana','mes'
-    is_active       BOOLEAN DEFAULT true,
-    embedding       vector(384),
-    views_count     INTEGER DEFAULT 0,
-    created_at      TIMESTAMPTZ DEFAULT now(),
-    updated_at      TIMESTAMPTZ DEFAULT now()
-);
-
--- ✅ Wizard progress — para PRIMER_EMPLEO (persistencia entre sesiones)
-CREATE TABLE wizard_progress (
-    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    worker_id       UUID NOT NULL REFERENCES workers(id) UNIQUE,
-    current_step    INTEGER DEFAULT 1,     -- 1 a 6
-    answers         JSONB DEFAULT '{}',
-    extracted_skills JSONB DEFAULT '[]',
-    last_saved_at   TIMESTAMPTZ DEFAULT now()
-);
-
--- ✅ CVs generados — para PRIMER_EMPLEO y OFICIO
-CREATE TABLE generated_cvs (
-    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    worker_id       UUID NOT NULL REFERENCES workers(id),
-    cv_type         VARCHAR(20) NOT NULL,  -- 'wizard_based', 'portfolio_based', 'parsed'
-    template_used   VARCHAR(50),
-    file_url        TEXT,                  -- URL en GCS/S3
-    generated_at    TIMESTAMPTZ DEFAULT now()
-);
-
--- ✅ Índices HNSW obligatorios
-CREATE INDEX ON workers           USING hnsw (embedding vector_cosine_ops) WITH (m = 16, ef_construction = 64);
-CREATE INDEX ON portfolio_entries USING hnsw (embedding vector_cosine_ops) WITH (m = 16, ef_construction = 64);
-CREATE INDEX ON service_listings  USING hnsw (embedding vector_cosine_ops) WITH (m = 16, ef_construction = 64);
-```
-
-**Convenciones generales:**
-- **UUID** para todas las PKs, nunca integers autoincrement
-- **timestamp with time zone** para todas las fechas (UTC siempre)
-- Datos sensibles en columnas `bytea` con cifrado AES-256 a nivel aplicación
-- Toda migración debe ser reversible (down migration obligatoria)
+### Convenciones
+- **UUID** para todas las PKs, nunca integer autoincrement
+- **TIMESTAMPTZ** para todas las fechas (UTC siempre)
+- Datos sensibles en columnas `BYTEA` con AES-256-GCM a nivel aplicación
+- Toda migración debe tener `downgrade()` completo
 - Nombres de tablas: snake_case, plural
+- Nunca modificar migraciones ya aplicadas — crear una nueva
+
+### Índices HNSW (críticos para performance)
+```sql
+-- Deben existir en producción:
+CREATE INDEX ON workers           USING hnsw (embedding vector_cosine_ops) WITH (m=16, ef_construction=64);
+CREATE INDEX ON portfolio_entries USING hnsw (embedding vector_cosine_ops) WITH (m=16, ef_construction=64);
+CREATE INDEX ON service_listings  USING hnsw (embedding vector_cosine_ops) WITH (m=16, ef_construction=64);
+CREATE INDEX ON job_offers        USING hnsw (embedding vector_cosine_ops) WITH (m=16, ef_construction=64);
+```
+
+### Cifrado de campos sensibles
+```python
+# ✅ SIEMPRE cifrar antes de persistir
+worker.full_name = encrypt_field(full_name_plain)
+worker.dni       = encrypt_field(dni_plain)
+worker.phone     = encrypt_field(phone_plain)
+
+# ✅ SIEMPRE descifrar antes de devolver al cliente
+full_name_plain = decrypt_field(worker.full_name)
+
+# ❌ NUNCA devolver el campo DNI al cliente en ninguna respuesta
+# ❌ NUNCA loguear valores descifrados
+```
 
 ---
 
-## 🤖 MOTOR ML/NLP — REGLAS CRÍTICAS
+## 🤖 MOTOR ML/NLP
 
-### Pipelines NLP diferenciados por tipo de usuario
-
-```python
-# ✅ PRIMER_EMPLEO — extracción desde lenguaje coloquial
-NLP_PIPELINE_FIRST_JOB = {
-    "model": "es_core_news_md",
-    "components": ["tok2vec", "ner", "skill_matcher"],
-    "custom_patterns": "data/patterns/soft_skills_es.jsonl",
-    "output": "SkillList + ProfileText para embedding cold-start",
-}
-
-# ✅ EXPERIENCIA — parsing de CV estructurado
-NLP_PIPELINE_EXPERIENCE = {
-    "parser": "PyPDF2/python-docx",
-    "extractor": "es_core_news_md + regex patterns",
-    "confidence_threshold": 0.75,
-    "entities": ["PERSON", "ORG", "DATE", "SKILL", "DEGREE"],
-    "output": "ParsedCVResult con campos de confianza",
-}
-
-# ✅ OFICIO — extracción semántica desde descripciones de trabajos
-NLP_PIPELINE_TRADE = {
-    "model": "es_core_news_md",
-    "custom_dict": "utils/local_dict/huancayo_trades.json",
-    "components": ["tok2vec", "ner", "trade_skill_matcher"],
-    "custom_patterns": "data/patterns/trade_skills_es.jsonl",
-    "output": "TechnicalSkillList + TradeTaxonomyMapping",
-}
-```
-
-### Pipeline NLP — pasos obligatorios (todos los tipos)
-
-```
-1. Normalización:
-   minúsculas → ftfy (corregir acentos) → eliminar caracteres especiales
-   → eliminar stopwords ES (NLTK) → lematizar (spaCy)
-2. Aplicar diccionario local Huancayo (ANTES del embedding)
-3. Extraer entidades nombradas con spaCy
-4. Mapear a taxonomía estándar de habilidades
-5. Generar embedding con sentence-transformers (MiniLM-L12-v2, 384 dims)
-6. Almacenar en pgvector de forma asíncrona (Celery)
-```
-
-### Motor de Matching diferenciado
+### Pipelines NLP por tipo
 
 ```python
-# ✅ Score combinado — fórmula fija del proyecto (M05 / RF076–RF085)
-def combined_score(
-    cosine_sim: float,
-    ml_score: float,
-    reputation: float,
-    worker_type: WorkerType,
-) -> float:
-    """
-    Pesos por tipo de usuario:
-    - PRIMER_EMPLEO: sin reputación, mayor peso a similitud
-    - EXPERIENCIA:   balance estándar
-    - OFICIO:        peso adicional a reputación (incluye portfolio)
-    """
-    weights = {
-        WorkerType.PRIMER_EMPLEO: (0.65, 0.35, 0.00),  # cosine, ml, reputation
-        WorkerType.EXPERIENCIA:   (0.50, 0.30, 0.20),
-        WorkerType.OFICIO:        (0.45, 0.25, 0.30),
-    }
-    alpha, beta, gamma = weights[worker_type]
-    return alpha * cosine_sim + beta * ml_score + gamma * (reputation / 5.0)
+# PRIMER_EMPLEO — lenguaje coloquial → habilidades estandarizadas
+# Archivo: app/nlp/skill_extractor/first_job_extractor.py
+# 40 términos coloquiales peruanos en soft_skills_map
+# suggest_job_sectors() → top-5 sectores compatibles
 
-# ✅ Cold-start (RF096–RF105):
-#   Estrategia: embedding desde respuestas del wizard / descripciones del portfolio
-#   No usar historial de clicks inexistente — solo contenido del perfil
+# EXPERIENCIA — CV estructurado → campos con umbral de confianza 0.75
+# Archivo: app/nlp/cv_parser/parser.py
+# parse_pdf() + parse_docx() + extract_cv_fields()
+# Si confianza < 0.75 → campo None + warning al usuario
+
+# OFICIO — descripción de trabajo → habilidades técnicas
+# Archivo: app/nlp/portfolio_nlp/trade_extractor.py
+# TRADE_SKILLS_MAP con 15+ skills por categoría
+# Nivel: básico / intermedio / avanzado
 ```
 
-### Métricas de calidad del modelo
+### Pipeline de normalización (todos los tipos, en orden)
+```
+1. text.lower()
+2. ftfy.fix_text()              → corregir encoding/acentos
+3. re.sub caracteres especiales → conservar letras, números, acentos españoles
+4. apply_local_dictionary()     → ANTES del embedding, siempre
+5. eliminar stopwords ES (NLTK)
+6. generar embedding con MiniLM-L12-v2 (384 dims, normalize_embeddings=True)
+7. almacenar en pgvector via Celery (asíncrono)
+```
 
-- F1-score mínimo aceptable en producción: **≥ 0.75**
-- Si F1 < 0.70 → alerta automática al equipo (M10 / RF146–RF150)
-- Disparate impact ratio mínimo: **≥ 0.80** por género y zona geográfica
-- Si ratio < 0.80 → activar re-ranking equitativo automáticamente
-- NER F1 para extracción de habilidades: **≥ 0.80** por pipeline
-- CV parser accuracy: **≥ 0.75** en campos extraídos correctamente
+### Score combinado — fórmula fija, no modificar sin validar F1
+```python
+weights = {
+    WorkerType.PRIMER_EMPLEO: (0.65, 0.35, 0.00),  # cosine, ml, reputation
+    WorkerType.EXPERIENCIA:   (0.50, 0.30, 0.20),
+    WorkerType.OFICIO:        (0.45, 0.25, 0.30),
+}
+score = alpha * cosine_sim + beta * ml_score + gamma * (reputation / 5.0)
+```
+
+### Métricas mínimas aceptables
+- F1-score en producción: **≥ 0.75** (si < 0.70 → alerta automática)
+- Disparate impact ratio: **≥ 0.80** por género y zona (si < 0.80 → re-ranking automático)
+- NER F1 extracción de habilidades: **≥ 0.80** por pipeline
+- CV parser accuracy: **≥ 0.75**
+
+---
+
+## 🔒 SEGURIDAD
+
+```python
+# ❌ NUNCA hacer esto:
+print(f"DNI del usuario: {worker.dni}")          # exponer en logs
+db.execute(f"SELECT * FROM workers WHERE id={id}") # SQL con f-string
+return JSONResponse({"detail": str(exc)})          # stack trace en producción
+
+# ✅ SIEMPRE hacer esto:
+logger.info("worker_loaded", worker_id=str(worker.id))  # structlog, sin PII
+result = await db.execute(select(Worker).where(Worker.id == worker_id))  # ORM
+raise HTTPException(status_code=500, detail="Error interno del servidor")  # genérico
+
+# Validación de roles en cada endpoint protegido:
+@router.post("/portfolio/entries")
+async def create_entry(payload: dict = Depends(require_role(UserRole.WORKER))):
+    # Verificar además que worker.worker_type == 'oficio'
+    ...
+```
+
+### Rate limiting (app/core/rate_limit.py)
+- Lee `X-Forwarded-For` en `ENVIRONMENT=production` (IP real en Cloud Run/ECS)
+- Sliding window con Redis: `INCR` + `EXPIRE`
+- Lanza `HTTPException 429` con header `Retry-After`
+- Límites: auth/register 10/hora, login 20/hora, forgot-password 5/hora
+
+### Ley N° 29733 (Datos personales Perú)
+- Consentimiento registrado en `consent_records` antes de recolectar datos
+- `app/core/consent.py` gestiona el flujo de consentimiento
+- DNI, teléfono y nombre siempre cifrados con AES-256-GCM
+
+---
+
+## 📊 KPIs DE INVESTIGACIÓN — NO MODIFICAR SIN CONSULTAR
+
+| KPI | Fórmula | Tabla BD | Aplica a |
+|-----|---------|----------|----------|
+| Velocidad Inserción Laboral (VIL) | `días(registro → primer contrato)` | `contracts` | Los 3 tipos |
+| Índice Visibilidad Perfil (IVP) | `(apariciones en búsquedas / total consultas) × 100` | `search_logs` | Los 3 tipos |
+| Tasa Formalización | `(trabajadores con ≥1 contrato / total) × 100` | `workers`, `contracts` | Los 3 tipos |
+| Reputation Score | `promedio_ponderado(ratings, peso×2 últimas 5)` | `ratings` | EXPERIENCIA, OFICIO |
+| Reducción Brecha Salarial | `((ingreso_post - ingreso_pre) / ingreso_pre) × 100` | `economic_surveys` | Los 3 tipos |
+| Tasa Completitud CV (TCC) | `(perfiles con CV generado / total) × 100` | `generated_cvs`, `workers` | PRIMER_EMPLEO, OFICIO |
+| Índice Visibilidad Marketplace (IVM) | `(listados activos / total OFICIO) × 100` | `service_listings`, `workers` | OFICIO |
+| Tasa Cold-Start Superado | `(con ≥1 match / total primer_empleo+oficio) × 100` | `match_events` | PRIMER_EMPLEO, OFICIO |
+
+Calculados en: `app/services/reports/kpi_calculator.py`
 
 ---
 
 ## 📐 CONVENCIONES DE CÓDIGO
 
-### Python / Backend
-
+### Python — reglas absolutas
 ```python
-# ✅ CORRECTO — async everywhere
-async def get_worker_profile(worker_id: UUID, db: AsyncSession) -> WorkerProfile:
-    ...
+# ✅ async en todos los endpoints y servicios
+async def get_worker(worker_id: UUID, db: AsyncSession) -> Worker: ...
 
-# ✅ CORRECTO — Pydantic v2 con worker_type obligatorio
-class WorkerProfileCreate(BaseModel):
+# ✅ Pydantic v2 siempre
+class WorkerCreate(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
-    full_name: str    = Field(..., min_length=2, max_length=100)
-    worker_type: WorkerType
-    trade_category: TradeCategory | None = None  # requerido si worker_type == OFICIO
-    district: District
+    worker_type: WorkerType  # obligatorio en todo schema de worker
 
-# ✅ CORRECTO — SQLAlchemy 2.x async
+# ✅ SQLAlchemy 2.x async
 result = await db.execute(select(Worker).where(Worker.id == worker_id))
 worker = result.scalar_one_or_none()
 
-# ❌ INCORRECTO — nunca SQL crudo
-db.execute("SELECT * FROM workers WHERE id = %s", worker_id)
-
-# ✅ CORRECTO — logging estructurado
-import structlog
+# ✅ structlog siempre, nunca print()
 logger = structlog.get_logger()
-logger.info(
-    "embedding_generated",
-    worker_id=str(worker_id),
-    worker_type=worker.worker_type,
-    duration_ms=elapsed,
-)
+logger.info("evento", campo=valor, otro_campo=otro_valor)
 
-# ❌ INCORRECTO
-print(f"Embedding generado para {worker_id}")
+# ✅ random_state=42 en todos los modelos ML para reproducibilidad
 ```
 
-### Embeddings NLP (CRÍTICO)
-
-```python
-# ✅ SIEMPRE usar el modelo correcto
-MODEL_NAME    = "paraphrase-multilingual-MiniLM-L12-v2"
-EMBEDDING_DIM = 384
-
-# ✅ Construcción de texto de perfil diferenciada por tipo
-def build_profile_text(worker: Worker, extra: dict) -> str:
-    if worker.worker_type == WorkerType.PRIMER_EMPLEO:
-        # Sin experiencia → énfasis en habilidades del wizard
-        return (
-            f"primer empleo | {worker.district} | "
-            f"habilidades: {', '.join(extra.get('wizard_skills', []))} | "
-            f"intereses: {extra.get('job_interests', '')}"
-        )
-    elif worker.worker_type == WorkerType.OFICIO:
-        # Énfasis en trabajos realizados y skills del portfolio
-        return (
-            f"{worker.trade_category} | {worker.years_experience} años | "
-            f"{worker.district} | {worker.avg_rating:.1f}/5.0 | "
-            f"trabajos: {extra.get('portfolio_count', 0)} | "
-            f"habilidades: {', '.join(extra.get('portfolio_skills', []))}"
-        )
-    else:  # EXPERIENCIA
-        return (
-            f"{extra.get('job_title', '')} | {worker.years_experience} años | "
-            f"{worker.district} | {worker.avg_rating:.1f}/5.0 | "
-            f"{extra.get('bio', '')}"
-        )
-
-# ✅ pgvector: usar cosine_distance
-# SELECT id, 1 - (embedding <=> $1::vector) AS similarity
-# FROM workers ORDER BY embedding <=> $1::vector LIMIT 10
-```
-
-### Estructura de endpoints
-
-```python
-# ✅ Endpoints diferenciados por tipo donde corresponda
-@router.post("/api/v1/onboarding/detect-type",   response_model=OnboardingResponse)
-@router.post("/api/v1/wizard/step/{step_number}", response_model=WizardStepResponse)
-@router.post("/api/v1/cv/parse-upload",           response_model=ParsedCVResult)
-@router.post("/api/v1/portfolio/entries",         response_model=PortfolioEntryResponse)
-@router.post("/api/v1/marketplace/listings",      response_model=ServiceListingResponse)
-@router.get ("/api/v1/marketplace/search",        response_model=list[ServiceListingResponse])
-@router.post("/api/v1/cv/generate/{worker_id}",   response_model=GeneratedCVResponse)
-@router.get ("/api/v1/match/{worker_id}",         response_model=MatchResponse)
-@router.get ("/api/v1/jobs/feed",                 response_model=list[JobOfferResponse])
-
-# ✅ Manejo de errores HTTP
-raise HTTPException(status_code=404, detail="Trabajador no encontrado")
-raise HTTPException(status_code=400, detail="Tipo de trabajador inválido para esta operación")
-```
-
-### React / Frontend
-
+### Frontend — reglas absolutas
 ```tsx
-// ✅ Enrutamiento condicional por tipo de usuario
-const WorkerDashboard = () => {
-  const { workerType } = useWorkerContext();
-  return match(workerType)
-    .with('primer_empleo', () => <PrimerEmpleoDashboard />)
-    .with('experiencia',   () => <ExperienciaDashboard />)
-    .with('oficio',        () => <OficioDashboard />)
-    .exhaustive();
-};
+// ✅ Verificar auth antes de cualquier acción de contacto
+const isAuthenticated = !!localStorage.getItem('access_token')
 
-// ✅ i18n siempre, con claves específicas por tipo
-const intl = useIntl();
-<p>{intl.formatMessage({ id: `worker.${workerType}.profile.title` })}</p>
+// ✅ Guardar return_url antes de redirigir a login
+sessionStorage.setItem('login_return_url', window.location.pathname + window.location.search)
 
-// ✅ Validación con zod + campos condicionales
-const workerSchema = z.discriminatedUnion('workerType', [
-  z.object({ workerType: z.literal('oficio'), tradeCategory: z.string().min(1) }),
-  z.object({ workerType: z.literal('primer_empleo'), wizardStep: z.number().min(1).max(6) }),
-  z.object({ workerType: z.literal('experiencia'), yearsExperience: z.number().min(0) }),
-]);
+// ✅ Leer return_url después del login
+const returnUrl = sessionStorage.getItem('login_return_url') || '/dashboard'
+sessionStorage.removeItem('login_return_url')
+navigate(returnUrl)
 
-// ❌ INCORRECTO — no hardcodear strings en español
-<p>Perfil del trabajador</p>  // ❌
+// ✅ Condicionar publicación solo a OFICIO
+{worker?.worker_type === 'oficio' && <BotonPublicar />}
+
+// ✅ Marketplace visible para todos los autenticados
+// ❌ NO envolver /marketplace en WorkerTypeGuard
 ```
 
 ---
 
-## 🔒 SEGURIDAD — REGLAS OBLIGATORIAS
-
-Todas estas reglas instrumentan los RNF001–RNF006 (Seguridad ISO 27001) del subcapítulo 4.3.2.
-
-- **NUNCA** exponer DNI, teléfono o email en logs ni en respuestas del cliente
-- **NUNCA** escribir SQL con f-strings o concatenación — siempre ORM o parámetros
-- **NUNCA** almacenar contraseñas en texto plano ni en logs
-- **NUNCA** retornar stack traces en respuestas de producción
-- **SIEMPRE** validar roles con el middleware RBAC antes de cada endpoint protegido
-- **SIEMPRE** cifrar datos sensibles con AES-256 (DNI, teléfono)
-- **SIEMPRE** agregar rate limiting en endpoints de auth, matching y marketplace
-- Los tokens JWT **deben** invalidarse en Redis al hacer logout
-- Fotos de portfolio: validar MIME (solo JPEG/PNG/WEBP), tamaño máx 5 MB, escaneo antivirus antes de almacenar
-- URLs públicas de portfolio (`/p/{slug}`): no exponer UUID interno
-- Cumplir **Ley N° 29733** (Perú): consentimiento informado antes de recolectar datos
-
-```python
-# ✅ Middleware de autorización RBAC
-from app.core.security import require_role, UserRole
-
-class UserRole(str, Enum):
-    ADMIN     = "admin"      # personal DRTPE-Junín
-    EMPLOYER  = "employer"   # empresas/personas que contratan
-    WORKER    = "worker"     # cualquiera de los 3 tipos
-    MODERATOR = "moderator"  # revisión de contenido marketplace
-
-@router.post("/api/v1/portfolio/entries")
-async def create_portfolio_entry(
-    current_user: User = Depends(require_role(UserRole.WORKER)),
-):
-    # Validar adicionalmente que worker.worker_type == 'oficio'
-    ...
-```
-
----
-
-## 📊 INDICADORES DE INVESTIGACIÓN (NO TOCAR SIN CONSULTAR)
-
-KPIs de la tesis. El cálculo debe ser exacto y diferenciado cuando aplica.
-
-| Indicador | Fórmula | Tabla BD | Aplica a |
-|-----------|---------|----------|----------|
-| Velocidad Inserción Laboral (VIL) | `días(registro → primer contrato)` | `contracts` | Los 3 tipos |
-| Índice Visibilidad Perfil (IVP) | `(apariciones en búsquedas / total consultas) × 100` | `search_logs` | Los 3 tipos |
-| Tasa Formalización | `(trabajadores con ≥1 contrato / total registrados) × 100` | `workers`, `contracts` | Los 3 tipos |
-| Reputation Score | `promedio_ponderado(calificaciones, peso×2 últimas 5)` | `ratings` | EXPERIENCIA, OFICIO |
-| Reducción Brecha Salarial | `((ingreso_post - ingreso_pre) / ingreso_pre) × 100` | `economic_surveys` | Los 3 tipos |
-| Tasa Completitud CV (TCC) | `(perfiles con CV generado / total registrados) × 100` | `generated_cvs`, `workers` | PRIMER_EMPLEO, OFICIO |
-| Índice Visibilidad Marketplace (IVM) | `(listados activos / total trabajadores OFICIO) × 100` | `service_listings`, `workers` | OFICIO |
-| Tasa Cold-Start Superado | `(usuarios primer_empleo/oficio con ≥1 match / total) × 100` | `match_events` | PRIMER_EMPLEO, OFICIO |
-
----
-
-## 🧪 TESTING — REGLAS
+## 🧪 TESTING
 
 ```bash
-# Tests antes de cualquier commit
+# Antes de cualquier commit
 pytest tests/ --cov=app --cov-report=term-missing --cov-fail-under=80
+ruff check . && ruff format --check .
 
-# Tests obligatorios organizados por módulo
+# Tests organizados por área
 tests/unit/
-  test_nlp_first_job.py        # extracción de habilidades del wizard
-  test_nlp_cv_parser.py        # parsing de CVs subidos
-  test_nlp_trade_portfolio.py  # extracción desde portfolio
-  test_matching_engine.py      # motor ML diferenciado por worker_type
-  test_cold_start.py           # cold-start primer_empleo y oficio
-  test_marketplace_search.py   # búsqueda semántica marketplace
-  test_cv_generator.py         # generación de CVs PDF
-  test_reputation_score.py     # cálculo reputation
-  test_auth_jwt.py             # autenticación y RBAC
+  test_auth_jwt.py               test_security.py
+  test_cold_start.py             test_cors_config.py
+  test_cv_generator.py           test_dataset_builder.py
+  test_drtpe_connector.py        test_embedding_no_pii.py
+  test_embeddings.py             test_kpi_calculator.py
+  test_local_dictionary.py       test_marketplace_search.py
+  test_matching_engine.py        test_ml_pipeline.py
+  test_nlp_cv_parser.py          test_nlp_first_job.py
+  test_nlp_trade_portfolio.py    test_onboarding_detector.py
+  test_psi_drift_detector.py     test_reputation_score.py
+  test_sprint5_contracts_applications.py
+  test_sprint5_drtpe_real.py
+  test_sprint5_marketplace_service.py
+  test_storage_and_tasks.py      test_ws_connection_limit.py
+
 tests/integration/
-  test_api_onboarding.py       # detección de tipo
-  test_api_wizard.py           # wizard 6 pasos
-  test_api_portfolio.py        # CRUD portfolio + NLP extracción
-  test_api_marketplace.py      # publicaciones + búsqueda
-  test_api_matching.py         # emparejamiento por tipo
-  test_api_jobs.py             # bolsa formal + DRTPE
+  test_api_admin_dashboard.py    test_api_auth.py
+  test_api_auth_email.py         test_api_employers.py
+  test_api_health.py             test_api_jobs.py
+  test_api_marketplace.py        test_api_matching.py
+  test_api_nlp.py                test_api_onboarding.py
+  test_api_portfolio.py          test_api_wizard.py
+  test_api_workers.py            test_job_alerts.py
+  test_portfolio_public_no_uuid.py
+  test_websocket_notifications.py
 ```
 
-- Cobertura mínima: **80%** — el CI bloquea merge si baja del umbral
-- Los tests de NLP **deben** incluir textos en español coloquial de Huancayo por oficio
-- `random_state=42` en todos los modelos ML para reproducibilidad
-- Los tests del wizard deben cubrir los 6 pasos con respuestas parciales y completas
-- Los tests del marketplace deben incluir búsquedas con términos locales Huancayo
+- Cobertura mínima: **80%** — CI bloquea merge si baja
+- `random_state=42` en todos los modelos ML
+- Tests NLP deben incluir textos en español coloquial de Huancayo
+- Tests de marketplace deben incluir búsquedas con términos locales
 
 ---
 
@@ -850,58 +607,47 @@ tests/integration/
 # Levantar entorno completo
 docker-compose up -d
 
-# Ejecutar migraciones
+# Ver logs
+docker-compose logs api --tail=50
+docker-compose logs celery_worker --tail=30
+
+# Migraciones
 alembic upgrade head
+alembic revision --autogenerate -m "descripcion"
+alembic history --verbose
 
-# Generar nueva migración
-alembic revision --autogenerate -m "descripción"
-
-# Worker Celery (embeddings, generación CV, emails)
-celery -A app.tasks worker --loglevel=info
-
-# Tests con cobertura
-pytest --cov=app --cov-fail-under=80
+# Tests
+pytest tests/ --cov=app --cov-report=term-missing --cov-fail-under=80 -v
+pytest tests/unit/test_auth_jwt.py -v  # test específico
 
 # Linting
 ruff check . && ruff format .
 
-# Generar embeddings — diferenciado por tipo
-python -m app.tasks.embeddings regenerate_all --type primer_empleo
-python -m app.tasks.embeddings regenerate_all --type oficio
+# Celery worker
+celery -A app.tasks worker --loglevel=info
+
+# Embeddings
 python -m app.tasks.embeddings regenerate_all --type all
+python -m app.tasks.embeddings regenerate_all --type primer_empleo
 
-# Regenerar CVs de oficio desde portfolios existentes
-python -m app.tasks.cv_generator regenerate_trade_cvs
+# Seed de datos
+python backend/scripts/seed_data.py
 
-# Reentrenar modelo ML de matching
+# Reentrenar modelo ML
 python -m app.ml.train --validate --deploy-if-better --worker-type all
 
-# Reindexar marketplace (búsqueda semántica)
-python -m app.tasks.marketplace reindex_listings
-
-# Seed de datos de prueba diferenciados por tipo
-python -m app.utils.seed --type primer_empleo --count 20
-python -m app.utils.seed --type oficio --count 20
-python -m app.utils.seed --type experiencia --count 20
+# Frontend
+cd frontend && npm run dev
+npx tsc --noEmit  # verificar tipos sin compilar
 ```
-
----
-
-## 📁 ARCHIVOS QUE NUNCA SE MODIFICAN SIN REVISIÓN
-
-- `app/ml/train.py` — lógica de entrenamiento del modelo
-- `app/nlp/embeddings.py` — generación de vectores
-- `app/nlp/skill_taxonomies/` — taxonomías de habilidades
-- `app/utils/local_dict/huancayo_trades.json` — diccionario local Huancayo
-- `alembic/versions/*.py` — migraciones ya aplicadas
-- `app/core/config.py` — configuración de producción
-- `CLAUDE.md` — este archivo
 
 ---
 
 ## 🌍 CONTEXTO LOCAL — HUANCAYO
 
-### Diccionario de equivalencias NLP (aplicar SIEMPRE antes del embedding)
+### Diccionario de equivalencias NLP
+Archivo: `backend/app/utils/local_dict/huancayo_trades.json`
+Aplicar SIEMPRE con `apply_local_dictionary()` ANTES de generar embeddings.
 
 ```json
 {
@@ -918,8 +664,7 @@ python -m app.utils.seed --type experiencia --count 20
 }
 ```
 
-### Categorías de oficio disponibles
-
+### Categorías de oficio
 ```python
 class TradeCategory(str, Enum):
     ELECTRICIDAD = "Electricidad"
@@ -938,10 +683,9 @@ class TradeCategory(str, Enum):
 ```
 
 ### Datos locales
-
-- **Distritos del área urbana:** `Huancayo`, `El Tambo`, `Chilca`
+- **Distritos:** `Huancayo`, `El Tambo`, `Chilca`
 - **Moneda:** `S/.` (Sol peruano, PEN) — formato `S/. 1,000.00`
-- **Teléfonos:** formato `+51 9XXXXXXXX` (9 dígitos tras +51)
+- **Teléfonos:** `+51 9XXXXXXXX` (9 dígitos tras +51)
 - **DNI:** 8 dígitos numéricos exactos
 - **RUC:** 11 dígitos numéricos exactos
 
@@ -949,21 +693,69 @@ class TradeCategory(str, Enum):
 
 ## ⛔ PROHIBICIONES ABSOLUTAS
 
+### Backend
 - No usar **Django** ni **Flask** — solo FastAPI
 - No usar **MongoDB** — solo PostgreSQL + pgvector
 - No usar **NumPy < 1.24** ni **pandas < 2.0**
 - No instalar librerías sin actualizar `requirements.txt`
-- No hacer commits directos a `main` — siempre vía PR
-- No exponer el endpoint `/api/v1/model/metrics` sin autenticación ADMIN
-- No eliminar logs de auditoría — son inmutables por diseño
-- No modificar el cálculo del `combined_score` sin validar el impacto en F1
-- No mezclar lógica entre tipos de usuario — cada flujo (A/B/C) tiene sus propios servicios y componentes
-- No omitir `worker_type` en ninguna operación de matching o recomendación
-- No mostrar el marketplace a usuarios PRIMER_EMPLEO ni EXPERIENCIA (es exclusivo de OFICIO)
-- No generar CVs de portfolio para usuarios PRIMER_EMPLEO (usan el wizard, no el portfolio)
-- No almacenar fotos de portfolio en base64 en BD — siempre en GCS/S3 con URL firmada
-- No implementar funcionalidad sin trazarla a un RF del subcapítulo 4.3.2
+- No commits directos a `main` — siempre vía PR
+- No exponer `/api/v1/model/metrics` sin autenticación ADMIN
+- No eliminar logs de auditoría — son inmutables
+- No modificar `combined_score` sin validar impacto en F1
+- No mezclar lógica de tipos en un mismo servicio
+- No omitir `worker_type` en operaciones de matching o recomendación
+- No almacenar fotos en base64 en BD — siempre GCS/S3 con URL firmada
+- No modificar migraciones ya aplicadas — crear una nueva
+- No implementar funcionalidad sin trazarla a un RF del subcap. 4.3.2
+- No usar `print()` — solo `structlog`
+- No retornar stack traces en producción
+
+### Frontend
+- No bloquear el acceso al marketplace (`/marketplace`, `/servicios`) por tipo de usuario — es visible para todos
+- Solo OFICIO puede **publicar** en el marketplace — condicionar solo el botón/tab internamente
+- No abrir ContactModal sin verificar autenticación primero
+- No redirigir a /register cuando el usuario intenta contactar — redirigir a /login
+- No navegar a /dashboard hardcodeado después del login — usar sessionStorage return_url
+- No usar WorkerTypeGuard en la ruta /marketplace — solo en /oficio/portfolio y /wizard
+- La ruta `/` SIEMPRE debe mostrar LandingPage, no redirigir al dashboard
+
+### Ambos
+- No exponer DNI en ninguna respuesta del API ni en logs
+- No almacenar contraseñas en texto plano
 
 ---
 
-*Última actualización: Sprint 1 — Rojas Peña W. / Tovar Sanchez C.*
+## 📁 ARCHIVOS QUE NUNCA SE MODIFICAN SIN REVISIÓN DEL EQUIPO
+
+```
+backend/app/ml/train.py                          → entrenamiento del modelo
+backend/app/nlp/embeddings/generator.py          → generación de vectores
+backend/app/utils/local_dict/huancayo_trades.json → diccionario Huancayo
+backend/migrations/versions/*.py                 → migraciones aplicadas
+backend/app/core/config.py                       → configuración producción
+backend/app/services/reports/kpi_calculator.py   → cálculo KPIs de investigación
+CLAUDE.md                                        → este archivo
+```
+
+---
+
+## 🔗 TRAZABILIDAD RF → CARPETA
+
+| Módulo | RF | Carpeta |
+|--------|----|---------|
+| M01 Identidad y Autenticación | RF001–RF015 | `app/api/v1/auth.py`, `app/core/security.py` |
+| M02 Perfil del Trabajador | RF016–RF035 | `app/api/v1/workers.py`, `app/services/onboarding/` |
+| M03 Empleadores y Ofertas | RF036–RF055 | `app/api/v1/employers.py`, `app/api/v1/jobs.py` |
+| M04 NLP de Competencias | RF056–RF075 | `app/nlp/`, `app/api/v1/nlp.py` |
+| M05 Motor ML Emparejamiento | RF076–RF095 | `app/ml/`, `app/api/v1/matching.py` |
+| M06 Asistente Identidad Laboral | RF096–RF110 | `app/api/v1/wizard.py`, `app/services/cv_builder/` |
+| M07 Búsqueda y Recomendación | RF111–RF125 | `app/api/v1/marketplace.py`, `app/services/marketplace/` |
+| M08 Notificaciones | RF126–RF135 | `app/api/v1/ws_notifications.py`, `app/tasks/notifications.py` |
+| M09 Reportes DRTPE | RF136–RF145 | `app/api/v1/admin/`, `app/tasks/reports.py` |
+| M10 Equidad y Explicabilidad | RF146–RF155 | `app/ml/equity_ranker/`, `app/ml/explainer/` |
+| M11 Administración | RF156–RF160 | `app/api/v1/admin/dashboard.py` |
+| M12 Integración Institucional | RF161–RF165 | `app/integrations/drtpe/`, `app/api/v1/contracts.py` |
+
+---
+
+*Última actualización: Sprint 5 + Bugfix frontend — Rojas Peña W. / Tovar Sanchez C.*

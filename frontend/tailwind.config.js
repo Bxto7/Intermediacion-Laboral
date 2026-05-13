@@ -43,6 +43,13 @@ export default {
         },
         coral: '#e8a691',
 
+        /* ── Shadcn CSS-var tokens (para @apply bg-background etc.) ── */
+        background: 'hsl(var(--background, 0 0% 100%))',
+        foreground: 'hsl(var(--foreground, 0 0% 3.9%))',
+        border:     'hsl(var(--border, 0 0% 89.8%))',
+        ring:       'hsl(var(--ring, 0 0% 63.9%))',
+        input:      'hsl(var(--input, 0 0% 89.8%))',
+
         /* ── Legacy aliases (mantener compatibilidad) ── */
         primary: {
           50:  '#fdf6f3',

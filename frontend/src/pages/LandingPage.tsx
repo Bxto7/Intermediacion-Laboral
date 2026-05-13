@@ -78,7 +78,7 @@ export const LandingPage: React.FC = () => {
   }
 
   return (
-    <div className="glow-bg grain min-h-screen">
+    <div className="grain min-h-screen" style={{ background: 'var(--grad-mesh)' }}>
       <LandingNav onLoginClick={handleLoginClick} scrolled={scrolled} />
       {loginOpen && <LoginModal onClose={() => setLoginOpen(false)} />}
 

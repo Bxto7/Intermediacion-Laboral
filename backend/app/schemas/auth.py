@@ -8,6 +8,8 @@ class RegisterRequest(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=8, max_length=128)
     role: UserRole = UserRole.WORKER
+    full_name: str = Field(default="", min_length=0, max_length=100)
+    dni: str = Field(default="", min_length=0, max_length=8)
 
 
 class LoginRequest(BaseModel):

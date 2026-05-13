@@ -68,6 +68,14 @@ async def register(
     db.add(user)
     await db.flush()
 
+    # Guardar datos de identidad para el onboarding
+    if body.full_name or body.dni:
+        await redis.setex(
+            f"reg_identity:{user.id}",
+            3600,
+            f"{body.full_name}|{body.dni}"
+        )
+
     audit = AuditLog(
         user_id=user.id,
         action="user_registered",

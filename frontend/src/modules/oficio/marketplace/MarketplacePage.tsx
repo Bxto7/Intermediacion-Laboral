@@ -248,7 +248,8 @@ const ListingCard: React.FC<{
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2.5 flex-1 min-w-0">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'var(--terra-100)' }}>
-            <CatIcon size={15} style={{ color: 'var(--terra-500)' }} />
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            {(() => { const Icon = CatIcon as any; return <Icon size={15} style={{ color: 'var(--terra-500)' }} /> })()}
           </div>
           <div className="min-w-0">
             <p className="kicker" style={{ color: 'var(--terra-500)' }}>{listing.trade_category}</p>

@@ -1,9 +1,12 @@
+import { lazy, Suspense } from 'react'
 import { useIntl } from 'react-intl'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts'
 import { useAdminKPIs } from '../hooks/useAdminKPIs'
 import { LoadingSpinner } from '../shared/LoadingSpinner'
+
+const KPIGlobe = lazy(() => import('./KPIGlobe').then(m => ({ default: m.KPIGlobe })))
 
 const TYPE_LABELS: Record<string, string> = {
   primer_empleo: 'Primer empleo',
@@ -82,6 +85,16 @@ export const AdminDashboard: React.FC = () => {
             subtitle={`${kpis?.ivm?.active_listings ?? 0} listados activos en marketplace`}
             color="amber"
           />
+        </div>
+
+        {/* KPIGlobe 3D */}
+        <div className="card-warm p-4 space-y-3 mb-5">
+          <h3 className="font-semibold text-sm" style={{ color: 'var(--ink-strong)' }}>
+            Vista de red — KPIs del sistema
+          </h3>
+          <Suspense fallback={<div style={{ height: 340, display: 'grid', placeItems: 'center' }}><span style={{ color: 'var(--ink-muted)' }}>Cargando...</span></div>}>
+            <KPIGlobe />
+          </Suspense>
         </div>
 
         {/* Charts */}
