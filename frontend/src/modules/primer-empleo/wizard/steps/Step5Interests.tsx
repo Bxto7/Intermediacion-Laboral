@@ -5,18 +5,18 @@ import { WizardNavigation } from '../WizardNavigation'
 import apiClient from '../../../../api/client'
 
 const SECTORS = [
-  { value: 'Comercio y ventas', emoji: '🛒' },
-  { value: 'Administración', emoji: '📋' },
-  { value: 'Salud y cuidados', emoji: '🏥' },
-  { value: 'Educación', emoji: '📚' },
-  { value: 'Tecnología', emoji: '💻' },
-  { value: 'Gastronomía', emoji: '🍳' },
-  { value: 'Construcción', emoji: '🏗️' },
-  { value: 'Transporte y logística', emoji: '🚚' },
-  { value: 'Agricultura', emoji: '🌾' },
-  { value: 'Turismo y hotelería', emoji: '🏨' },
-  { value: 'Manufactura', emoji: '🏭' },
-  { value: 'Servicios generales', emoji: '🧹' },
+  'Comercio y ventas',
+  'Administración',
+  'Salud y cuidados',
+  'Educación',
+  'Tecnología',
+  'Gastronomía',
+  'Construcción',
+  'Transporte y logística',
+  'Agricultura',
+  'Turismo y hotelería',
+  'Manufactura',
+  'Servicios generales',
 ]
 
 export const Step5Interests: React.FC = () => {
@@ -41,33 +41,42 @@ export const Step5Interests: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">{intl.formatMessage({ id: 'wizard.step5.title' })}</h2>
-        <p className="text-gray-500 text-sm mt-1">
+        <h2 className="text-2xl font-bold" style={{ color: 'var(--ink-strong)' }}>
+          {intl.formatMessage({ id: 'wizard.step5.title' })}
+        </h2>
+        <p className="text-sm mt-1" style={{ color: 'var(--ink-muted)' }}>
           {intl.formatMessage({ id: 'wizard.step5.subtitle' })}
-          <span className="text-primary-600 font-medium"> (elige hasta 3)</span>
+          <span className="font-medium" style={{ color: 'var(--terra-500)' }}> (elige hasta 3)</span>
         </p>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {SECTORS.map((s) => (
-          <button
-            key={s.value}
-            onClick={() => toggle(s.value)}
-            className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
-              selected.includes(s.value)
-                ? 'border-primary-500 bg-primary-50 shadow-md'
-                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-            }`}
-          >
-            <span className="text-2xl">{s.emoji}</span>
-            <span className="text-xs font-medium text-gray-700 text-center leading-tight">{s.value}</span>
-          </button>
-        ))}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        {SECTORS.map((s) => {
+          const active = selected.includes(s)
+          return (
+            <button
+              key={s}
+              onClick={() => toggle(s)}
+              className="p-3 rounded-xl text-sm font-medium text-center transition-all"
+              style={{
+                border: `2px solid ${active ? 'var(--terra-500)' : 'var(--line)'}`,
+                background: active ? 'var(--terra-100)' : 'var(--bg-elevated)',
+                color: active ? 'var(--terra-700)' : 'var(--ink-warm)',
+              }}
+            >
+              {s}
+            </button>
+          )
+        })}
       </div>
 
       {selected.length > 0 && (
-        <div className="bg-primary-50 border border-primary-200 rounded-xl px-4 py-3 text-sm text-primary-700">
-          <strong>Seleccionado:</strong> {selected.join(' · ')}
+        <div
+          className="rounded-xl px-4 py-3 text-sm"
+          style={{ background: 'var(--terra-100)', border: '1px solid rgba(194,86,46,0.20)' }}
+        >
+          <strong style={{ color: 'var(--terra-700)' }}>Seleccionado:</strong>{' '}
+          <span style={{ color: 'var(--terra-500)' }}>{selected.join(' · ')}</span>
         </div>
       )}
 

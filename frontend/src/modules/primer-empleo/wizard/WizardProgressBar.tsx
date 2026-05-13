@@ -17,7 +17,7 @@ export const WizardProgressBar: React.FC = () => {
   const current = match ? parseInt(match[1]) : 1
 
   return (
-    <div className="bg-white border-b border-gray-200 shadow-sm px-4 py-3">
+    <div className="px-4 py-3" style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--line)' }}>
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between">
           {STEPS.map((s, i) => (
@@ -26,24 +26,33 @@ export const WizardProgressBar: React.FC = () => {
                 to={`/wizard/step/${s.num}`}
                 className={`flex flex-col items-center gap-1 transition-all ${s.num <= current ? 'cursor-pointer' : 'pointer-events-none'}`}
               >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
-                  s.num < current ? 'bg-green-500 text-white'
-                  : s.num === current ? 'bg-primary-600 text-white ring-4 ring-primary-100'
-                  : 'bg-gray-100 text-gray-400'
-                }`}>
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all"
+                  style={{
+                    background: s.num < current ? 'var(--olive)' : s.num === current ? 'var(--terra-500)' : 'var(--bg-warm)',
+                    color: s.num < current || s.num === current ? '#fff' : 'var(--ink-muted)',
+                    boxShadow: s.num === current ? '0 0 0 4px rgba(194,86,46,0.18)' : 'none',
+                  }}
+                >
                   {s.num < current ? '✓' : s.num}
                 </div>
-                <span className={`text-xs hidden sm:block ${s.num === current ? 'text-primary-600 font-semibold' : 'text-gray-400'}`}>
+                <span
+                  className="text-xs hidden sm:block"
+                  style={{ color: s.num === current ? 'var(--terra-500)' : 'var(--ink-muted)', fontWeight: s.num === current ? 600 : 400 }}
+                >
                   {intl.formatMessage({ id: s.labelKey })}
                 </span>
               </Link>
               {i < STEPS.length - 1 && (
-                <div className={`flex-1 h-0.5 mx-1 rounded-full ${s.num < current ? 'bg-green-400' : 'bg-gray-200'}`} />
+                <div
+                  className="flex-1 h-0.5 mx-1 rounded-full"
+                  style={{ background: s.num < current ? 'var(--olive)' : 'var(--bg-warm)' }}
+                />
               )}
             </div>
           ))}
         </div>
-        <p className="text-xs text-gray-500 text-center mt-2">
+        <p className="text-xs text-center mt-2" style={{ color: 'var(--ink-muted)' }}>
           {intl.formatMessage({ id: 'wizard.progress.label' }, { current, total: 6 })}
         </p>
       </div>

@@ -6,41 +6,19 @@ import { PrimerEmpleoDashboard } from '../modules/primer-empleo/PrimerEmpleoDash
 import { ExperienciaDashboard } from '../modules/experiencia/ExperienciaDashboard'
 import { OficioDashboard } from '../modules/oficio/OficioDashboard'
 import { LoadingSpinner } from './LoadingSpinner'
-import { NavBar } from './NavBar'
 
 export const WorkerDashboard: React.FC = () => {
   const { user } = useAuthContext()
   const { workerType, isLoading } = useWorkerContext()
 
-  // Los empleadores tienen su propio dashboard
-  if (user?.role === 'employer') {
-    return <Navigate to="/employer/dashboard" replace />
-  }
+  if (user?.role === 'employer') return <Navigate to="/employer/dashboard" replace />
+  if (user?.role === 'admin') return <Navigate to="/admin" replace />
+  if (isLoading) return <LoadingSpinner />
+  if (!workerType) return <Navigate to="/onboarding" replace />
 
-  // Los administradores van al panel admin
-  if (user?.role === 'admin') {
-    return <Navigate to="/admin" replace />
-  }
-
-  if (isLoading) {
-    return <LoadingSpinner fullScreen />
-  }
-
-  if (!workerType) {
-    return <Navigate to="/onboarding" replace />
-  }
-
-  const dashboard = match(workerType)
+  return match(workerType)
     .with('primer_empleo', () => <PrimerEmpleoDashboard />)
-    .with('experiencia', () => <ExperienciaDashboard />)
-    .with('oficio', () => <OficioDashboard />)
+    .with('experiencia',   () => <ExperienciaDashboard />)
+    .with('oficio',        () => <OficioDashboard />)
     .otherwise(() => null)
-
-  return (
-    <>
-      <NavBar />
-      {dashboard}
-    </>
-  )
 }
-

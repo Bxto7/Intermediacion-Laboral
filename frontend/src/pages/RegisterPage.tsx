@@ -5,7 +5,7 @@ import { useIntl } from 'react-intl'
 import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { useAuthContext } from '../context/AuthContext'
-import { BriefcaseFilled } from '../shared/BriefcaseIcon'
+import { LinkuLogoFull } from '../shared/LinkuLogo'
 
 const schema = z.object({
   email: z.string().email(),
@@ -53,12 +53,8 @@ export const RegisterPage: React.FC = () => {
           <div className="absolute top-0 left-0 w-48 h-48 rounded-full opacity-30 blur-3xl pointer-events-none" style={{ background: '#4d6a8a' }} />
           <div className="absolute bottom-0 right-0 w-64 h-64 rounded-full opacity-20 blur-3xl pointer-events-none" style={{ background: '#7a8c5c' }} />
 
-          <div className="relative z-10 flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-warm-sm"
-                 style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}>
-              <BriefcaseFilled className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-bold text-base text-white">DRTPE Junín</span>
+          <div className="relative z-10">
+            <LinkuLogoFull size={36} variant="white" />
           </div>
 
           <div className="relative z-10 space-y-6">
@@ -94,7 +90,7 @@ export const RegisterPage: React.FC = () => {
                 <div className="space-y-1.5">
                   <label className="block text-sm font-semibold" style={{ color: '#5a3d2b' }}>DNI</label>
                   <input {...register('dni')} type="text" className="input-warm" placeholder="12345678" maxLength={8} />
-                  {errors.dni && <p className="text-[10px] text-red-600">{errors.dni.message}</p>}
+                  {errors.dni && <p className="text-[10px]" style={{ color: 'var(--terra-500)' }}>{errors.dni.message}</p>}
                 </div>
                 <div className="space-y-1.5">
                   <label className="block text-sm font-semibold" style={{ color: '#5a3d2b' }}>Rol</label>
@@ -110,7 +106,7 @@ export const RegisterPage: React.FC = () => {
                   {intl.formatMessage({ id: 'auth.register.fullName' })}
                 </label>
                 <input {...register('fullName')} type="text" className="input-warm" placeholder="Juan Pérez" />
-                {errors.fullName && <p className="text-xs text-red-600">{errors.fullName.message}</p>}
+                {errors.fullName && <p className="text-xs" style={{ color: 'var(--terra-500)' }}>{errors.fullName.message}</p>}
               </div>
 
               <div className="space-y-1.5">
@@ -118,7 +114,7 @@ export const RegisterPage: React.FC = () => {
                   {intl.formatMessage({ id: 'auth.register.email' })}
                 </label>
                 <input {...register('email')} type="email" className="input-warm" placeholder="tu@correo.com" />
-                {errors.email && <p className="text-xs text-red-600">{errors.email.message}</p>}
+                {errors.email && <p className="text-xs" style={{ color: 'var(--terra-500)' }}>{errors.email.message}</p>}
               </div>
 
               <div className="space-y-1.5">
@@ -126,15 +122,15 @@ export const RegisterPage: React.FC = () => {
                   {intl.formatMessage({ id: 'auth.register.password' })}
                 </label>
                 <input {...register('password')} type="password" className="input-warm" placeholder="Mínimo 8 caracteres" />
-                {errors.password && <p className="text-xs text-red-600">{errors.password.message}</p>}
+                {errors.password && <p className="text-xs" style={{ color: 'var(--terra-500)' }}>{errors.password.message}</p>}
               </div>
 
               {error && (
-                <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-red-50 border border-red-200">
-                  <svg className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <div className="flex items-start gap-3 px-4 py-3 rounded-xl" style={{ background: 'rgba(194,86,46,0.08)', border: '1px solid rgba(194,86,46,0.20)' }}>
+                  <svg className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: 'var(--terra-500)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <p className="text-sm text-red-700">{error}</p>
+                  <p className="text-sm" style={{ color: 'var(--terra-700)' }}>{error}</p>
                 </div>
               )}
 

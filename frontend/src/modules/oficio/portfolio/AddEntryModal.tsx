@@ -1,9 +1,21 @@
 import { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { useIntl } from 'react-intl'
+import { Camera, X } from 'lucide-react'
 import { usePortfolio } from '../../../hooks/usePortfolio'
 
 interface Props { onClose: () => void }
+
+const fieldStyle = {
+  border: '1px solid rgba(61,40,24,0.14)',
+  background: 'var(--bg-soft)',
+  color: 'var(--ink-strong)',
+  borderRadius: '12px',
+  fontSize: '14px',
+  outline: 'none',
+  width: '100%',
+  padding: '10px 14px',
+}
 
 export const AddEntryModal: React.FC<Props> = ({ onClose }) => {
   const intl = useIntl()
@@ -38,59 +50,90 @@ export const AddEntryModal: React.FC<Props> = ({ onClose }) => {
     finally { setIsSubmitting(false) }
   }
 
+  const focusStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    e.currentTarget.style.borderColor = 'var(--terra-500)'
+    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(194,86,46,0.12)'
+  }
+  const blurStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    e.currentTarget.style.borderColor = 'rgba(61,40,24,0.14)'
+    e.currentTarget.style.boxShadow = 'none'
+  }
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-5 border-b border-gray-100">
-          <h2 className="font-bold text-gray-900">Agregar trabajo realizado</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl">×</button>
+    <div
+      className="fixed inset-0 flex items-center justify-center p-4 z-50"
+      style={{ background: 'rgba(26,15,10,0.55)', backdropFilter: 'blur(8px)' }}
+    >
+      <div
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto"
+        style={{ background: 'var(--bg-elevated)', borderRadius: '20px', boxShadow: '0 40px 80px -20px rgba(0,0,0,0.4)' }}
+      >
+        <div className="flex items-center justify-between p-5" style={{ borderBottom: '1px solid var(--line)' }}>
+          <h2 className="font-bold" style={{ color: 'var(--ink-strong)' }}>Agregar trabajo realizado</h2>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+            style={{ color: 'var(--ink-muted)' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(61,40,24,0.07)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+          >
+            <X size={16} />
+          </button>
         </div>
+
         <div className="p-5 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Título del trabajo *</label>
+            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--ink-warm)' }}>Título del trabajo *</label>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Ej: Instalación eléctrica residencial en El Tambo"
-              className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 outline-none"
+              style={fieldStyle}
+              onFocus={focusStyle}
+              onBlur={blurStyle}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Descripción *</label>
+            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--ink-warm)' }}>Descripción *</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
               placeholder="Describe el trabajo: qué hiciste, cómo lo hiciste, materiales que usaste..."
-              className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 outline-none resize-none"
+              style={{ ...fieldStyle, resize: 'none' }}
+              onFocus={focusStyle as unknown as React.FocusEventHandler<HTMLTextAreaElement>}
+              onBlur={blurStyle as unknown as React.FocusEventHandler<HTMLTextAreaElement>}
             />
-            <p className="text-xs text-gray-400 mt-1">El sistema detectará automáticamente tus habilidades</p>
+            <p className="text-xs mt-1" style={{ color: 'var(--ink-muted)' }}>El sistema detectará automáticamente tus habilidades</p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Fotos del trabajo (máx. 4)</label>
+            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--ink-warm)' }}>Fotos del trabajo (máx. 4)</label>
             <div
               {...getRootProps()}
-              className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
-                isDragActive ? 'border-amber-500 bg-amber-50' : 'border-gray-300 hover:border-amber-400 hover:bg-amber-50/40'
-              }`}
+              className="border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors"
+              style={{
+                borderColor: isDragActive ? 'var(--terra-500)' : 'rgba(61,40,24,0.18)',
+                background: isDragActive ? 'rgba(194,86,46,0.04)' : 'var(--bg-soft)',
+              }}
             >
               <input {...getInputProps()} />
-              <span className="text-3xl block mb-2">📷</span>
-              <p className="text-sm text-gray-500">
+              <Camera size={28} className="mx-auto mb-2" style={{ color: 'var(--ink-muted)' }} strokeWidth={1.5} />
+              <p className="text-sm" style={{ color: 'var(--ink-muted)' }}>
                 {isDragActive ? 'Suelta las fotos aquí' : 'Arrastra fotos o haz clic para seleccionar'}
               </p>
-              <p className="text-xs text-gray-400 mt-1">JPEG, PNG, WEBP · Máx 5 MB c/u</p>
+              <p className="text-xs mt-1" style={{ color: 'var(--ink-muted)' }}>JPEG, PNG, WEBP · Máx 5 MB c/u</p>
             </div>
             {files.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {files.map((f, i) => (
-                  <div key={i} className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100">
+                  <div key={i} className="relative w-16 h-16 rounded-xl overflow-hidden" style={{ background: 'var(--bg-warm)' }}>
                     <img src={URL.createObjectURL(f)} alt="" className="w-full h-full object-cover" />
                     <button
                       onClick={() => setFiles((p) => p.filter((_, j) => j !== i))}
-                      className="absolute top-0.5 right-0.5 w-4 h-4 bg-red-500 text-white rounded-full text-xs flex items-center justify-center"
+                      className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full flex items-center justify-center text-white"
+                      style={{ background: 'var(--terra-500)' }}
                     >
-                      ×
+                      <X size={10} />
                     </button>
                   </div>
                 ))}
@@ -98,17 +141,15 @@ export const AddEntryModal: React.FC<Props> = ({ onClose }) => {
             )}
           </div>
         </div>
-        <div className="flex gap-3 p-5 border-t border-gray-100">
-          <button
-            onClick={onClose}
-            className="flex-1 py-2.5 border border-gray-300 text-gray-700 rounded-xl font-medium text-sm hover:bg-gray-50 transition-colors"
-          >
+
+        <div className="flex gap-3 p-5" style={{ borderTop: '1px solid var(--line)' }}>
+          <button onClick={onClose} className="btn-secondary flex-1 py-2.5 text-sm">
             {intl.formatMessage({ id: 'common.cancel' })}
           </button>
           <button
             onClick={handleSubmit}
             disabled={isSubmitting || !title.trim() || !description.trim()}
-            className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white rounded-xl font-semibold text-sm transition-colors"
+            className="btn-primary flex-1 py-2.5 text-sm"
           >
             {isSubmitting ? 'Guardando...' : 'Guardar trabajo'}
           </button>

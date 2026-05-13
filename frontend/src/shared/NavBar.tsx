@@ -2,7 +2,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useIntl } from 'react-intl'
 import { useAuthContext } from '../context/AuthContext'
 import { useWorkerContext } from '../context/WorkerContext'
-import { BriefcaseFilled } from './BriefcaseIcon'
+import { LinkuLogoIcon } from './LinkuLogo'
+import { NotificationBell } from './NotificationBell'
 
 export const NavBar: React.FC = () => {
   const intl = useIntl()
@@ -18,73 +19,77 @@ export const NavBar: React.FC = () => {
   const initials = user?.email?.charAt(0).toUpperCase() ?? 'U'
 
   return (
-    <nav className="sticky top-0 z-40 transition-all duration-300 border-b"
-         style={{ background: 'rgba(247,241,232,0.88)', backdropFilter: 'blur(12px)', borderColor: 'rgba(61,40,24,0.10)' }}>
+    <nav
+      className="sticky top-0 z-40 transition-all duration-300 border-b"
+      style={{ background: 'rgba(247,241,232,0.92)', backdropFilter: 'blur(12px)', borderColor: 'var(--line)' }}
+    >
       <div className="max-w-6xl mx-auto px-5 h-14 flex items-center justify-between">
 
         {/* Logo */}
         <Link to="/dashboard" className="flex items-center gap-2.5 group">
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 shadow-warm-sm"
-               style={{ background: 'linear-gradient(135deg, #d97757, #c2562e)' }}>
-            <BriefcaseFilled className="w-4 h-4 text-white" />
-          </div>
+          <LinkuLogoIcon size={30} variant="terracota" />
           <div className="hidden sm:block leading-tight">
-            <span className="font-bold text-sm text-bark-900 tracking-tight block">DRTPE Junín</span>
-            <span className="kicker" style={{ color: 'var(--ink-muted)', fontSize: '9px' }}>Bolsa Oficial</span>
+            <span className="font-bold text-sm tracking-tight block" style={{ color: 'var(--ink-strong)' }}>Linku</span>
+            <span className="font-mono text-[9px] uppercase tracking-widest" style={{ color: 'var(--ink-muted)' }}>DRTPE-Junín</span>
           </div>
         </Link>
 
-        {/* Nav links + acciones */}
-        <div className="flex items-center gap-5">
+        {/* Nav links */}
+        <div className="flex items-center gap-1">
+          {isAuthenticated && (
+            <Link to="/servicios" className="btn-ghost text-xs px-3 py-2" style={{ color: 'var(--ink-warm)' }}>
+              Buscar servicios
+            </Link>
+          )}
           {isAuthenticated && workerType && (
             <>
-              <Link
-                to="/dashboard"
-                className="text-sm text-bark-500 hover:text-bark-900 transition-colors font-medium"
-              >
+              <Link to="/dashboard" className="btn-ghost text-xs px-3 py-2" style={{ color: 'var(--ink-warm)' }}>
                 {intl.formatMessage({ id: 'nav.dashboard' })}
               </Link>
               {workerType !== 'primer_empleo' && (
-                <Link
-                  to="/matches"
-                  className="text-sm text-bark-500 hover:text-bark-900 transition-colors font-medium"
-                >
+                <Link to="/matches" className="btn-ghost text-xs px-3 py-2" style={{ color: 'var(--ink-warm)' }}>
                   {intl.formatMessage({ id: 'nav.matching' })}
                 </Link>
               )}
               {workerType === 'oficio' && (
-                <Link
-                  to="/oficio/portfolio"
-                  className="text-sm text-bark-500 hover:text-bark-900 transition-colors font-medium"
-                >
-                  Portfolio
+                <>
+                  <Link to="/oficio/portfolio" className="btn-ghost text-xs px-3 py-2" style={{ color: 'var(--ink-warm)' }}>
+                    Portfolio
+                  </Link>
+                  <Link to="/marketplace" className="btn-ghost text-xs px-3 py-2" style={{ color: 'var(--ink-warm)' }}>
+                    Marketplace
+                  </Link>
+                </>
+              )}
+              {workerType !== 'primer_empleo' && (
+                <Link to="/applications" className="btn-ghost text-xs px-3 py-2" style={{ color: 'var(--ink-warm)' }}>
+                  Postulaciones
                 </Link>
               )}
             </>
           )}
 
           {user?.role === 'admin' && (
-            <Link to="/admin" className="text-sm text-primary-600 font-semibold">Admin</Link>
+            <Link to="/admin" className="btn-ghost text-xs px-3 py-2 font-semibold" style={{ color: 'var(--terra-500)' }}>
+              Admin
+            </Link>
           )}
 
           {isAuthenticated ? (
-            <div className="flex items-center gap-3">
-              {/* Avatar con inicial */}
-              <div className="w-8 h-8 rounded-full bg-bark-100 border border-warm-300 flex items-center justify-center">
-                <span className="text-xs font-bold text-bark-700">{initials}</span>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="text-sm text-bark-400 hover:text-bark-700 transition-colors"
+            <div className="flex items-center gap-2 ml-2">
+              <NotificationBell />
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                style={{ background: 'linear-gradient(135deg, var(--terra-400), var(--terra-500))' }}
               >
+                {initials}
+              </div>
+              <button onClick={handleLogout} className="btn-ghost text-xs px-3 py-2" style={{ color: 'var(--ink-muted)' }}>
                 {intl.formatMessage({ id: 'nav.logout' })}
               </button>
             </div>
           ) : (
-            <Link
-              to="/login"
-              className="btn-primary text-xs px-4 py-2"
-            >
+            <Link to="/login" className="btn-primary text-xs px-4 py-2 ml-2">
               {intl.formatMessage({ id: 'nav.login' })}
             </Link>
           )}

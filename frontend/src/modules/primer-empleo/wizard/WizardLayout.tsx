@@ -9,10 +9,10 @@ import { Step5Interests } from './steps/Step5Interests'
 import { Step6Preview } from './steps/Step6Preview'
 
 export const WizardLayout: React.FC = () => (
-  <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+  <div>
     <WizardProgressBar />
     <div className="max-w-5xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-5 gap-6 mt-4">
-      <div className="lg:col-span-3 bg-white rounded-2xl shadow-md border border-gray-100 p-6">
+      <div className="lg:col-span-3 bg-bg-elevated rounded-2xl shadow-md border border-[rgba(61,40,24,0.08)] p-6">
         <Routes>
           <Route index element={<Navigate to="step/1" replace />} />
           <Route path="step/1" element={<Step1PersonalData />} />
@@ -23,7 +23,7 @@ export const WizardLayout: React.FC = () => (
           <Route path="step/6" element={<Step6Preview />} />
         </Routes>
       </div>
-      <div className="hidden lg:block lg:col-span-2 bg-white rounded-2xl shadow-md border border-gray-100 p-6">
+      <div className="hidden lg:block lg:col-span-2 bg-bg-elevated rounded-2xl shadow-md border border-[rgba(61,40,24,0.08)] p-6">
         <CVLivePreview />
       </div>
     </div>

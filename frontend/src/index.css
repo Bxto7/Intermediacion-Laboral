@@ -4,37 +4,74 @@
 
 /* ═══════════════════════════════════════
    CSS Custom Properties — Design Tokens
+   Fuente única de verdad. DESIGN_SYSTEM.md §3
 ═══════════════════════════════════════ */
 :root {
+  /* FONDOS */
   --bg-base:     #f7f1e8;
-  --bg-elevated: #fdf6ea;
+  --bg-elevated: #ffffff;
+  --bg-soft:     #fdf6ea;
   --bg-warm:     #ebe0cd;
+
+  /* TINTA / TEXTO */
   --ink-strong:  #3d2818;
   --ink:         #5a3d2b;
   --ink-warm:    #6b4a35;
   --ink-muted:   #8a6648;
+
+  /* ZONAS OSCURAS */
   --dark:        #4a3120;
   --dark-2:      #5a3d2b;
   --dark-deep:   #3d2818;
+  --on-dark:     #fdf6ea;
+  --on-dark-muted: rgba(253,246,234,0.72);
+
+  /* ACENTO PRINCIPAL */
   --terra-500:   #c2562e;
   --terra-400:   #d97757;
   --terra-700:   #8a3a1c;
+  --terra-100:   rgba(194,86,46,0.10);
+
+  /* ACENTOS SECUNDARIOS */
   --blue:        #2d5a82;
-  --blue-light:  #4d6a8a;
+  --blue-100:    rgba(45,90,130,0.10);
   --olive:       #7a8c5c;
   --olive-deep:  #5d6b46;
+  --olive-100:   rgba(122,140,92,0.14);
   --gold:        #b8893a;
   --gold-light:  #e8b45a;
+  --gold-100:    rgba(184,137,58,0.14);
   --coral:       #e8a691;
+
+  /* SEMÁNTICOS */
+  --success:     #5d6b46;
+  --warning:     #b8893a;
+  --error:       #a83f3f;
+  --info:        #2d5a82;
+
+  /* BORDES / LÍNEAS */
+  --line:         rgba(61,40,24,0.10);
+  --line-strong:  rgba(61,40,24,0.18);
+  --line-on-dark: rgba(253,246,234,0.10);
+
+  /* RADIOS */
+  --r-sm: 8px; --r-md: 12px; --r-lg: 18px; --r-xl: 22px; --r-2xl: 28px;
+
+  /* SOMBRAS CÁLIDAS */
+  --shadow-sm: 0 1px 0 rgba(61,40,24,0.04);
+  --shadow-md: 0 1px 0 rgba(61,40,24,0.04), 0 8px 24px -16px rgba(61,40,24,0.12);
+  --shadow-lg: 0 8px 32px -12px rgba(61,40,24,0.18);
 }
 
 @layer base {
   html {
-    font-family: 'Geist', 'Inter', system-ui, sans-serif;
+    font-family: 'Geist', system-ui, sans-serif;
+    font-feature-settings: 'ss01', 'cv11';
     background-color: var(--bg-base);
     color: var(--ink);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.005em;
     scroll-behavior: smooth;
   }
   body { background-color: var(--bg-base); }
@@ -53,63 +90,128 @@
 @layer components {
   /* ─── Inputs ─── */
   .input-warm {
-    @apply w-full px-4 py-3 bg-white border border-[#d4c5bb] rounded-xl text-sm
+    @apply w-full px-4 py-3.5 bg-white border rounded-xl text-sm
            transition-all duration-150
-           focus:outline-none focus:border-[#c2562e] focus:ring-2 focus:ring-[#c2562e]/15;
+           focus:outline-none;
+    border-color: #d6c5a8;
     color: var(--ink-strong);
+    box-shadow: 0 1px 2px rgba(61,40,24,0.04);
+  }
+  .input-warm:focus {
+    border-color: var(--terra-500);
+    box-shadow: 0 0 0 3px rgba(194,86,46,0.14);
   }
   .input-warm::placeholder { color: var(--ink-muted); }
 
-  /* ─── Buttons ─── */
+  /* ─── Botones — SIEMPRE pill (radius 999px) ─── */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-3
-           font-semibold text-sm rounded-xl text-white
-           transition-all duration-150 shadow-warm-sm
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3
+           font-medium text-sm text-white
+           transition-all duration-150
            disabled:opacity-50 disabled:cursor-not-allowed;
-    background: linear-gradient(135deg, var(--terra-400) 0%, var(--terra-500) 60%, var(--terra-700) 100%);
+    border-radius: 999px;
+    background: linear-gradient(180deg, var(--terra-400), var(--terra-500));
+    box-shadow: 0 1px 0 rgba(255,255,255,0.18) inset,
+                0 8px 24px -10px rgba(194,86,46,0.5);
   }
-  .btn-primary:hover { box-shadow: 0 6px 24px rgba(194,86,46,0.35); transform: translateY(-1px); }
+  .btn-primary:hover { transform: translateY(-1px); filter: brightness(1.05); }
   .btn-primary:active { transform: translateY(0); }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-3
-           font-semibold text-sm rounded-xl
-           border transition-all duration-150
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3
+           font-medium text-sm
+           transition-all duration-150
            disabled:opacity-50 disabled:cursor-not-allowed;
+    border-radius: 999px;
+    border: 1px solid var(--line-strong);
     color: var(--ink-strong);
-    border-color: rgba(61,40,24,0.20);
-    background: rgba(255,255,255,0.55);
+    background: transparent;
   }
-  .btn-secondary:hover { background: rgba(255,255,255,0.85); border-color: rgba(61,40,24,0.35); }
+  .btn-secondary:hover { border-color: var(--ink-strong); background: rgba(61,40,24,0.04); }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5
+           font-medium text-sm transition-all duration-150;
+    border-radius: 999px;
+    color: var(--ink-warm);
+  }
+  .btn-ghost:hover { background: rgba(61,40,24,0.05); }
 
   /* ─── Cards ─── */
   .card-warm {
-    @apply rounded-2xl border;
-    background: rgba(255,255,255,0.55);
-    border-color: rgba(61,40,24,0.10);
-    backdrop-filter: blur(8px);
+    background: var(--bg-elevated);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: 0 1px 0 rgba(61,40,24,0.04), 0 8px 24px -16px rgba(61,40,24,0.10);
   }
 
-  /* ─── Tags ─── */
-  .tag-warm    { @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium; background: rgba(61,40,24,0.08); color: var(--ink); }
-  .tag-primary { @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium; background: rgba(194,86,46,0.10); color: var(--terra-500); }
-  .tag-blue    { @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium; background: rgba(45,90,130,0.10); color: var(--blue); }
-  .tag-olive   { @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium; background: rgba(122,140,92,0.12); color: var(--olive-deep); }
-  .tag-gold    { @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium; background: rgba(184,137,58,0.12); color: var(--gold); }
+  .card-dark {
+    background:
+      radial-gradient(600px 300px at 20% 0%, rgba(217,119,87,0.28), transparent 60%),
+      radial-gradient(500px 300px at 90% 100%, rgba(122,140,92,0.18), transparent 65%),
+      linear-gradient(135deg, var(--dark), var(--dark-2));
+    color: var(--on-dark);
+    border-radius: 22px;
+  }
 
-  /* ─── Kicker labels (Geist Mono uppercase) ─── */
+  /* ─── Tags / chips ─── */
+  .tag       { @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11.5px]; background: rgba(61,40,24,0.06); color: var(--ink-warm); }
+  .tag-terra { @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11.5px] font-medium; background: var(--terra-100); color: var(--terra-500); }
+  .tag-blue  { @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11.5px] font-medium; background: var(--blue-100); color: var(--blue); }
+  .tag-olive { @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11.5px] font-medium; background: var(--olive-100); color: var(--olive-deep); }
+  .tag-gold  { @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11.5px] font-medium; background: var(--gold-100); color: #8a6620; }
+
+  /* aliases legacy */
+  .tag-warm    { @apply tag; }
+  .tag-primary { @apply tag-terra; }
+
+  /* ─── Kicker — Geist Mono uppercase ─── */
   .kicker {
-    @apply font-mono text-xs font-medium uppercase tracking-widest;
+    @apply font-mono text-[11.5px] font-medium uppercase tracking-widest;
+    color: var(--ink-muted);
   }
 
   /* ─── Serif italic accent ─── */
-  .serif-italic {
+  .serif-accent, .serif-it {
     font-family: 'Instrument Serif', Georgia, serif;
     font-style: italic;
-    color: var(--coral);
+    font-weight: 400;
   }
 
-  /* ─── LoadingSpinner ─── */
+  /* ─── DRTPE verified pill ─── */
+  .verified {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11.5px] font-medium;
+    background: var(--blue-100);
+    color: var(--blue);
+  }
+
+  /* ─── Sidenav item active ─── */
+  .nav-item {
+    @apply flex items-center gap-2.5 px-2.5 py-2 rounded-[10px] text-sm font-medium transition-all duration-150 w-full;
+    color: var(--ink-muted);
+  }
+  .nav-item:hover { background: rgba(61,40,24,0.05); color: var(--ink-warm); }
+  .nav-item.active {
+    background: white;
+    color: var(--ink-strong);
+    box-shadow: var(--shadow-sm), 0 0 0 1px var(--line);
+  }
+  .nav-item.active svg { color: var(--terra-500); }
+  .nav-count {
+    @apply ml-auto text-[11px] font-semibold px-1.5 py-0.5 rounded-full;
+    background: var(--terra-100); color: var(--terra-500);
+  }
+
+  /* ─── Progress bars ─── */
+  .progress-track { background: rgba(61,40,24,0.10); height: 8px; border-radius: 999px; overflow: hidden; }
+  .progress-fill  { background: linear-gradient(90deg, var(--terra-400), var(--gold-light)); height: 100%; border-radius: 999px; }
+  .progress-track-on-dark { background: rgba(253,246,234,0.18); height: 8px; border-radius: 999px; overflow: hidden; }
+
+  /* ─── Avatares ─── */
+  .avatar {
+    @apply w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm text-white;
+    background: linear-gradient(135deg, var(--terra-400), var(--terra-500));
+  }
 }
 
 /* ─── Grain texture overlay ─── */
@@ -119,7 +221,7 @@
   inset: 0;
   pointer-events: none;
   z-index: 9999;
-  opacity: 0.25;
+  opacity: 0.22;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23noise)' opacity='0.4'/%3E%3C/svg%3E");
   background-repeat: repeat;
   mix-blend-mode: multiply;
@@ -132,7 +234,6 @@
     radial-gradient(ellipse 50% 35% at 85% 15%, rgba(184,137,58,0.06) 0%, transparent 65%),
     radial-gradient(ellipse 45% 40% at 10% 80%, rgba(45,90,130,0.05) 0%, transparent 65%),
     radial-gradient(ellipse 55% 45% at 90% 85%, rgba(122,140,92,0.06) 0%, transparent 70%),
-    radial-gradient(ellipse 70% 50% at 50% 50%, rgba(194,86,46,0.03) 0%, transparent 70%),
     var(--bg-base);
 }
 
@@ -145,7 +246,7 @@
   color: var(--ink-strong);
 }
 
-/* ─── Stat number ─── */
+/* ─── Stat number (Instrument Serif editorial) ─── */
 .stat-number {
   font-family: 'Instrument Serif', Georgia, serif;
   font-size: clamp(44px, 5vw, 60px);
@@ -153,7 +254,7 @@
   color: var(--ink-strong);
 }
 
-/* ─── Job card glow on hover ─── */
+/* ─── Job card mouse-glow hover ─── */
 .job-card {
   position: relative;
   overflow: hidden;
@@ -175,14 +276,10 @@
 }
 .job-card:hover::before { opacity: 1; }
 
-/* ─── Modal backdrop ─── */
-.modal-backdrop {
-  animation: fadeIn 0.2s ease;
-}
+/* ─── Modal animations ─── */
+.modal-backdrop { animation: fadeIn 0.2s ease; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-.modal-panel {
-  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
+.modal-panel { animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(24px) scale(0.97); }
   to   { opacity: 1; transform: translateY(0) scale(1); }

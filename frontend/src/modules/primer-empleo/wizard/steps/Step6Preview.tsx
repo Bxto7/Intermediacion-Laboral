@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useIntl } from 'react-intl'
 import { useNavigate } from 'react-router-dom'
+import { Download, ArrowRight } from 'lucide-react'
 import { useWizardStore } from '../../../../store/wizardStore'
 import apiClient from '../../../../api/client'
 import { useWorkerContext } from '../../../../context/WorkerContext'
@@ -26,48 +27,69 @@ export const Step6Preview: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">{intl.formatMessage({ id: 'wizard.step6.title' })}</h2>
-        <p className="text-gray-500 text-sm mt-1">{intl.formatMessage({ id: 'wizard.step6.subtitle' })}</p>
+        <h2 className="text-2xl font-bold" style={{ color: 'var(--ink-strong)' }}>
+          {intl.formatMessage({ id: 'wizard.step6.title' })}
+        </h2>
+        <p className="text-sm mt-1" style={{ color: 'var(--ink-muted)' }}>
+          {intl.formatMessage({ id: 'wizard.step6.subtitle' })}
+        </p>
       </div>
 
-      {/* Preview card */}
-      <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl p-6 text-white">
-        <div className="flex items-center gap-4 mb-4">
-          <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-2xl font-bold">
-            {answers.full_name?.[0]?.toUpperCase() || '👤'}
-          </div>
-          <div>
-            <h3 className="font-bold text-xl">{answers.full_name || 'Tu nombre'}</h3>
-            <p className="text-blue-100 text-sm">{answers.district || 'Huancayo'} · Primer empleo</p>
-          </div>
-        </div>
-
-        {answers.job_interests && (
-          <div className="mb-4">
-            <p className="text-xs text-blue-200 uppercase tracking-wide font-semibold mb-1">Objetivo laboral</p>
-            <p className="text-sm opacity-90">{answers.job_interests}</p>
-          </div>
-        )}
-
-        {extractedSkills.length > 0 && (
-          <div className="mb-4">
-            <p className="text-xs text-blue-200 uppercase tracking-wide font-semibold mb-2">Habilidades</p>
-            <div className="flex flex-wrap gap-1.5">
-              {extractedSkills.map((s) => (
-                <span key={s} className="bg-white/20 text-white text-xs px-2.5 py-1 rounded-full">{s}</span>
-              ))}
+      {/* CV Preview card */}
+      <div
+        className="relative overflow-hidden rounded-2xl p-6"
+        style={{ background: 'linear-gradient(160deg, var(--dark-deep) 0%, var(--dark) 60%, var(--dark-2) 100%)' }}
+      >
+        <div className="absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl opacity-15 pointer-events-none" style={{ background: 'var(--terra-500)' }} />
+        <div className="relative z-10">
+          <div className="flex items-center gap-4 mb-4">
+            <div
+              className="w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold flex-shrink-0"
+              style={{ background: 'linear-gradient(135deg, var(--terra-400), var(--terra-500))', color: '#fff' }}
+            >
+              {answers.full_name?.[0]?.toUpperCase() || '?'}
+            </div>
+            <div>
+              <h3 className="font-bold text-xl" style={{ color: 'var(--on-dark)' }}>{answers.full_name || 'Tu nombre'}</h3>
+              <p className="text-sm" style={{ color: 'var(--on-dark-muted)' }}>{answers.district || 'Huancayo'} · Primer empleo</p>
             </div>
           </div>
-        )}
 
-        {answers.education && answers.education.length > 0 && (
-          <div>
-            <p className="text-xs text-blue-200 uppercase tracking-wide font-semibold mb-1">Educación</p>
-            {answers.education.map((e: { institution: string; level: string; year: string }, i: number) => (
-              <p key={i} className="text-sm opacity-90">{e.institution} · {e.level} {e.year && `(${e.year})`}</p>
-            ))}
-          </div>
-        )}
+          {answers.job_interests && (
+            <div className="mb-4">
+              <p className="text-xs uppercase tracking-wide font-semibold mb-1" style={{ color: 'var(--on-dark-muted)' }}>Objetivo laboral</p>
+              <p className="text-sm opacity-90" style={{ color: 'var(--on-dark)' }}>{answers.job_interests}</p>
+            </div>
+          )}
+
+          {extractedSkills.length > 0 && (
+            <div className="mb-4">
+              <p className="text-xs uppercase tracking-wide font-semibold mb-2" style={{ color: 'var(--on-dark-muted)' }}>Habilidades</p>
+              <div className="flex flex-wrap gap-1.5">
+                {extractedSkills.map((s) => (
+                  <span
+                    key={s}
+                    className="text-xs px-2.5 py-1 rounded-full"
+                    style={{ background: 'rgba(253,246,234,0.15)', color: 'var(--on-dark)', border: '1px solid rgba(253,246,234,0.20)' }}
+                  >
+                    {s}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {answers.education && answers.education.length > 0 && (
+            <div>
+              <p className="text-xs uppercase tracking-wide font-semibold mb-1" style={{ color: 'var(--on-dark-muted)' }}>Educación</p>
+              {answers.education.map((e: { institution: string; level: string; year: string }, i: number) => (
+                <p key={i} className="text-sm opacity-90" style={{ color: 'var(--on-dark)' }}>
+                  {e.institution} · {e.level} {e.year && `(${e.year})`}
+                </p>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Action buttons */}
@@ -75,12 +97,15 @@ export const Step6Preview: React.FC = () => {
         <button
           onClick={generateCV}
           disabled={isGenerating}
-          className="w-full flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-60 text-white font-semibold py-3 rounded-xl transition-colors shadow-sm"
+          className="btn-primary w-full py-3 gap-2 text-sm"
         >
           {isGenerating ? (
-            <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> Generando PDF...</>
+            <>
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+              Generando PDF...
+            </>
           ) : (
-            <>{intl.formatMessage({ id: 'wizard.step6.download_cv' })}</>
+            intl.formatMessage({ id: 'wizard.step6.download_cv' })
           )}
         </button>
 
@@ -89,17 +114,22 @@ export const Step6Preview: React.FC = () => {
             href={cvUrl}
             target="_blank"
             rel="noreferrer"
-            className="w-full block text-center bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-xl transition-colors"
+            className="btn-secondary w-full flex items-center justify-center gap-2 py-3 text-sm"
           >
-            ⬇ Descargar mi CV (PDF)
+            <Download size={15} />
+            Descargar mi CV (PDF)
           </a>
         )}
 
         <button
           onClick={() => navigate('/dashboard')}
-          className="w-full py-3 border-2 border-gray-200 hover:bg-gray-50 text-gray-700 font-medium rounded-xl transition-colors"
+          className="w-full py-3 text-sm font-medium flex items-center justify-center gap-1.5 transition-colors"
+          style={{ color: 'var(--ink-warm)' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--ink-strong)' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--ink-warm)' }}
         >
-          {intl.formatMessage({ id: 'wizard.step6.go_to_dashboard' })} →
+          {intl.formatMessage({ id: 'wizard.step6.go_to_dashboard' })}
+          <ArrowRight size={14} />
         </button>
       </div>
     </div>

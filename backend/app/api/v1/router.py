@@ -2,10 +2,13 @@ from fastapi import APIRouter
 
 from app.api.v1.admin import admin_router
 from app.api.v1.alerts import router as alerts_router
+from app.api.v1.applications import router as applications_router
 from app.api.v1.auth import router as auth_router
+from app.api.v1.contracts import router as contracts_router
 from app.api.v1.cv import router as cv_router
 from app.api.v1.employers import router as employers_router
 from app.api.v1.jobs import router as jobs_router
+from app.api.v1.marketplace import router as marketplace_router
 from app.api.v1.matching import router as matching_router
 from app.api.v1.nlp import router as nlp_router
 from app.api.v1.onboarding import router as onboarding_router
@@ -28,6 +31,9 @@ api_router.include_router(portfolio_router)
 api_router.include_router(cv_router)
 api_router.include_router(alerts_router)
 api_router.include_router(matching_router)
+api_router.include_router(marketplace_router)
+api_router.include_router(applications_router)
+api_router.include_router(contracts_router)
 api_router.include_router(ws_router)
 api_router.include_router(admin_router)
 api_router.include_router(surveys_router)
@@ -35,4 +41,4 @@ api_router.include_router(surveys_router)
 
 @api_router.get("/ping", tags=["system"])
 async def ping():
-    return {"message": "pong", "sprint": 4}
+    return {"message": "pong", "sprint": 5}

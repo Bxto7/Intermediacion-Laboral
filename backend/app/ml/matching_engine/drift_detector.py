@@ -1,7 +1,6 @@
 # RF: RF146-RF150 (M10) — Detección de drift PSI (Population Stability Index)
 from __future__ import annotations
 
-import pickle
 from pathlib import Path
 
 import numpy as np

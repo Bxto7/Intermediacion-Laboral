@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useIntl } from 'react-intl'
+import { Plus, X } from 'lucide-react'
 import { useWizardStore } from '../../../../store/wizardStore'
 import { WizardNavigation } from '../WizardNavigation'
 import apiClient from '../../../../api/client'
@@ -43,29 +44,41 @@ export const Step4Activities: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">{intl.formatMessage({ id: 'wizard.step4.title' })}</h2>
-        <p className="text-gray-500 text-sm mt-1">{intl.formatMessage({ id: 'wizard.step4.subtitle' })}</p>
+        <h2 className="text-2xl font-bold" style={{ color: 'var(--ink-strong)' }}>
+          {intl.formatMessage({ id: 'wizard.step4.title' })}
+        </h2>
+        <p className="text-sm mt-1" style={{ color: 'var(--ink-muted)' }}>
+          {intl.formatMessage({ id: 'wizard.step4.subtitle' })}
+        </p>
       </div>
 
       <div className="space-y-2">
-        {SUGGESTIONS.map((s) => (
-          <button
-            key={s}
-            onClick={() => toggle(s)}
-            className={`w-full text-left px-4 py-3 rounded-xl border-2 transition-all text-sm font-medium flex items-center gap-3 ${
-              activities.includes(s)
-                ? 'border-primary-500 bg-primary-50 text-primary-700'
-                : 'border-gray-200 hover:border-gray-300 text-gray-600'
-            }`}
-          >
-            <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-              activities.includes(s) ? 'border-primary-500 bg-primary-500' : 'border-gray-300'
-            }`}>
-              {activities.includes(s) && <span className="text-white text-xs">✓</span>}
-            </span>
-            {s}
-          </button>
-        ))}
+        {SUGGESTIONS.map((s) => {
+          const active = activities.includes(s)
+          return (
+            <button
+              key={s}
+              onClick={() => toggle(s)}
+              className="w-full text-left px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-3 transition-all"
+              style={{
+                border: `2px solid ${active ? 'var(--terra-500)' : 'var(--line)'}`,
+                background: active ? 'var(--terra-100)' : 'var(--bg-elevated)',
+                color: active ? 'var(--terra-700)' : 'var(--ink-warm)',
+              }}
+            >
+              <span
+                className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all"
+                style={{
+                  border: `2px solid ${active ? 'var(--terra-500)' : 'rgba(61,40,24,0.18)'}`,
+                  background: active ? 'var(--terra-500)' : 'transparent',
+                }}
+              >
+                {active && <span className="text-white text-xs font-bold">✓</span>}
+              </span>
+              {s}
+            </button>
+          )
+        })}
       </div>
 
       <div className="flex gap-2">
@@ -74,20 +87,35 @@ export const Step4Activities: React.FC = () => {
           onChange={(e) => setCustom(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && addCustom()}
           placeholder="Otra actividad que hayas hecho..."
-          className="flex-1 px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 outline-none"
+          className="flex-1 rounded-xl text-sm focus:outline-none"
+          style={{ border: '1px solid rgba(61,40,24,0.14)', background: 'var(--bg-soft)', color: 'var(--ink-strong)', padding: '10px 14px' }}
+          onFocus={e => { e.currentTarget.style.borderColor = 'var(--terra-500)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(194,86,46,0.12)' }}
+          onBlur={e => { e.currentTarget.style.borderColor = 'rgba(61,40,24,0.14)'; e.currentTarget.style.boxShadow = 'none' }}
         />
         <button
           onClick={addCustom}
-          className="px-4 py-2.5 bg-primary-600 text-white rounded-xl text-sm font-medium hover:bg-primary-700 transition-colors"
+          className="btn-primary px-4 py-2.5"
         >
-          +
+          <Plus size={16} />
         </button>
       </div>
 
       {activities.filter((a) => !SUGGESTIONS.includes(a)).map((a) => (
-        <div key={a} className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg text-sm">
-          <span className="flex-1 text-gray-700">{a}</span>
-          <button onClick={() => toggle(a)} className="text-gray-400 hover:text-red-500">×</button>
+        <div
+          key={a}
+          className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm"
+          style={{ background: 'var(--bg-soft)', border: '1px solid var(--line)' }}
+        >
+          <span className="flex-1" style={{ color: 'var(--ink-warm)' }}>{a}</span>
+          <button
+            onClick={() => toggle(a)}
+            className="transition-colors"
+            style={{ color: 'var(--ink-muted)' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--terra-500)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--ink-muted)' }}
+          >
+            <X size={14} />
+          </button>
         </div>
       ))}
 

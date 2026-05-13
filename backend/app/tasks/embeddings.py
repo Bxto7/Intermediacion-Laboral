@@ -159,6 +159,31 @@ def generate_portfolio_entry_embedding(entry_id: str) -> None:
     logger.info("portfolio_entry_embedding_generated", entry_id=entry_id)
 
 
+@app.task(name="generate_listing_embedding", queue="embeddings")
+def generate_listing_embedding(listing_id: str) -> None:
+    if not _validate_uuid(listing_id, "listing_id"):
+        return
+    from app.models.service_listing import ServiceListing
+    from app.nlp.embeddings.generator import generate_embedding
+
+    session_factory = _get_sync_session()
+
+    with session_factory() as db:
+        listing = db.get(ServiceListing, listing_id)
+        if not listing:
+            logger.warning("listing_not_found_for_embedding", listing_id=listing_id)
+            return
+
+        keywords_str = ", ".join(listing.enriched_keywords or [])
+        text = f"{listing.trade_category} | {listing.title} | habilidades: {keywords_str} | {listing.description[:400]}"
+        from app.nlp.embeddings.generator import apply_local_dictionary
+        text = apply_local_dictionary(text)
+        listing.embedding = generate_embedding(text)
+        db.commit()
+
+    logger.info("listing_embedding_generated", listing_id=listing_id)
+
+
 @app.task(name="regenerate_all_embeddings", queue="embeddings")
 def regenerate_all_embeddings(worker_type: str = "all") -> None:
     from app.models.worker import Worker

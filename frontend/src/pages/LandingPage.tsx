@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { LoginModal } from './landing/LoginModal'
 import { LandingNav } from './landing/LandingNav'
 import { JOBS, CATEGORIES, COMPANIES, TESTIMONIALS } from './landing/data'
-import { BriefcaseFilled } from '../shared/BriefcaseIcon'
+import { LinkuLogoFull } from '../shared/LinkuLogo'
 
 export const LandingPage: React.FC = () => {
   const [loginOpen, setLoginOpen] = useState(false)
@@ -55,7 +55,7 @@ export const LandingPage: React.FC = () => {
               <p className="text-xs" style={{ color: '#8a6648' }}>{job.location}</p>
             </div>
           </div>
-          <button onClick={() => toggleBookmark(job.id)} className="p-1.5 rounded-lg transition-colors" style={{ color: saved ? '#c2562e' : '#bba99c' }}>
+          <button onClick={() => toggleBookmark(job.id)} className="p-1.5 rounded-xl transition-colors" style={{ color: saved ? '#c2562e' : '#bba99c' }}>
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill={saved ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
           </button>
         </div>
@@ -230,7 +230,7 @@ export const LandingPage: React.FC = () => {
       {/* ═══ LOGOS EMPRESAS ═══ */}
       <section className="py-16 px-5 border-b" style={{ borderColor: 'rgba(61,40,24,0.08)' }} id="empleadores">
         <div className="max-w-6xl mx-auto space-y-8">
-          <p className="text-center font-mono text-xs uppercase tracking-widest" style={{ color: '#8a6648' }}>Empresas que confían en DRTPE Junín</p>
+          <p className="text-center font-mono text-xs uppercase tracking-widest" style={{ color: '#8a6648' }}>Empresas que confían en Linku · DRTPE-Junín</p>
           <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
             {COMPANIES.map(c => (
               <div key={c} className="card-warm py-4 px-3 flex items-center justify-center text-center hover:shadow-warm transition-all" style={{ minHeight: 64 }}>
@@ -299,12 +299,7 @@ export const LandingPage: React.FC = () => {
       <footer style={{ background: '#3d2818', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
         <div className="max-w-6xl mx-auto px-5 py-14 grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="col-span-2 md:col-span-1 space-y-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #d97757, #c2562e)' }}>
-                <BriefcaseFilled className="w-4 h-4 text-white" />
-              </div>
-              <span className="font-bold text-white text-sm">DRTPE Junín</span>
-            </div>
+            <LinkuLogoFull size={30} variant="white" />
             <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.35)' }}>
               Bolsa de empleo formal respaldada por la Dirección Regional de Trabajo de Junín.
             </p>
@@ -331,7 +326,7 @@ export const LandingPage: React.FC = () => {
           ))}
         </div>
         <div className="border-t px-5 py-5 flex flex-col md:flex-row items-center justify-between gap-2 max-w-6xl mx-auto" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>© 2026 DRTPE Junín. Todos los derechos reservados.</p>
+          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>© 2026 Linku · DRTPE-Junín. Todos los derechos reservados.</p>
           <p className="text-xs font-mono" style={{ color: 'rgba(255,255,255,0.20)' }}>Huancayo, Perú · Investigación aplicada</p>
         </div>
       </footer>

@@ -91,4 +91,97 @@ class DRTPEConnectorStub:
         return True
 
 
-drtpe_connector: DRTPEConnectorProtocol = DRTPEConnectorStub()
+class DRTPEConnectorReal:
+    """
+    Conector real con la API de la Bolsa de Trabajo DRTPE-Junín (Sprint 5).
+    Usa httpx para llamadas HTTP asíncronas con timeout y reintentos.
+    """
+
+    BASE_URL = "https://api.drtpe.gob.pe/v1"
+    TIMEOUT = 10.0
+
+    def __init__(self) -> None:
+        from app.core.config import settings
+        self._api_key: str = getattr(settings, "DRTPE_API_KEY", "")
+
+    async def fetch_active_offers(self, limit: int = 50) -> list[DRTPEJobOffer]:
+        import httpx
+
+        headers = {"X-API-Key": self._api_key, "Accept": "application/json"}
+        try:
+            async with httpx.AsyncClient(timeout=self.TIMEOUT) as client:
+                resp = await client.get(
+                    f"{self.BASE_URL}/ofertas/activas",
+                    headers=headers,
+                    params={"limit": limit, "region": "JUNIN"},
+                )
+                resp.raise_for_status()
+                data = resp.json()
+        except Exception as exc:
+            logger.warning("drtpe_fetch_failed", error=str(exc), fallback="stub")
+            return await DRTPEConnectorStub().fetch_active_offers(limit)
+
+        offers = []
+        for item in data.get("ofertas", []):
+            offers.append(
+                DRTPEJobOffer(
+                    external_id=str(item.get("id", "")),
+                    title=item.get("titulo", ""),
+                    employer_name=item.get("empresa", ""),
+                    district=item.get("distrito", "Huancayo"),
+                    required_skills=item.get("habilidades_requeridas", []),
+                    salary_min=item.get("salario_min"),
+                    salary_max=item.get("salario_max"),
+                    published_at=item.get("fecha_publicacion", ""),
+                )
+            )
+        logger.info("drtpe_offers_fetched", count=len(offers))
+        return offers
+
+    async def sync_worker_registration(self, worker_id: str, data: dict) -> bool:
+        import httpx
+
+        headers = {"X-API-Key": self._api_key, "Accept": "application/json"}
+        try:
+            async with httpx.AsyncClient(timeout=self.TIMEOUT) as client:
+                resp = await client.post(
+                    f"{self.BASE_URL}/trabajadores/registro",
+                    headers=headers,
+                    json={"worker_id": worker_id, **data},
+                )
+                resp.raise_for_status()
+                logger.info("drtpe_worker_synced", worker_id=worker_id)
+                return True
+        except Exception as exc:
+            logger.warning("drtpe_sync_failed", worker_id=worker_id, error=str(exc))
+            return False
+
+    async def report_placement(self, contract_id: str, data: dict) -> bool:
+        import httpx
+
+        headers = {"X-API-Key": self._api_key, "Accept": "application/json"}
+        try:
+            async with httpx.AsyncClient(timeout=self.TIMEOUT) as client:
+                resp = await client.post(
+                    f"{self.BASE_URL}/colocaciones",
+                    headers=headers,
+                    json={"contract_id": contract_id, **data},
+                )
+                resp.raise_for_status()
+                logger.info("drtpe_placement_reported", contract_id=contract_id)
+                return True
+        except Exception as exc:
+            logger.warning("drtpe_placement_failed", contract_id=contract_id, error=str(exc))
+            return False
+
+
+def _get_connector() -> DRTPEConnectorProtocol:
+    """Retorna el conector real si DRTPE_API_KEY está configurado, sino el stub."""
+    from app.core.config import settings
+    api_key = getattr(settings, "DRTPE_API_KEY", "")
+    if api_key and api_key != "stub":
+        return DRTPEConnectorReal()
+    return DRTPEConnectorStub()
+
+
+drtpe_connector: DRTPEConnectorProtocol = _get_connector()

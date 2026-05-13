@@ -198,13 +198,13 @@ async def get_current_user(
     user_id = payload.get("sub")
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
-    
+
     if not user or not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Usuario no encontrado"
         )
-        
+
     return UserResponse(
         id=str(user.id),
         email=user.email,

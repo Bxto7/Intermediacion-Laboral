@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import { useIntl } from 'react-intl'
+import { Sparkles, Info } from 'lucide-react'
 import { useWizardStore } from '../../../../store/wizardStore'
 import { WizardNavigation } from '../WizardNavigation'
 import { SkillTag } from '../../../../shared/SkillTag'
@@ -43,20 +44,26 @@ export const Step3Skills: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">
+        <h2 className="text-2xl font-bold" style={{ color: 'var(--ink-strong)' }}>
           {intl.formatMessage({ id: 'wizard.step3.title' })}
         </h2>
-        <p className="text-gray-500 text-sm mt-1">
+        <p className="text-sm mt-1" style={{ color: 'var(--ink-muted)' }}>
           {intl.formatMessage({ id: 'wizard.step3.subtitle' })}
         </p>
       </div>
 
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm text-blue-700">
-        💡 <strong>Tip:</strong> No te preocupes por sonar formal. Escribe como hablas normalmente.
+      <div
+        className="rounded-xl p-3 flex items-start gap-2.5"
+        style={{ background: 'var(--blue-100)', border: '1px solid rgba(45,90,130,0.15)' }}
+      >
+        <Info size={15} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--blue)' }} />
+        <p className="text-sm" style={{ color: 'var(--blue)' }}>
+          <strong>Tip:</strong> No te preocupes por sonar formal. Escribe como hablas normalmente.
+        </p>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium mb-2" style={{ color: 'var(--ink-warm)' }}>
           {intl.formatMessage({ id: 'wizard.step3.question' })}
         </label>
         <textarea
@@ -64,22 +71,29 @@ export const Step3Skills: React.FC = () => {
           onChange={handleTextChange}
           rows={5}
           placeholder={intl.formatMessage({ id: 'wizard.step3.placeholder' })}
-          className="w-full border border-gray-300 rounded-xl p-3.5 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition resize-none"
+          className="w-full rounded-xl p-3.5 text-sm transition resize-none focus:outline-none"
+          style={{ border: '1px solid rgba(61,40,24,0.14)', background: 'var(--bg-soft)', color: 'var(--ink-strong)' }}
+          onFocus={e => { e.currentTarget.style.borderColor = 'var(--terra-500)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(194,86,46,0.12)' }}
+          onBlur={e => { e.currentTarget.style.borderColor = 'rgba(61,40,24,0.14)'; e.currentTarget.style.boxShadow = 'none' }}
         />
-        <p className="text-xs text-gray-400 mt-1">{freeText.length} caracteres · mínimo 15</p>
+        <p className="text-xs mt-1" style={{ color: 'var(--ink-muted)' }}>{freeText.length} caracteres · mínimo 15</p>
       </div>
 
       {isExtracting && (
-        <div className="flex items-center gap-2 text-sm text-primary-600">
-          <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-200 border-t-primary-600" />
+        <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--terra-500)' }}>
+          <span className="h-4 w-4 animate-spin rounded-full border-2" style={{ borderColor: 'rgba(194,86,46,0.20)', borderTopColor: 'var(--terra-500)' }} />
           {intl.formatMessage({ id: 'wizard.step3.extracting' })}
         </div>
       )}
 
       {extractedSkills.length > 0 && (
-        <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-          <p className="text-sm font-semibold text-green-700 mb-2">
-            ✨ {intl.formatMessage({ id: 'wizard.step3.skills_found' })}
+        <div
+          className="rounded-xl p-4"
+          style={{ background: 'var(--olive-100)', border: '1px solid rgba(122,140,92,0.25)' }}
+        >
+          <p className="text-sm font-semibold mb-2 flex items-center gap-1.5" style={{ color: 'var(--olive-deep)' }}>
+            <Sparkles size={14} />
+            {intl.formatMessage({ id: 'wizard.step3.skills_found' })}
           </p>
           <div className="flex flex-wrap gap-2">
             {extractedSkills.map((skill) => (

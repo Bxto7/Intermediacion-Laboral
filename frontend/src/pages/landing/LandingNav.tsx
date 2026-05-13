@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { BriefcaseFilled } from '../../shared/BriefcaseIcon'
+import { LinkuLogoIcon } from '../../shared/LinkuLogo'
 
 interface Props { onLoginClick: () => void; scrolled: boolean }
 
@@ -19,13 +19,10 @@ export const LandingNav: React.FC<Props> = ({ onLoginClick, scrolled }) => {
       <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-warm-sm"
-            style={{ background: 'linear-gradient(135deg, #d97757, #c2562e)' }}>
-            <BriefcaseFilled className="w-4 h-4 text-white" />
-          </div>
+          <LinkuLogoIcon size={36} variant="terracota" />
           <div className="leading-tight">
-            <p className="text-sm font-bold" style={{ color: '#3d2818' }}>DRTPE Junín</p>
-            <p className="text-[10px] font-mono uppercase tracking-wider" style={{ color: '#8a6648' }}>Bolsa de Empleo Formal</p>
+            <p className="text-sm font-bold" style={{ color: '#3d2818', letterSpacing: '-0.02em' }}>Linku</p>
+            <p className="text-[10px] font-mono uppercase tracking-wider" style={{ color: '#8a6648' }}>DRTPE-Junín · Empleo formal</p>
           </div>
         </div>
 
@@ -39,6 +36,15 @@ export const LandingNav: React.FC<Props> = ({ onLoginClick, scrolled }) => {
               onMouseLeave={e => (e.currentTarget.style.color = '#6b4a35')}
             >{l}</a>
           ))}
+          <Link
+            to="/servicios"
+            className="text-sm font-medium transition-colors"
+            style={{ color: '#6b4a35' }}
+            onMouseEnter={e => (e.currentTarget.style.color = '#c2562e')}
+            onMouseLeave={e => (e.currentTarget.style.color = '#6b4a35')}
+          >
+            Buscar servicios
+          </Link>
         </nav>
 
         {/* CTAs */}

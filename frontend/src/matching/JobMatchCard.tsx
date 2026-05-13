@@ -1,3 +1,4 @@
+import { MapPin } from 'lucide-react'
 import { useIntl } from 'react-intl'
 import { SkillTag } from '../shared/SkillTag'
 import type { JobMatch } from '../hooks/useMatches'
@@ -5,65 +6,73 @@ import type { JobMatch } from '../hooks/useMatches'
 interface Props {
   match: JobMatch
   workerType?: string
+  compact?: boolean
 }
 
 const labelColors = {
-  Alta: 'bg-green-100 text-green-800 border-green-200',
-  Media: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  Baja: 'bg-red-100 text-red-800 border-red-200',
+  Alta:  'bg-[rgba(122,140,92,0.14)] text-olive-deep border-[rgba(122,140,92,0.20)]',
+  Media: 'bg-[rgba(184,137,58,0.14)] text-gold border-[rgba(184,137,58,0.20)]',
+  Baja:  'bg-[rgba(194,86,46,0.10)] text-terra-500 border-[rgba(194,86,46,0.20)]',
 }
 
 const scoreBar = (score: number) => {
   const pct = Math.round(score * 100)
-  const color = pct >= 70 ? 'bg-green-500' : pct >= 45 ? 'bg-yellow-400' : 'bg-red-400'
+  const color = pct >= 70 ? 'bg-olive' : pct >= 45 ? 'bg-gold' : 'bg-terra-500'
   return { pct, color }
 }
 
-export const JobMatchCard: React.FC<Props> = ({ match }) => {
+export const JobMatchCard: React.FC<Props> = ({ match, compact = false }) => {
   const intl = useIntl()
   const { pct, color } = scoreBar(match.combined_score)
   const label = match.explanation.compatibility_label as keyof typeof labelColors
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 hover:border-primary-300 hover:shadow-md transition-all p-4">
+    <div
+      className="card-warm hover:-translate-y-0.5 transition-all duration-200"
+      style={{ cursor: 'default', padding: compact ? '12px' : '16px' }}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-gray-900 text-sm truncate">{match.title}</h3>
+          <h3 className="font-semibold text-sm truncate" style={{ color: 'var(--ink-strong)' }}>{match.title}</h3>
           {match.district && (
-            <p className="text-xs text-gray-500 mt-0.5">📍 {match.district}</p>
+            <p className="text-xs mt-0.5 flex items-center gap-1" style={{ color: 'var(--ink-muted)' }}>
+              <MapPin size={10} /> {match.district}
+            </p>
           )}
         </div>
         <div className="flex flex-col items-end gap-1 flex-shrink-0">
-          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${labelColors[label]}`}>
+          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${labelColors[label] ?? ''}`}>
             {label}
           </span>
-          <span className="text-sm font-bold text-gray-800">{pct}%</span>
+          <span className="text-sm font-bold" style={{ color: 'var(--ink-strong)' }}>{pct}%</span>
         </div>
       </div>
 
       {/* Score bar */}
-      <div className="mt-3 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+      <div className="mt-3 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--bg-warm)' }}>
         <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${pct}%` }} />
       </div>
 
       {/* Skills */}
-      {match.explanation.matching_skills.length > 0 && (
+      {!compact && match.explanation.matching_skills.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-1.5">
           {match.explanation.matching_skills.slice(0, 4).map((skill) => (
             <SkillTag key={skill} label={skill} color="green" />
           ))}
           {match.explanation.missing_skills.slice(0, 2).map((skill) => (
-            <SkillTag key={skill} label={skill} color="gray" />
+            <SkillTag key={skill} label={skill} color="amber" />
           ))}
         </div>
       )}
 
-      {/* Message */}
-      <p className="text-xs text-gray-500 mt-2 italic">{match.explanation.message}</p>
+      {!compact && <p className="text-xs mt-2 italic" style={{ color: 'var(--ink-muted)' }}>{match.explanation.message}</p>}
 
       <div className="mt-3 flex items-center justify-between">
-        <span className="text-xs text-gray-400">Rank #{match.rank}</span>
-        <button className="text-xs bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 rounded-lg font-medium transition-colors">
+        <span className="text-xs" style={{ color: 'var(--ink-muted)' }}>Rank #{match.rank}</span>
+        <button
+          className="btn-primary text-xs px-3 py-1.5"
+          style={{ borderRadius: '999px' }}
+        >
           {intl.formatMessage({ id: 'match.select' })}
         </button>
       </div>

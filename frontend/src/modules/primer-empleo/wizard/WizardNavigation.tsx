@@ -19,11 +19,11 @@ export const WizardNavigation: React.FC<Props> = ({ step, onNext, isLoading, dis
   }
 
   return (
-    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+    <div className="flex items-center justify-between pt-4 border-t border-[rgba(61,40,24,0.08)]">
       {step > 1 ? (
         <button
           onClick={() => navigate(`/wizard/step/${step - 1}`)}
-          className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+          className="flex items-center gap-1 text-sm text-ink-muted hover:text-ink transition-colors"
         >
           ← {intl.formatMessage({ id: 'common.back' })}
         </button>
@@ -31,7 +31,7 @@ export const WizardNavigation: React.FC<Props> = ({ step, onNext, isLoading, dis
       <button
         onClick={handleNext}
         disabled={isLoading || disabled}
-        className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white font-semibold px-6 py-2.5 rounded-xl transition-colors shadow-sm"
+        className="btn-primary px-6 py-2.5 gap-2"
       >
         {isLoading && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />}
         {step === 6 ? 'Finalizar' : 'Siguiente →'}

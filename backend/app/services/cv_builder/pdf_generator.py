@@ -39,12 +39,14 @@ async def generate_cv_pdf(
     template = env.get_template(template_file)
     html_content = template.render(**context)
 
-    # Importacion diferida; fallback a HTML si WeasyPrint falta o falla (sistema sin libgobject)
     try:
-        from weasyprint import HTML as WeasyHTML  # noqa: N811
+        from weasyprint import HTML as WeasyHTML  # type: ignore[import-untyped]  # noqa: N811
         pdf_bytes: bytes = WeasyHTML(string=html_content).write_pdf()
-    except Exception:
-        pdf_bytes = html_content.encode("utf-8")
+    except ImportError as exc:
+        raise RuntimeError(
+            "WeasyPrint no disponible: asegurate de tener las dependencias del sistema instaladas "
+            "(libglib2.0-0, libpango-1.0-0, libcairo2). Ver Dockerfile."
+        ) from exc
 
     logger.info(
         "cv_pdf_generated",

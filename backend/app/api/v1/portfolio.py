@@ -4,6 +4,7 @@ from pathlib import Path
 
 import structlog
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -323,3 +324,60 @@ async def upload_portfolio_photos(
 
     logger.info("portfolio_photos_uploaded", entry_id=entry_id, count=len(new_urls))
     return new_urls
+
+
+class _ContactBody(BaseModel):
+    message: str = Field(..., min_length=10, max_length=500)
+
+
+@router.post("/{username}/contact", status_code=status.HTTP_201_CREATED)
+async def contact_portfolio_worker(
+    username: str,
+    body: _ContactBody,
+    payload: dict = Depends(require_role(UserRole.WORKER)),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Envía mensaje de contacto al trabajador de oficio dueño del portfolio (RF123)."""
+    import uuid as uuid_mod
+
+    result = await db.execute(
+        select(Worker).where(Worker.username == username, Worker.worker_type == "oficio")
+    )
+    oficio_worker = result.scalar_one_or_none()
+    if not oficio_worker:
+        raise HTTPException(status_code=404, detail="Portfolio no encontrado")
+
+    if str(oficio_worker.user_id) == payload["sub"]:
+        raise HTTPException(status_code=400, detail="No puedes contactarte a ti mismo")
+
+    from app.models.notification import Notification
+
+    notif = Notification(
+        id=str(uuid_mod.uuid4()),
+        user_id=oficio_worker.user_id,
+        notification_type="message",
+        title=f"Solicitud de contacto — Portfolio de {username}",
+        body=body.message,
+        payload={"portfolio_username": username, "sender_user_id": payload["sub"]},
+    )
+    db.add(notif)
+    await db.commit()
+
+    try:
+        from app.api.v1.ws_notifications import publish_notification
+        from app.core.redis_client import get_redis
+
+        redis = get_redis()
+        await publish_notification(
+            user_id=oficio_worker.user_id,
+            notification_type="message",
+            title=f"Solicitud de contacto — Portfolio de {username}",
+            body=body.message,
+            payload={"portfolio_username": username, "sender_user_id": payload["sub"]},
+            redis=redis,
+        )
+    except Exception as exc:
+        logger.warning("contact_portfolio_ws_publish_failed", error=str(exc))
+
+    logger.info("portfolio_contact_sent", username=username, sender=payload["sub"])
+    return {"status": "sent", "worker_user_id": str(oficio_worker.user_id)}

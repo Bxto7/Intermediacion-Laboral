@@ -1,10 +1,31 @@
 import { useState } from 'react'
 import { useIntl } from 'react-intl'
+import { Plus } from 'lucide-react'
 import { useWizardStore } from '../../../../store/wizardStore'
 import { WizardNavigation } from '../WizardNavigation'
 import apiClient from '../../../../api/client'
 
 const LEVELS = ['Primaria', 'Secundaria', 'Técnica', 'Universitaria', 'Sin estudios']
+
+const fieldStyle = {
+  border: '1px solid rgba(61,40,24,0.14)',
+  background: 'var(--bg-soft)',
+  color: 'var(--ink-strong)',
+  borderRadius: '10px',
+  fontSize: '14px',
+  outline: 'none',
+  width: '100%',
+  padding: '8px 12px',
+}
+
+const onFocus = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
+  e.currentTarget.style.borderColor = 'var(--terra-500)'
+  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(194,86,46,0.12)'
+}
+const onBlur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
+  e.currentTarget.style.borderColor = 'rgba(61,40,24,0.14)'
+  e.currentTarget.style.boxShadow = 'none'
+}
 
 export const Step2Education: React.FC = () => {
   const intl = useIntl()
@@ -25,35 +46,43 @@ export const Step2Education: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">{intl.formatMessage({ id: 'wizard.step2.title' })}</h2>
-        <p className="text-gray-500 text-sm mt-1">{intl.formatMessage({ id: 'wizard.step2.subtitle' })}</p>
+        <h2 className="text-2xl font-bold" style={{ color: 'var(--ink-strong)' }}>
+          {intl.formatMessage({ id: 'wizard.step2.title' })}
+        </h2>
+        <p className="text-sm mt-1" style={{ color: 'var(--ink-muted)' }}>
+          {intl.formatMessage({ id: 'wizard.step2.subtitle' })}
+        </p>
       </div>
 
       {education.map((edu, i) => (
-        <div key={i} className="bg-gray-50 rounded-xl p-4 space-y-3">
+        <div key={i} className="rounded-xl p-4 space-y-3" style={{ background: 'var(--bg-soft)', border: '1px solid var(--line)' }}>
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Institución educativa</label>
+            <label className="block text-xs font-medium mb-1" style={{ color: 'var(--ink-warm)' }}>Institución educativa</label>
             <input
               value={edu.institution}
               onChange={(e) => update(i, 'institution', e.target.value)}
               placeholder="Colegio, Instituto, Universidad..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"
+              style={fieldStyle}
+              onFocus={onFocus}
+              onBlur={onBlur}
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Nivel</label>
+              <label className="block text-xs font-medium mb-1" style={{ color: 'var(--ink-warm)' }}>Nivel</label>
               <select
                 value={edu.level}
                 onChange={(e) => update(i, 'level', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none bg-white"
+                style={fieldStyle}
+                onFocus={onFocus}
+                onBlur={onBlur}
               >
                 <option value="">Seleccionar...</option>
                 {LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Año de egreso</label>
+              <label className="block text-xs font-medium mb-1" style={{ color: 'var(--ink-warm)' }}>Año de egreso</label>
               <input
                 type="number"
                 value={edu.year}
@@ -61,7 +90,9 @@ export const Step2Education: React.FC = () => {
                 placeholder="2023"
                 min="1980"
                 max={new Date().getFullYear()}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"
+                style={fieldStyle}
+                onFocus={onFocus}
+                onBlur={onBlur}
               />
             </div>
           </div>
@@ -70,9 +101,19 @@ export const Step2Education: React.FC = () => {
 
       <button
         onClick={() => setEducation([...education, { institution: '', level: '', year: '' }])}
-        className="w-full py-2.5 border-2 border-dashed border-gray-300 hover:border-primary-400 text-gray-500 hover:text-primary-600 rounded-xl text-sm font-medium transition-colors"
+        className="w-full py-2.5 text-sm font-medium rounded-xl flex items-center justify-center gap-2 transition-all"
+        style={{ border: '2px dashed rgba(194,86,46,0.20)', color: 'var(--ink-muted)' }}
+        onMouseEnter={e => {
+          (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--terra-500)'
+          ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--terra-500)'
+        }}
+        onMouseLeave={e => {
+          (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(194,86,46,0.20)'
+          ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--ink-muted)'
+        }}
       >
-        + Agregar otra institución
+        <Plus size={14} />
+        Agregar otra institución
       </button>
 
       <WizardNavigation step={2} onNext={onNext} />

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthContext } from '../../context/AuthContext'
-import { BriefcaseFilled } from '../../shared/BriefcaseIcon'
+import { LinkuLogoFull } from '../../shared/LinkuLogo'
 
 interface Props { onClose: () => void }
 
@@ -51,11 +51,8 @@ export const LoginModal: React.FC<Props> = ({ onClose }) => {
           <div className="absolute bottom-0 left-0 w-44 h-44 rounded-full opacity-25 blur-3xl" style={{ background: '#c2562e' }} />
           <div className="absolute bottom-0 right-0 w-36 h-36 rounded-full opacity-20 blur-3xl" style={{ background: '#7a8c5c' }} />
 
-          <div className="relative z-10 flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #d97757, #c2562e)' }}>
-              <BriefcaseFilled className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-bold text-sm" style={{ color: '#3d2818' }}>DRTPE Junín</span>
+          <div className="relative z-10">
+            <LinkuLogoFull size={32} variant="terracota" />
           </div>
 
           <div className="relative z-10 space-y-5">

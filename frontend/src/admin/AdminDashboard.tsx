@@ -19,10 +19,10 @@ const TYPE_COLORS: Record<string, string> = {
 
 interface KPICardProps { label: string; value: string | number; subtitle: string; color: string }
 const KPICard: React.FC<KPICardProps> = ({ label, value, subtitle, color }) => (
-  <div className={`bg-white rounded-2xl shadow-md border border-gray-100 p-5 border-l-4 border-l-${color}-500`}>
-    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{label}</p>
-    <p className="text-3xl font-bold text-gray-900 mt-1">{value}</p>
-    <p className="text-xs text-gray-400 mt-1">{subtitle}</p>
+  <div className={`bg-bg-elevated rounded-2xl shadow-md border border-[rgba(61,40,24,0.08)] p-5 border-l-4 border-l-${color}-500`}>
+    <p className="text-xs font-semibold text-ink-muted uppercase tracking-wide">{label}</p>
+    <p className="text-3xl font-bold text-ink-strong mt-1">{value}</p>
+    <p className="text-xs text-ink-muted mt-1">{subtitle}</p>
   </div>
 )
 
@@ -55,11 +55,11 @@ export const AdminDashboard: React.FC = () => {
     : 0
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto">
+    <div className="space-y-6">
+      <div>
         <div className="mb-7">
-          <h1 className="text-2xl font-bold text-gray-900">{intl.formatMessage({ id: 'admin.dashboard.title' })}</h1>
-          <p className="text-gray-500 text-sm mt-1">Indicadores de investigación en tiempo real · DRTPE-Junín 2026</p>
+          <h1 className="text-2xl font-bold text-ink-strong">{intl.formatMessage({ id: 'admin.dashboard.title' })}</h1>
+          <p className="text-ink-muted text-sm mt-1">Indicadores de investigación en tiempo real · DRTPE-Junín 2026</p>
         </div>
 
         {/* KPI Cards */}
@@ -87,9 +87,9 @@ export const AdminDashboard: React.FC = () => {
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {/* VIL */}
-          <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-5">
-            <h3 className="font-bold text-gray-800 mb-1">{intl.formatMessage({ id: 'admin.kpi.vil.title' })}</h3>
-            <p className="text-xs text-gray-400 mb-4">Promedio de días desde registro hasta primer contrato</p>
+          <div className="bg-bg-elevated rounded-2xl shadow-md border border-[rgba(61,40,24,0.08)] p-5">
+            <h3 className="font-bold text-ink-strong mb-1">{intl.formatMessage({ id: 'admin.kpi.vil.title' })}</h3>
+            <p className="text-xs text-ink-muted mb-4">Promedio de días desde registro hasta primer contrato</p>
             {vilData.length > 0 ? (
               <ResponsiveContainer width="100%" height={180}>
                 <BarChart data={vilData} barSize={40}>
@@ -101,14 +101,14 @@ export const AdminDashboard: React.FC = () => {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-40 flex items-center justify-center text-gray-400 text-sm">Sin datos aún</div>
+              <div className="h-40 flex items-center justify-center text-ink-muted text-sm">Sin datos aún</div>
             )}
           </div>
 
           {/* TF */}
-          <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-5">
-            <h3 className="font-bold text-gray-800 mb-1">{intl.formatMessage({ id: 'admin.kpi.tf.title' })}</h3>
-            <p className="text-xs text-gray-400 mb-4">% de trabajadores con al menos un contrato</p>
+          <div className="bg-bg-elevated rounded-2xl shadow-md border border-[rgba(61,40,24,0.08)] p-5">
+            <h3 className="font-bold text-ink-strong mb-1">{intl.formatMessage({ id: 'admin.kpi.tf.title' })}</h3>
+            <p className="text-xs text-ink-muted mb-4">% de trabajadores con al menos un contrato</p>
             {tfData.length > 0 ? (
               <ResponsiveContainer width="100%" height={180}>
                 <BarChart data={tfData} barSize={40}>
@@ -120,14 +120,14 @@ export const AdminDashboard: React.FC = () => {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-40 flex items-center justify-center text-gray-400 text-sm">Sin datos aún</div>
+              <div className="h-40 flex items-center justify-center text-ink-muted text-sm">Sin datos aún</div>
             )}
           </div>
 
           {/* TCC */}
-          <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-5">
-            <h3 className="font-bold text-gray-800 mb-1">{intl.formatMessage({ id: 'admin.kpi.tcc.title' })}</h3>
-            <p className="text-xs text-gray-400 mb-4">% de perfiles con CV generado</p>
+          <div className="bg-bg-elevated rounded-2xl shadow-md border border-[rgba(61,40,24,0.08)] p-5">
+            <h3 className="font-bold text-ink-strong mb-1">{intl.formatMessage({ id: 'admin.kpi.tcc.title' })}</h3>
+            <p className="text-xs text-ink-muted mb-4">% de perfiles con CV generado</p>
             {tccData.length > 0 ? (
               <ResponsiveContainer width="100%" height={180}>
                 <BarChart data={tccData} barSize={40}>
@@ -139,14 +139,14 @@ export const AdminDashboard: React.FC = () => {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-40 flex items-center justify-center text-gray-400 text-sm">Sin datos aún</div>
+              <div className="h-40 flex items-center justify-center text-ink-muted text-sm">Sin datos aún</div>
             )}
           </div>
 
           {/* Cold-start */}
-          <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-5">
-            <h3 className="font-bold text-gray-800 mb-1">Tasa Cold-Start Superado</h3>
-            <p className="text-xs text-gray-400 mb-4">% de usuarios con al menos 1 match generado</p>
+          <div className="bg-bg-elevated rounded-2xl shadow-md border border-[rgba(61,40,24,0.08)] p-5">
+            <h3 className="font-bold text-ink-strong mb-1">Tasa Cold-Start Superado</h3>
+            <p className="text-xs text-ink-muted mb-4">% de usuarios con al menos 1 match generado</p>
             {kpis?.cold_start && Object.keys(kpis.cold_start).length > 0 ? (
               <ResponsiveContainer width="100%" height={180}>
                 <BarChart
@@ -164,7 +164,7 @@ export const AdminDashboard: React.FC = () => {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-40 flex items-center justify-center text-gray-400 text-sm">Sin datos aún</div>
+              <div className="h-40 flex items-center justify-center text-ink-muted text-sm">Sin datos aún</div>
             )}
           </div>
         </div>
