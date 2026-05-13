@@ -31,36 +31,57 @@ export const LinkuLogo: React.FC<LogoProps> = ({ size = 34 }) => (
   </span>
 )
 
-interface FullProps { size?: number; showSubtitle?: boolean }
+interface FullProps { size?: number; showSubtitle?: boolean; variant?: 'default' | 'white' | 'terracota' }
 
-export const LinkuLogoFull: React.FC<FullProps> = ({ size = 34, showSubtitle = true }) => (
-  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-    <LinkuLogo size={size} />
-    <div>
-      <div style={{
-        fontSize: size * 0.47,
-        fontWeight: 600,
-        letterSpacing: '-0.02em',
-        color: 'var(--ink-strong)',
-        lineHeight: 1.2,
+export const LinkuLogoFull: React.FC<FullProps> = ({ size = 34, showSubtitle = true, variant = 'default' }) => {
+  const nameColor = variant === 'white' ? '#ffffff' : 'var(--ink-strong)'
+  const subtitleColor = variant === 'white' ? 'rgba(255,255,255,0.55)' : 'var(--ink-muted)'
+  const iconBg = variant === 'white'
+    ? 'rgba(255,255,255,0.15)'
+    : 'linear-gradient(135deg, #d97757, #c2562e)'
+  const iconBorder = variant === 'white' ? '1px solid rgba(255,255,255,0.20)' : 'none'
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <span style={{
+        width: size,
+        height: size,
+        borderRadius: size * 0.27,
+        background: iconBg,
+        border: iconBorder,
+        display: 'grid',
+        placeItems: 'center',
+        flexShrink: 0,
+        boxShadow: variant !== 'white' ? '0 4px 12px -4px rgba(194,86,46,0.5), inset 0 1px 0 rgba(255,255,255,0.2)' : 'none',
       }}>
-        Linku
-      </div>
-      {showSubtitle && (
+        <LinkuMark size={Math.round(size * 0.53)} color="#fff" />
+      </span>
+      <div>
         <div style={{
-          fontSize: 10.5,
-          color: 'var(--ink-muted)',
-          fontFamily: 'Geist Mono, monospace',
-          letterSpacing: '0.06em',
-          textTransform: 'uppercase',
+          fontSize: size * 0.47,
+          fontWeight: 600,
+          letterSpacing: '-0.02em',
+          color: nameColor,
           lineHeight: 1.2,
         }}>
-          DRTPE Junín · Empleo formal
+          Linku
         </div>
-      )}
+        {showSubtitle && (
+          <div style={{
+            fontSize: 10.5,
+            color: subtitleColor,
+            fontFamily: 'Geist Mono, monospace',
+            letterSpacing: '0.06em',
+            textTransform: 'uppercase',
+            lineHeight: 1.2,
+          }}>
+            DRTPE Junín · Empleo formal
+          </div>
+        )}
+      </div>
     </div>
-  </div>
-)
+  )
+}
 
 // Variante sobre fondo oscuro (sidenav oscuro, headers dark)
 export const LinkuLogoOnDark: React.FC<LogoProps> = ({ size = 34 }) => (
@@ -88,7 +109,6 @@ export const LinkuLogoOnDark: React.FC<LogoProps> = ({ size = 34 }) => (
   </div>
 )
 
-// Alias de compatibilidad para código existente que usa LinkuLogoIcon / LinkuLogoFull
-export const LinkuLogoIcon: React.FC<{ size?: number; variant?: string }> = ({ size = 34 }) => (
+export const LinkuLogoIcon: React.FC<{ size?: number; variant?: 'default' | 'white' | 'terracota' }> = ({ size = 34 }) => (
   <LinkuLogo size={size} />
 )

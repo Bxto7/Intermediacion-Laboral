@@ -36,6 +36,7 @@
   "auth.register.zone": "Zona de trabajo",
   "auth.register.submit": "Crear cuenta",
   "auth.register.success": "Revisa tu correo para verificar tu cuenta.",
+  "auth.register.error": "Error al crear la cuenta. Intenta de nuevo.",
 
   "onboarding.title": "Bienvenido al Sistema de Empleo de Junín",
   "onboarding.subtitle": "Te ayudaremos a encontrar el trabajo que buscas",

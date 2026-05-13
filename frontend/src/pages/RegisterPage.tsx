@@ -29,10 +29,10 @@ export const RegisterPage: React.FC = () => {
   const onSubmit = async (data: FormData) => {
     setError('')
     try {
-      await registerUser(data.email, data.password, {
-        dni: data.dni,
-        full_name: data.fullName,
-        role: data.role
+      await registerUser({
+        email: data.email,
+        password: data.password,
+        role: data.role as 'worker' | 'employer',
       })
       navigate('/onboarding')
     } catch {
@@ -103,7 +103,7 @@ export const RegisterPage: React.FC = () => {
 
               <div className="space-y-1.5">
                 <label className="block text-sm font-semibold" style={{ color: '#5a3d2b' }}>
-                  {intl.formatMessage({ id: 'auth.register.fullName' })}
+                  {intl.formatMessage({ id: 'auth.register.full_name' })}
                 </label>
                 <input {...register('fullName')} type="text" className="input-warm" placeholder="Juan Pérez" />
                 {errors.fullName && <p className="text-xs" style={{ color: 'var(--terra-500)' }}>{errors.fullName.message}</p>}

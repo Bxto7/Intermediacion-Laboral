@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { LoginModal } from './landing/LoginModal'
 import { LandingNav } from './landing/LandingNav'
-import { JOBS, CATEGORIES, COMPANIES, TESTIMONIALS } from './landing/data'
+import { JOBS, CATEGORIES, TESTIMONIALS } from './landing/data'
 import { LinkuLogoFull } from '../shared/LinkuLogo'
 
 export const LandingPage: React.FC = () => {
@@ -237,11 +237,35 @@ export const LandingPage: React.FC = () => {
       {/* ═══ LOGOS EMPRESAS ═══ */}
       <section className="py-16 px-5 border-b" style={{ borderColor: 'rgba(61,40,24,0.08)' }} id="empleadores">
         <div className="max-w-6xl mx-auto space-y-8">
-          <p className="text-center font-mono text-xs uppercase tracking-widest" style={{ color: '#8a6648' }}>Empresas que confían en Linku · DRTPE-Junín</p>
+          <p className="text-center font-mono text-xs uppercase tracking-widest" style={{ color: '#8a6648' }}>
+            Empresas que confían en Linku · DRTPE-Junín
+          </p>
           <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
-            {COMPANIES.map(c => (
-              <div key={c} className="card-warm py-4 px-3 flex items-center justify-center text-center hover:shadow-warm transition-all" style={{ minHeight: 64 }}>
-                <span style={{ fontFamily: 'Instrument Serif, Georgia, serif', fontSize: '13px', color: '#6b4a35', fontWeight: 400 }}>{c}</span>
+            {[
+              { name: 'Cementos Andinos', initials: 'CA', color: '#c2562e' },
+              { name: 'Doe Run',          initials: 'DR', color: '#2d5a82' },
+              { name: 'Hidrandina',       initials: 'HD', color: '#b8893a' },
+              { name: 'Volcan Mining',    initials: 'VM', color: '#4d6a8a' },
+              { name: 'Agroindustria',    initials: 'AJ', color: '#7a8c5c' },
+              { name: 'Caja Huancayo',    initials: 'CH', color: '#b8893a' },
+              { name: 'Constructora Wari',initials: 'CW', color: '#7a8c5c' },
+              { name: 'Peruarbo',         initials: 'PA', color: '#c2562e' },
+              { name: 'Electro Centro',   initials: 'EC', color: '#2d5a82' },
+              { name: 'SEDAM Huancayo',   initials: 'SH', color: '#4d6a8a' },
+              { name: 'Coop. Tocache',    initials: 'CT', color: '#7a8c5c' },
+              { name: 'SEDAPAL Junín',    initials: 'SJ', color: '#b8893a' },
+            ].map(c => (
+              <div key={c.name}
+                className="card-warm py-4 px-3 flex flex-col items-center justify-center gap-2 text-center hover:shadow-warm transition-all"
+                style={{ minHeight: 80 }}>
+                <div
+                  className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                  style={{ background: `linear-gradient(135deg, ${c.color}cc, ${c.color})` }}>
+                  {c.initials}
+                </div>
+                <span style={{ fontFamily: 'Instrument Serif, Georgia, serif', fontSize: '11px', color: '#6b4a35', fontWeight: 400, lineHeight: 1.3 }}>
+                  {c.name}
+                </span>
               </div>
             ))}
           </div>
@@ -295,7 +319,9 @@ export const LandingPage: React.FC = () => {
             <Link to="/register" className="btn-primary text-base px-8 py-4">Crear cuenta gratis</Link>
             <button onClick={() => setLoginOpen(true)}
               className="text-base px-8 py-4 rounded-xl font-semibold transition-all"
-              style={{ background: 'rgba(255,255,255,0.08)', color: 'white', border: '1px solid rgba(255,255,255,0.15)' }}>
+              style={{ background: 'rgba(255,255,255,0.12)', color: 'white', border: '1.5px solid rgba(255,255,255,0.35)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.20)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.55)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.35)' }}>
               Ya tengo cuenta
             </button>
           </div>
