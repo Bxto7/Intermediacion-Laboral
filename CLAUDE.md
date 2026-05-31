@@ -1,761 +1,556 @@
-# CLAUDE.md — Sistema de Intermediación Laboral ML/NLP
+# CLAUDE.md — Linku · Sistema de Intermediación Laboral ML/NLP
 # DRTPE-Junín | Huancayo, Perú | 2026
-# Última actualización: Sprint 5 — Rojas Peña W. / Tovar Sanchez C.
+# Última actualización: 2026-05-31 — Sprint 5
 
 ---
 
-## 🎯 VISIÓN DEL PRODUCTO
+## 🎯 MISIÓN DE ESTE ARCHIVO
 
-**Título:** IMPLEMENTACIÓN DE UN SISTEMA DE INTERMEDIACIÓN LABORAL MEDIANTE MACHINE LEARNING Y NLP PARA LA REDUCCIÓN DE BRECHAS DE ACCESO AL EMPLEO EN ARTICULACIÓN CON LA DIRECCIÓN REGIONAL DE TRABAJO Y PROMOCIÓN DEL EMPLEO JUNÍN
+Fuente única de verdad para Claude Code en este proyecto. **Antes de escribir código, lee este archivo completo.**
 
-**Nombre comercial:** Linku
-**Investigadores:** Rojas Peña, William Mikeiel | Tovar Sanchez, Carlos Alberto
-**Stack:** FastAPI + PostgreSQL/pgvector + React 18 + Celery/Redis + Docker + GCP/AWS
-**Metodología:** Scrum (sprints de 2 semanas) | Investigación aplicada cuantitativa explicativa
-**Institución socia:** DRTPE-Junín — integración con la Bolsa de Trabajo oficial
-**Estado actual:** Sprint 5 completado. Backend en producción. Frontend funcional.
-**Documento normativo de RF/RNF:** Subcap. 4.3.2 (165 RF + 23 RNF) — toda implementación debe trazarse a un RF.
+Este documento describe el **estado REAL del código** (verificado contra el repositorio), no aspiraciones. Cuando encuentres una discrepancia entre este archivo y el código, **el código manda** — y debes actualizar este archivo.
 
 ---
 
-## 🗺️ ESTADO DEL PROYECTO POR SPRINT
+## 🏗️ VISIÓN DEL PRODUCTO
 
-| Sprint | Estado | Qué se entregó |
-|--------|--------|----------------|
-| Sprint 1 | ✅ Completo | Auth JWT, onboarding, modelos BD, migraciones, Docker |
-| Sprint 2 | ✅ Completo | NLP real, empleadores, wizard PRIMER_EMPLEO, portfolio OFICIO, marketplace |
-| Sprint 3 | ✅ Completo | Motor ML matching, embeddings reales, equity ranker, cold-start |
-| Sprint 4 | ✅ Completo | Contratos, consentimiento Ley 29733, notificaciones WebSocket, admin DRTPE |
-| Sprint 5 | ✅ Completo | KPIs, reportes, encuestas económicas, integración DRTPE, tests finales |
-| Bugfix pendiente | ⚠️ En curso | 7 bugs de flujo público/marketplace frontend (ver sección BUGS CONOCIDOS) |
+**Marca comercial:** **Linku** (componente `LinkuLogo` en frontend).
+**Título oficial:** "Sistema de Intermediación Laboral DRTPE-Junín" (título de la app FastAPI).
+**Título académico:** IMPLEMENTACIÓN DE UN SISTEMA DE INTERMEDIACIÓN LABORAL MEDIANTE MACHINE LEARNING Y NLP PARA LA REDUCCIÓN DE BRECHAS DE ACCESO AL EMPLEO — DRTPE Junín.
 
----
+**Propósito:** Plataforma de intermediación laboral inteligente que conecta trabajadores (incluidos oficios informales sin perfil digital) con empleadores, usando NLP (embeddings) y ML para construir, representar y emparejar perfiles. Opera en articulación con la DRTPE-Junín.
 
-## 👤 TIPOS DE USUARIO Y FLUJOS
+### Roles del sistema (enum real `UserRole` en `core/security.py`)
+- `WORKER` (trabajador, valor por defecto)
+- `EMPLOYER` (empleador)
+- `ADMIN` (administrador DRTPE)
+- `MODERATOR` (moderador)
 
-La plataforma atiende a **tres grupos poblacionales**. El onboarding clasifica al usuario y todo el producto se diferencia desde ese punto.
+### ⭐ CONCEPTO CENTRAL: 3 tipos de trabajador (`worker_type`)
+Esto es el corazón del producto y NO existía en versiones previas de este doc. El campo `Worker.worker_type` determina el flujo, el template de CV y los pesos de matching:
 
-| Grupo | Problema | Solución |
-|-------|----------|----------|
-| **PRIMER_EMPLEO** | Sin historial laboral, no saben describir habilidades ni armar CV | Wizard guiado 6 pasos + generación asistida de CV con NLP |
-| **EXPERIENCIA** | Perfil disperso o solo físico, difícil visibilidad digital | Bolsa formal tipo LinkedIn + matching ML |
-| **OFICIO** | Competencias prácticas no certificadas, invisibles digitalmente | Portfolio visual + marketplace de servicios + CV automático |
+| `worker_type`  | Quién es | Flujo de perfil | Template CV |
+|----------------|----------|-----------------|-------------|
+| `primer_empleo` | Joven sin experiencia formal | Wizard de 6 pasos (NLP-asistido) | `primer_empleo.html` |
+| `oficio`        | Trabajador de oficio informal (carpintero, electricista…) | Portafolio de trabajos | `oficio.html` |
+| `experiencia`   | Profesional con CV/experiencia formal | Parseo de CV (PDF/DOCX) | `experiencia.html` |
 
-### Reglas de flujo por tipo — CRÍTICAS
-
-```
-PRIMER_EMPLEO puede:
-  ✅ Usar el wizard de 6 pasos
-  ✅ Generar CV desde el wizard
-  ✅ Ver ofertas de empleo (bolsa formal)
-  ✅ Ver el marketplace público (/servicios y /marketplace) como visitante
-  ✅ Postular a ofertas de trabajo
-  ❌ No puede crear portfolio (usa el wizard)
-  ❌ No puede publicar en el marketplace
-
-EXPERIENCIA puede:
-  ✅ Subir CV existente (PDF/DOCX) o crear perfil manual
-  ✅ Ver y postular a la bolsa formal de empleo
-  ✅ Ver el marketplace público (/servicios y /marketplace)
-  ✅ Contactar trabajadores de oficio
-  ❌ No puede crear portfolio (solo OFICIO)
-  ❌ No puede publicar en el marketplace
-
-OFICIO puede:
-  ✅ Crear portfolio visual de trabajos
-  ✅ Publicar en el marketplace de servicios
-  ✅ Generar CV automático desde el portfolio
-  ✅ Ver la bolsa formal de empleo
-  ✅ Ver y administrar sus listings del marketplace
-
-VISITANTE (sin cuenta) puede:
-  ✅ Ver la landing page (/)
-  ✅ Ver el marketplace público (/servicios)
-  ✅ Ver perfiles públicos de portfolios (/p/{slug})
-  ✅ Ver el feed de empleos (/jobs/feed)
-  ⚠️ Al intentar contactar → modal de "Inicia sesión para contactar"
-  ⚠️ El modal redirige a /login guardando la URL de retorno en sessionStorage
-```
+El tipo se determina en onboarding: `POST /api/v1/onboarding/detect-type`.
 
 ---
 
-## 🏗️ ARQUITECTURA REAL DEL SISTEMA
-
-### Backend — estructura actual de archivos
+## 📁 ESTRUCTURA REAL DEL PROYECTO
 
 ```
-backend/app/
-  api/v1/
-    admin/dashboard.py       → Panel DRTPE-Junín (RF156–RF160)
-    alerts.py                → Alertas de empleo configurables
-    applications.py          → Postulaciones (RF051–RF055)
-    auth.py                  → Autenticación JWT (RF001–RF015)
-    contracts.py             → Contratos formales (RF161–RF165)
-    cv.py                    → Generación de CVs PDF
-    employers.py             → Empleadores y ofertas (RF036–RF050)
-    jobs.py                  → Feed público de ofertas (RF055)
-    marketplace.py           → Marketplace de servicios OFICIO (RF118–RF125)
-    matching.py              → Motor de emparejamiento (RF076–RF095)
-    nlp.py                   → Endpoints NLP (RF056–RF079)
-    onboarding.py            → Detección de tipo (RF016–RF025)
-    portfolio.py             → Portfolio OFICIO (RF056–RF065)
-    router.py                → Router principal que agrupa todos
-    surveys.py               → Encuestas económicas (KPIs)
-    wizard.py                → Wizard PRIMER_EMPLEO (RF096–RF110)
-    workers.py               → Perfil base trabajadores (RF026–RF035)
-    ws_notifications.py      → WebSocket notificaciones en tiempo real
-
-  core/
-    config.py                → Settings Pydantic (lee .env)
-    consent.py               → Consentimiento Ley N°29733
-    database.py              → AsyncEngine SQLAlchemy + get_db()
-    logging.py               → structlog JSON
-    rate_limit.py            → Sliding window Redis, X-Forwarded-For en prod
-    rate_limiter.py          → Decoradores de rate limit por endpoint
-    redis_client.py          → Cliente Redis async singleton
-    security.py              → JWT RS256, AES-256, bcrypt, RBAC
-    security_headers.py      → Middleware headers de seguridad
-
-  models/
-    application.py           → Postulaciones
-    audit_log.py             → Logs inmutables de auditoría
-    base.py                  → Base declarativa SQLAlchemy
-    consent_record.py        → Registros de consentimiento
-    contract.py              → Contratos formalizados
-    economic_survey.py       → Encuestas económicas KPI
-    employer.py              → Empleadores
-    equity_audit_log.py      → Log de auditoría de equidad ML
-    generated_cv.py          → CVs generados
-    job.py                   → Trabajos/empleos
-    job_alert.py             → Alertas configuradas
-    job_offer.py             → Ofertas de empleo
-    match_event.py           → Eventos de matching (KPI)
-    model_version.py         → Versiones del modelo ML
-    notification.py          → Notificaciones persistentes
-    portfolio.py             → Portfolio entries OFICIO
-    search_log.py            → Logs de búsqueda (KPI IVP)
-    service_listing.py       → Listings marketplace OFICIO
-    tracking.py              → Tracking de acciones
-    user.py                  → Usuarios del sistema
-    wizard.py                → Progreso wizard PRIMER_EMPLEO
-    worker.py                → Perfil trabajador (todos los tipos)
-
-  nlp/
-    cv_parser/parser.py      → PyPDF2 + python-docx + spaCy NER
-    embeddings/generator.py  → sentence-transformers MiniLM-L12-v2 (384 dims)
-    portfolio_nlp/trade_extractor.py → Extracción skills desde descripciones oficio
-    skill_extractor/first_job_extractor.py → Extracción coloquial PRIMER_EMPLEO
-
-  ml/
-    cold_start/resolver.py   → Cold-start PRIMER_EMPLEO y OFICIO sin historial
-    equity_ranker/ranker.py  → Re-ranking equitativo (disparate impact ≥ 0.80)
-    explainer/explainer.py   → Explicaciones de recomendaciones
-    matching_engine/
-      dataset_builder.py     → Construcción dataset de entrenamiento
-      drift_detector.py      → Detección de drift PSI
-      features.py            → Feature engineering
-      model_loader.py        → Carga de modelo entrenado
-      scorer.py              → Scoring combinado por worker_type
-      trainer.py             → Entrenamiento del modelo
-
-  integrations/drtpe/connector.py → Conector Bolsa de Trabajo DRTPE-Junín
-
-  services/
-    cv_builder/
-      pdf_generator.py       → WeasyPrint, plantillas por tipo
-      wizard_service.py      → Lógica del wizard 6 pasos
-    marketplace/marketplace_service.py → CRUD listings + búsqueda semántica
-    matching/job_alerts.py   → Alertas de empleo
-    onboarding/detector.py   → Detección de tipo + creación de perfil
-    reports/kpi_calculator.py → Cálculo de los 8 KPIs de investigación
-
-  tasks/
-    celery_app.py            → Instancia Celery + broker Redis
-    cv_generator.py          → Generación asíncrona de CVs PDF
-    emails.py                → Envío de emails (stub en dev)
-    embeddings.py            → generate_worker/job/portfolio/listing_embedding
-    ml_tasks.py              → Reentrenamiento del modelo ML
-    notifications.py         → Notificaciones push + WebSocket
-    reports.py               → Reportes DRTPE asíncronos
-
-  utils/
-    file_validator.py        → Validación MIME + tamaño archivos
-    local_dict/              → huancayo_trades.json
-    seed_jobs.py             → Seed de datos de prueba
-
-migrations/versions/
-  0001_initial_schema.py
-  0002_job_offers.py
-  0003_worker_profile_fields.py
-  0004_add_match_events.py
-  0005_ml_matching_tables.py
-  466614a36609_sprint4_consent_records.py
-  7d5a80f3517d_add_job_requests_and_contracts.py
-```
-
-### Frontend — estructura actual de archivos
-
-```
-frontend/src/
-  pages/
-    LandingPage.tsx          → Landing pública (/) — DEBE ser la ruta raíz
-    LoginPage.tsx            → Login con modal integrado
-    RegisterPage.tsx         → Registro + onboarding
-    PublicPortfolioPage.tsx  → /p/{slug} — perfil público OFICIO
-    ServiceSearchPage.tsx    → /servicios — marketplace público sin auth
-    ApplicationsPage.tsx     → Postulaciones del trabajador
-    EconomicSurveyPage.tsx   → Encuesta económica KPI
-    SettingsPage.tsx         → Configuración de cuenta
-    employer/
-      EmployerPublishPage.tsx
-      EmployerCandidatesPage.tsx
-      EmployerMessagesPage.tsx
-    landing/
-      LandingNav.tsx         → Nav de la landing (tiene link a /servicios)
-      LoginModal.tsx         → Modal de login con return_url
-      data.ts                → Datos estáticos de la landing
-
-  modules/
-    primer-empleo/
-      PrimerEmpleoDashboard.tsx
-      wizard/
-        WizardLayout.tsx     → Contenedor del wizard 6 pasos
-        WizardProgressBar.tsx
-        WizardNavigation.tsx
-        CVLivePreview.tsx    → Preview en tiempo real
-        steps/
-          Step1PersonalData.tsx
-          Step2Education.tsx
-          Step3Skills.tsx
-          Step4Activities.tsx
-          Step5Interests.tsx
-          Step6Preview.tsx
-    experiencia/
-      ExperienciaDashboard.tsx
-    oficio/
-      OficioDashboard.tsx
-      portfolio/
-        PortfolioPage.tsx
-        PortfolioCard.tsx
-        AddEntryModal.tsx
-      marketplace/
-        MarketplacePage.tsx  → Vista autenticada del marketplace
-                               Tab "mis-servicios" solo para OFICIO
-                               Tab "buscar" para todos los autenticados
-                               Botón "Publicar" solo visible para OFICIO
-
-  shared/
-    AppShell.tsx             → Shell con NavBar para rutas autenticadas
-    NavBar.tsx               → Nav autenticado
-                               "Buscar servicios" → /marketplace (TODOS los auth)
-                               "Portfolio" → /oficio/portfolio (solo OFICIO)
-    ContactModal.tsx         → Modal de contacto
-                               Verifica auth antes de mostrar formulario
-                               Sin auth → panel "Inicia sesión para contactar"
-    WorkerDashboard.tsx      → Enrutador por worker_type
-    LoadingSpinner.tsx
-    LinkuLogo.tsx
-    NotificationBell.tsx
-
-  context/
-    AuthContext.tsx          → Estado de autenticación global
-    WorkerContext.tsx        → Estado del perfil del trabajador
-
-  guards/
-    AuthGuard.tsx            → Redirige a /login si no autenticado
-    WorkerTypeGuard.tsx      → Redirige a /dashboard si tipo incorrecto
-    AdminGuard.tsx           → Redirige a /dashboard si no es admin
-
-  hooks/
-    useMarketplace.ts        → useMarketplaceSearch + useMyListings
-    useMatches.ts            → Motor de matching
-    usePortfolio.ts          → Portfolio OFICIO
-    useApplications.ts       → Postulaciones
-    useEmployer.ts           → Dashboard empleador
-    useNotifications.ts      → WebSocket notificaciones
-    useAdminKPIs.ts          → KPIs panel admin
-
-  api/client.ts              → Axios con interceptores JWT
-
-  App.tsx                    → Rutas principales (ver sección RUTAS)
+App-Intermediacion-Laboral/
+├── backend/
+│   ├── app/
+│   │   ├── main.py                 # Entry FastAPI (lifespan, CORS, health, router mount /api/v1)
+│   │   ├── api/v1/                 # Routers (cada uno define su propio prefix)
+│   │   │   ├── router.py           # Agregador: incluye todos los routers
+│   │   │   ├── auth.py             # /auth   (register, login, refresh, logout, verify-email, me…)
+│   │   │   ├── onboarding.py       # /onboarding (detect-type)
+│   │   │   ├── workers.py          # /workers (profile, completeness)
+│   │   │   ├── employers.py        # /employers
+│   │   │   ├── jobs.py             # /jobs (feed, view)
+│   │   │   ├── nlp.py              # /nlp (extract-skills/wizard, parse-cv, extract-skills/portfolio…)
+│   │   │   ├── wizard.py           # /wizard (primer_empleo)
+│   │   │   ├── portfolio.py        # /portfolio (oficio)
+│   │   │   ├── cv.py               # /cv (generate/{id}, download/{id})  ← GENERACIÓN PDF
+│   │   │   ├── alerts.py           # /alerts
+│   │   │   ├── matching.py         # /match (top-K ofertas con score)
+│   │   │   ├── marketplace.py      # /marketplace (servicios de oficio)
+│   │   │   ├── applications.py     # /applications
+│   │   │   ├── contracts.py        # /contracts
+│   │   │   ├── surveys.py          # /surveys (encuesta económica)
+│   │   │   ├── ws_notifications.py # /ws (WebSocket notificaciones)
+│   │   │   └── admin/dashboard.py  # /admin (dashboard, stats)
+│   │   ├── core/
+│   │   │   ├── config.py           # Settings (Pydantic v2) — TODAS las env vars
+│   │   │   ├── database.py         # AsyncSession, engine, init_db
+│   │   │   ├── security.py         # JWT RS256, AES-256-GCM PII, require_role, UserRole
+│   │   │   ├── security_headers.py # Middleware de headers
+│   │   │   ├── rate_limit.py       # Rate limiting (Redis)
+│   │   │   ├── redis_client.py     # Cliente Redis
+│   │   │   └── logging.py          # structlog
+│   │   ├── models/                 # SQLAlchemy 2 async (ver tabla más abajo)
+│   │   ├── schemas/                # Pydantic v2 (common.py tiene enums UserRole/WorkerType/District…)
+│   │   ├── services/
+│   │   │   ├── cv_builder/pdf_generator.py   # ← generate_cv_pdf() WeasyPrint+Jinja2
+│   │   │   ├── cv_builder/wizard_service.py
+│   │   │   ├── matching/job_alerts.py
+│   │   │   ├── onboarding/detector.py
+│   │   │   ├── marketplace/marketplace_service.py
+│   │   │   ├── reports/kpi_calculator.py
+│   │   │   └── storage.py
+│   │   ├── nlp/
+│   │   │   ├── embeddings/generator.py        # sentence-transformers, normalize_text, fallback hash
+│   │   │   ├── cv_parser/parser.py            # parse_pdf, parse_docx, extract_cv_fields
+│   │   │   ├── skill_extractor/first_job_extractor.py
+│   │   │   └── portfolio_nlp/trade_extractor.py
+│   │   ├── ml/
+│   │   │   ├── matching_engine/scorer.py      # combined_score (pesos por worker_type)
+│   │   │   ├── equity_ranker/ranker.py        # disparate impact, re-ranking de equidad
+│   │   │   ├── explainer/explainer.py         # explain_match
+│   │   │   └── cold_start/resolver.py
+│   │   ├── tasks/                  # Celery (ver colas más abajo)
+│   │   │   ├── __init__.py         # App Celery (broker/backend Redis) — USAR ESTE
+│   │   │   ├── cv_generator.py     # generate_cv_task (cola cv_generation)
+│   │   │   ├── embeddings.py       # generate_*_embedding (cola embeddings)
+│   │   │   ├── notifications.py    # STUBS (solo loguean)
+│   │   │   └── reports.py
+│   │   ├── utils/cv_templates/     # ← PLANTILLAS PDF: primer_empleo.html, oficio.html, experiencia.html
+│   │   ├── utils/local_dict/huancayo_trades.json  # diccionario de oficios locales
+│   │   └── integrations/drtpe/     # conector DRTPE
+│   ├── migrations/                 # Alembic
+│   ├── tests/                      # pytest (unit/ + integration/)
+│   ├── keys/                       # RSA private.pem/public.pem (auto-generadas, NO commitear)
+│   ├── scripts/init.sql            # init de BD (montado en el contenedor db)
+│   ├── requirements.txt
+│   ├── Dockerfile                  # python:3.11-slim-bookworm + libs WeasyPrint
+│   └── .dockerignore
+├── frontend/                       # Vite 6 + React 18 + TypeScript 5
+│   ├── src/
+│   │   ├── main.tsx                # Entry (IntlProvider es-PE, providers)
+│   │   ├── App.tsx                 # Router raíz (rutas + guards)
+│   │   ├── api/client.ts           # Axios: baseURL ${VITE_API_URL}/api/v1, interceptores JWT/401
+│   │   ├── context/AuthContext.tsx # login/register/logout/user
+│   │   ├── context/WorkerContext.tsx
+│   │   ├── guards/                 # AuthGuard, WorkerTypeGuard, AdminGuard
+│   │   ├── pages/                  # LoginPage, RegisterPage, LandingPage, PublicPortfolioPage…
+│   │   ├── onboarding/OnboardingPage.tsx
+│   │   ├── modules/
+│   │   │   ├── primer-empleo/wizard/   # WizardLayout + 6 steps (Step6 = generar PDF)
+│   │   │   ├── oficio/portfolio/ + marketplace/
+│   │   │   └── experiencia/
+│   │   ├── employer/ + pages/employer/  # dashboard, publish, candidates, messages
+│   │   ├── admin/                  # AdminDashboard, KPIGlobe.tsx (Three.js), WorkersAdmin…
+│   │   ├── matching/MatchesPage.tsx
+│   │   ├── store/wizardStore.ts    # Zustand (persist localStorage)
+│   │   ├── shared/                 # AppShell, NavBar, LinkuLogo, NotificationBell…
+│   │   └── i18n/es-PE.json         # único idioma
+│   ├── package.json
+│   └── vite.config.ts              # dev port 5173, proxy /api → http://api:8000
+├── docker-compose.yml              # stack completo de desarrollo
+├── docker-compose.staging.yml
+├── nginx/  infra/  monitoring/  docs/
+├── sonar-project.properties        # config SonarQube (ver sección Calidad)
+└── CLAUDE.md                       # este archivo
 ```
 
 ---
 
-## 🗺️ RUTAS DEL FRONTEND — DISEÑO CORRECTO
+## 🔧 STACK TECNOLÓGICO REAL
 
-```tsx
-// Rutas PÚBLICAS (sin AuthGuard, sin WorkerTypeGuard)
-/ → LandingPage                    // primera página para cualquier visitante
-/servicios → ServiceSearchPage     // marketplace público, sin auth
-/p/:slug → PublicPortfolioPage     // portfolio público de trabajador OFICIO
-/login → LoginPage
-/register → RegisterPage
+### Backend (`requirements.txt`)
+- **Python 3.11** · **FastAPI 0.115** · **Uvicorn 0.32**
+- **SQLAlchemy 2.0 async** + **asyncpg** (PostgreSQL) · **Alembic 1.14**
+- **PostgreSQL 15 con pgvector** (imagen `pgvector/pgvector:pg15`) — embeddings `Vector(384)`
+- **Pydantic v2** (2.10) + pydantic-settings
+- **Redis 7** (broker + cache) · **Celery 5.4** (tareas async)
+- **Auth:** python-jose (JWT **RS256**) · passlib + **bcrypt** (cost 12) · AES-256-GCM para PII
+- **NLP/ML:** sentence-transformers 3.3 (`paraphrase-multilingual-MiniLM-L12-v2`, dim 384) · spaCy 3.8 · scikit-learn 1.6 · nltk · shap · ftfy
+- **PDF:** **WeasyPrint ≥62.3 + Jinja2** (requiere libs del sistema: libpango, libcairo, libgdk-pixbuf — ver Dockerfile)
+- **Obs:** structlog · prometheus-fastapi-instrumentator · mlflow-skinny · slowapi (rate limit)
+- **No hay OCR** (pytesseract NO está en dependencias — el CLAUDE anterior lo mencionaba; es incorrecto).
 
-// Rutas con AuthGuard pero sin WorkerTypeGuard (cualquier usuario autenticado)
-/dashboard → WorkerDashboard       // enruta según worker_type
-/marketplace → MarketplacePage     // marketplace para todos los autenticados
-                                   // internamente: tab mis-servicios solo si OFICIO
-                                   // internamente: botón publicar solo si OFICIO
-/applications → ApplicationsPage
-/matches → MatchesPage             // no aplica a PRIMER_EMPLEO
-/settings → SettingsPage
-/survey/economic → EconomicSurveyPage
+### Frontend (`package.json`)
+- **Vite 6.0** · **React 18.3** · **TypeScript 5.7** · **puerto dev 5173**
+- **react-router-dom 7** · **Zustand 5** (persist localStorage) · **Axios 1.7** (interceptores)
+- **Tailwind 3.4** + **shadcn/ui** + Radix + **lucide-react** · **Framer Motion**
+- **react-hook-form + Zod** (formularios) · **react-intl** (i18n, solo `es-PE`)
+- **Three.js + @react-three/fiber** (componente `KPIGlobe` en admin) · **Recharts** · react-dropzone
 
-// Rutas con WorkerTypeGuard específico
-/wizard/* → WizardLayout           // solo PRIMER_EMPLEO
-/oficio/portfolio → PortfolioPage  // solo OFICIO
-
-// Rutas de empleador
-/employer/dashboard → EmployerDashboard
-/employer/publish → EmployerPublishPage
-/employer/candidates → EmployerCandidatesPage
-/employer/messages → EmployerMessagesPage
-
-// Admin
-/admin/* → AdminLayout             // solo role=admin
-```
+### Infra
+- Docker + Docker Compose · Prometheus + Grafana · Nginx · Flower (monitoreo Celery)
 
 ---
 
-## 🐛 BUGS CONOCIDOS — PENDIENTES DE CORRECCIÓN
-
-Estos bugs fueron identificados revisando el código del repo. Están documentados en `docs/sprints/bugfix_frontend_completo.md`.
-
-| # | Archivo | Bug | Estado |
-|---|---------|-----|--------|
-| 1 | App.tsx | Ruta `/` redirige a dashboard en lugar de mostrar LandingPage | ⚠️ Pendiente |
-| 2 | App.tsx | `/marketplace` bloqueado con WorkerTypeGuard solo para OFICIO | ⚠️ Pendiente |
-| 3 | MarketplacePage.tsx | Botón "Publicar servicio" visible para todos los tipos | ⚠️ Pendiente |
-| 4 | ContactModal.tsx | Abre sin verificar auth, devuelve error 401 crudo | ⚠️ Pendiente |
-| 5 | PublicPortfolioPage + ServiceSearchPage | CTA sin auth manda a /register en vez de /login con return_url | ⚠️ Pendiente |
-| 6 | LoginModal.tsx | Después del login siempre redirige a /dashboard, ignora return_url | ⚠️ Pendiente |
-| 7 | NavBar.tsx | Link a marketplace solo visible para OFICIO | ⚠️ Pendiente |
-
----
-
-## ⚙️ STACK TECNOLÓGICO
-
-### Backend
-- **Python 3.11** — sin excepciones, no usar 3.10 ni 3.12
-- **FastAPI** — routers por módulo, prefijo `/api/v1/`
-- **Pydantic v2** — validación de todos los schemas
-- **SQLAlchemy 2.x** — ORM async, sin SQL crudo nunca
-- **Alembic** — todas las migraciones, nunca modificar tablas manualmente
-- **PostgreSQL 15+** con **pgvector** — columnas `vector(384)`
-- **Redis** — caché, blacklist de tokens y broker Celery
-- **Celery** — tareas pesadas asíncronas (embeddings, CVs, reportes, emails)
-- **sentence-transformers** — `paraphrase-multilingual-MiniLM-L12-v2` (384 dims)
-- **spaCy** — `es_core_news_md` + pipeline custom para oficios
-- **NLTK** — stopwords español
-- **scikit-learn** — modelos supervisados, métricas, re-ranking equitativo
-- **WeasyPrint** — generación de CVs en PDF
-- **PyPDF2 + python-docx** — parsing de CVs subidos
-- **structlog** — logging JSON, nunca usar print()
-- **bcrypt** — cost factor mínimo 12
-- **JWT RS256** — access token 24h, refresh token 7d, blacklist en Redis
-- **AES-256-GCM** — cifrado de campos sensibles (DNI, teléfono, nombre). La clave se almacena en base64 en .env y decodifica a 32 bytes exactos.
-
-### Frontend
-- **React 18** + **Vite**
-- **Tailwind CSS** — sin CSS personalizado salvo variables CSS
-- **react-hook-form** + **zod** — validación de formularios
-- **react-intl** — i18n español peruano (es-PE)
-- **Axios** — cliente HTTP con interceptores JWT
-- **Recharts** — gráficos del dashboard
-- **react-dropzone** — upload de fotos para portfolio y CVs
-- **WebSocket** — notificaciones en tiempo real
-- **lucide-react** — iconografía
-
-### Infraestructura
-- **Docker** + **docker-compose** — imagen base `pgvector/pgvector:pg15` (no postgres:15-alpine)
-- **GitHub Actions** — CI/CD: lint → tests → build → staging → prod
-- **GCP Cloud Run / AWS ECS** — despliegue en producción
-- **GCS / S3** — fotos de portfolio y CVs
-- **Prometheus + Grafana** — monitoreo (infra/ y monitoring/)
-- **OWASP ZAP** — DAST en pipeline CI/CD
-- **Nginx** — reverse proxy (nginx/nginx.conf)
-
----
-
-## 🗄️ BASE DE DATOS
-
-### Convenciones
-- **UUID** para todas las PKs, nunca integer autoincrement
-- **TIMESTAMPTZ** para todas las fechas (UTC siempre)
-- Datos sensibles en columnas `BYTEA` con AES-256-GCM a nivel aplicación
-- Toda migración debe tener `downgrade()` completo
-- Nombres de tablas: snake_case, plural
-- Nunca modificar migraciones ya aplicadas — crear una nueva
-
-### Índices HNSW (críticos para performance)
-```sql
--- Deben existir en producción:
-CREATE INDEX ON workers           USING hnsw (embedding vector_cosine_ops) WITH (m=16, ef_construction=64);
-CREATE INDEX ON portfolio_entries USING hnsw (embedding vector_cosine_ops) WITH (m=16, ef_construction=64);
-CREATE INDEX ON service_listings  USING hnsw (embedding vector_cosine_ops) WITH (m=16, ef_construction=64);
-CREATE INDEX ON job_offers        USING hnsw (embedding vector_cosine_ops) WITH (m=16, ef_construction=64);
-```
-
-### Cifrado de campos sensibles
-```python
-# ✅ SIEMPRE cifrar antes de persistir
-worker.full_name = encrypt_field(full_name_plain)
-worker.dni       = encrypt_field(dni_plain)
-worker.phone     = encrypt_field(phone_plain)
-
-# ✅ SIEMPRE descifrar antes de devolver al cliente
-full_name_plain = decrypt_field(worker.full_name)
-
-# ❌ NUNCA devolver el campo DNI al cliente en ninguna respuesta
-# ❌ NUNCA loguear valores descifrados
-```
-
----
-
-## 🤖 MOTOR ML/NLP
-
-### Pipelines NLP por tipo
-
-```python
-# PRIMER_EMPLEO — lenguaje coloquial → habilidades estandarizadas
-# Archivo: app/nlp/skill_extractor/first_job_extractor.py
-# 40 términos coloquiales peruanos en soft_skills_map
-# suggest_job_sectors() → top-5 sectores compatibles
-
-# EXPERIENCIA — CV estructurado → campos con umbral de confianza 0.75
-# Archivo: app/nlp/cv_parser/parser.py
-# parse_pdf() + parse_docx() + extract_cv_fields()
-# Si confianza < 0.75 → campo None + warning al usuario
-
-# OFICIO — descripción de trabajo → habilidades técnicas
-# Archivo: app/nlp/portfolio_nlp/trade_extractor.py
-# TRADE_SKILLS_MAP con 15+ skills por categoría
-# Nivel: básico / intermedio / avanzado
-```
-
-### Pipeline de normalización (todos los tipos, en orden)
-```
-1. text.lower()
-2. ftfy.fix_text()              → corregir encoding/acentos
-3. re.sub caracteres especiales → conservar letras, números, acentos españoles
-4. apply_local_dictionary()     → ANTES del embedding, siempre
-5. eliminar stopwords ES (NLTK)
-6. generar embedding con MiniLM-L12-v2 (384 dims, normalize_embeddings=True)
-7. almacenar en pgvector via Celery (asíncrono)
-```
-
-### Score combinado — fórmula fija, no modificar sin validar F1
-```python
-weights = {
-    WorkerType.PRIMER_EMPLEO: (0.65, 0.35, 0.00),  # cosine, ml, reputation
-    WorkerType.EXPERIENCIA:   (0.50, 0.30, 0.20),
-    WorkerType.OFICIO:        (0.45, 0.25, 0.30),
-}
-score = alpha * cosine_sim + beta * ml_score + gamma * (reputation / 5.0)
-```
-
-### Métricas mínimas aceptables
-- F1-score en producción: **≥ 0.75** (si < 0.70 → alerta automática)
-- Disparate impact ratio: **≥ 0.80** por género y zona (si < 0.80 → re-ranking automático)
-- NER F1 extracción de habilidades: **≥ 0.80** por pipeline
-- CV parser accuracy: **≥ 0.75**
-
----
-
-## 🔒 SEGURIDAD
-
-```python
-# ❌ NUNCA hacer esto:
-print(f"DNI del usuario: {worker.dni}")          # exponer en logs
-db.execute(f"SELECT * FROM workers WHERE id={id}") # SQL con f-string
-return JSONResponse({"detail": str(exc)})          # stack trace en producción
-
-# ✅ SIEMPRE hacer esto:
-logger.info("worker_loaded", worker_id=str(worker.id))  # structlog, sin PII
-result = await db.execute(select(Worker).where(Worker.id == worker_id))  # ORM
-raise HTTPException(status_code=500, detail="Error interno del servidor")  # genérico
-
-# Validación de roles en cada endpoint protegido:
-@router.post("/portfolio/entries")
-async def create_entry(payload: dict = Depends(require_role(UserRole.WORKER))):
-    # Verificar además que worker.worker_type == 'oficio'
-    ...
-```
-
-### Rate limiting (app/core/rate_limit.py)
-- Lee `X-Forwarded-For` en `ENVIRONMENT=production` (IP real en Cloud Run/ECS)
-- Sliding window con Redis: `INCR` + `EXPIRE`
-- Lanza `HTTPException 429` con header `Retry-After`
-- Límites: auth/register 10/hora, login 20/hora, forgot-password 5/hora
-
-### Ley N° 29733 (Datos personales Perú)
-- Consentimiento registrado en `consent_records` antes de recolectar datos
-- `app/core/consent.py` gestiona el flujo de consentimiento
-- DNI, teléfono y nombre siempre cifrados con AES-256-GCM
-
----
-
-## 📊 KPIs DE INVESTIGACIÓN — NO MODIFICAR SIN CONSULTAR
-
-| KPI | Fórmula | Tabla BD | Aplica a |
-|-----|---------|----------|----------|
-| Velocidad Inserción Laboral (VIL) | `días(registro → primer contrato)` | `contracts` | Los 3 tipos |
-| Índice Visibilidad Perfil (IVP) | `(apariciones en búsquedas / total consultas) × 100` | `search_logs` | Los 3 tipos |
-| Tasa Formalización | `(trabajadores con ≥1 contrato / total) × 100` | `workers`, `contracts` | Los 3 tipos |
-| Reputation Score | `promedio_ponderado(ratings, peso×2 últimas 5)` | `ratings` | EXPERIENCIA, OFICIO |
-| Reducción Brecha Salarial | `((ingreso_post - ingreso_pre) / ingreso_pre) × 100` | `economic_surveys` | Los 3 tipos |
-| Tasa Completitud CV (TCC) | `(perfiles con CV generado / total) × 100` | `generated_cvs`, `workers` | PRIMER_EMPLEO, OFICIO |
-| Índice Visibilidad Marketplace (IVM) | `(listados activos / total OFICIO) × 100` | `service_listings`, `workers` | OFICIO |
-| Tasa Cold-Start Superado | `(con ≥1 match / total primer_empleo+oficio) × 100` | `match_events` | PRIMER_EMPLEO, OFICIO |
-
-Calculados en: `app/services/reports/kpi_calculator.py`
-
----
-
-## 📐 CONVENCIONES DE CÓDIGO
-
-### Python — reglas absolutas
-```python
-# ✅ async en todos los endpoints y servicios
-async def get_worker(worker_id: UUID, db: AsyncSession) -> Worker: ...
-
-# ✅ Pydantic v2 siempre
-class WorkerCreate(BaseModel):
-    model_config = ConfigDict(str_strip_whitespace=True)
-    worker_type: WorkerType  # obligatorio en todo schema de worker
-
-# ✅ SQLAlchemy 2.x async
-result = await db.execute(select(Worker).where(Worker.id == worker_id))
-worker = result.scalar_one_or_none()
-
-# ✅ structlog siempre, nunca print()
-logger = structlog.get_logger()
-logger.info("evento", campo=valor, otro_campo=otro_valor)
-
-# ✅ random_state=42 en todos los modelos ML para reproducibilidad
-```
-
-### Frontend — reglas absolutas
-```tsx
-// ✅ Verificar auth antes de cualquier acción de contacto
-const isAuthenticated = !!localStorage.getItem('access_token')
-
-// ✅ Guardar return_url antes de redirigir a login
-sessionStorage.setItem('login_return_url', window.location.pathname + window.location.search)
-
-// ✅ Leer return_url después del login
-const returnUrl = sessionStorage.getItem('login_return_url') || '/dashboard'
-sessionStorage.removeItem('login_return_url')
-navigate(returnUrl)
-
-// ✅ Condicionar publicación solo a OFICIO
-{worker?.worker_type === 'oficio' && <BotonPublicar />}
-
-// ✅ Marketplace visible para todos los autenticados
-// ❌ NO envolver /marketplace en WorkerTypeGuard
-```
-
----
-
-## 🧪 TESTING
+## 🚀 COMANDOS DE DESARROLLO (verificados contra docker-compose.yml)
 
 ```bash
-# Antes de cualquier commit
-pytest tests/ --cov=app --cov-report=term-missing --cov-fail-under=80
-ruff check . && ruff format --check .
+cd "d:/App-Intermediacion Laboral"
 
-# Tests organizados por área
-tests/unit/
-  test_auth_jwt.py               test_security.py
-  test_cold_start.py             test_cors_config.py
-  test_cv_generator.py           test_dataset_builder.py
-  test_drtpe_connector.py        test_embedding_no_pii.py
-  test_embeddings.py             test_kpi_calculator.py
-  test_local_dictionary.py       test_marketplace_search.py
-  test_matching_engine.py        test_ml_pipeline.py
-  test_nlp_cv_parser.py          test_nlp_first_job.py
-  test_nlp_trade_portfolio.py    test_onboarding_detector.py
-  test_psi_drift_detector.py     test_reputation_score.py
-  test_sprint5_contracts_applications.py
-  test_sprint5_drtpe_real.py
-  test_sprint5_marketplace_service.py
-  test_storage_and_tasks.py      test_ws_connection_limit.py
+# Levantar todo (build la primera vez)
+docker-compose up -d --build
 
-tests/integration/
-  test_api_admin_dashboard.py    test_api_auth.py
-  test_api_auth_email.py         test_api_employers.py
-  test_api_health.py             test_api_jobs.py
-  test_api_marketplace.py        test_api_matching.py
-  test_api_nlp.py                test_api_onboarding.py
-  test_api_portfolio.py          test_api_wizard.py
-  test_api_workers.py            test_job_alerts.py
-  test_portfolio_public_no_uuid.py
-  test_websocket_notifications.py
+# Logs
+docker-compose logs -f api
+docker-compose logs -f frontend
+
+# Detener
+docker-compose down
+
+# Migraciones Alembic
+docker-compose exec api alembic upgrade head
+docker-compose exec api alembic revision --autogenerate -m "descripcion"
+
+# Tests + cobertura
+docker-compose exec api pytest tests/ -v
+docker-compose exec api pytest --cov=app --cov-report=xml   # genera backend/coverage.xml
+
+# Shell
+docker-compose exec api bash
 ```
 
-- Cobertura mínima: **80%** — CI bloquea merge si baja
-- `random_state=42` en todos los modelos ML
-- Tests NLP deben incluir textos en español coloquial de Huancayo
-- Tests de marketplace deben incluir búsquedas con términos locales
+### Puertos expuestos
+| Servicio   | Host  | Notas |
+|------------|-------|-------|
+| API        | 8000  | docs en `http://localhost:8000/api/docs` (solo dev) |
+| Frontend   | 5173  | Vite dev server |
+| PostgreSQL | 5433 → 5432 | usuario/clave `postgres/postgres`, BD `intermediacion_laboral` |
+| Redis      | 6379  | |
+| Flower     | 5555  | monitoreo Celery |
+| Prometheus | 9090  | |
+| Grafana    | 3001 → 3000 | admin/changeme |
+| SonarQube  | 9000  | contenedor aparte (no en compose) — ver sección Calidad |
+
+> ⚠️ **NOTA build:** el Dockerfile fija `python:3.11-slim-bookworm` y conmuta los repos apt a **HTTPS** (`sed ... debian.sources`) porque en algunas redes el puerto 80 de `deb.debian.org` está bloqueado (403 Forbidden). No revertir a `python:3.11-slim` a secas.
 
 ---
 
-## 🚀 COMANDOS FRECUENTES
+## 🔐 AUTENTICACIÓN — ESTADO REAL
+
+### Implementación (`core/security.py`, `api/v1/auth.py`)
+- **JWT RS256** con par de claves RSA en `backend/keys/private.pem` / `public.pem`.
+  - Si no existen, se **auto-generan** al iniciar (`_ensure_rsa_keys()`).
+- **access_token**: expira en `ACCESS_TOKEN_EXPIRE_MINUTES` (default **1440 = 24h**).
+- **refresh_token**: expira en `REFRESH_TOKEN_EXPIRE_DAYS` (default **7 días**).
+- Ambos tokens incluyen `sub` (user_id), `role`, `jti`, `type`.
+- **Logout** invalida el `jti` en una blacklist Redis.
+- **PII** (full_name, dni, phone) se cifra con **AES-256-GCM** y se guarda como `BYTEA`.
+- **Rate limiting** (Redis): register 10/h por IP, login 20/h por IP, forgot-password 5/h.
+
+### Endpoints reales (prefijo `/api/v1/auth`)
+```
+POST /api/v1/auth/register
+POST /api/v1/auth/login            Body: { "email", "password" }
+                                   200: { "access_token", "refresh_token", "token_type": "bearer", ... }
+POST /api/v1/auth/refresh
+POST /api/v1/auth/logout
+POST /api/v1/auth/verify-email
+POST /api/v1/auth/forgot-password
+POST /api/v1/auth/reset-password
+GET  /api/v1/auth/me
+```
+
+### ⚠️ Diferencias con la "regla de negocio" ideal (a tener en cuenta)
+- **NO existe** un estado `PENDIENTE_VERIFICACION` que bloquee el login. Hay solo un booleano `User.email_verified`. El login **no** exige email verificado actualmente.
+- El envío real de emails (verificación, reset) es un **STUB** en `tasks/notifications.py` (solo loguea). No hay SMTP configurado.
+
+### Frontend del login (`pages/LoginPage.tsx`, `context/AuthContext.tsx`, `api/client.ts`)
+- Llama `POST {VITE_API_URL}/api/v1/auth/login`. **Default `VITE_API_URL = http://localhost:8000`**.
+- Tiene estado `isSubmitting` (spinner) y `error`.
+- Guarda `access_token` y `refresh_token` en **localStorage**.
+- **Redirección post-login:** `sessionStorage.login_return_url` si existe, si no → **`/dashboard`** (NO `/dashboard/trabajador`). El reparto por tipo de trabajador se hace en **`/onboarding`** y los guards.
+- Interceptor Axios: en **401** limpia tokens y redirige a `/login`. **OJO: no hay refresh automático** del access token; al expirar, el siguiente 401 desloguea. (Mejora pendiente.)
+
+### Mapa de redirección real
+```
+Login OK → /dashboard
+  ↳ Worker sin tipo definido → /onboarding → detect-type:
+        primer_empleo → /wizard/step/1
+        oficio        → /oficio/portfolio
+        experiencia   → /dashboard
+  ↳ Employer → /employer/dashboard
+  ↳ Admin    → /admin
+```
+
+---
+
+## 🗄️ MODELOS DE BD (PostgreSQL + pgvector)
+
+BD real: **`intermediacion_laboral`**. Columnas `embedding Vector(384)` donde se indica.
+
+| Tabla | Campos clave |
+|-------|--------------|
+| `users` | id (UUID), email (único), hashed_password, role, is_active, email_verified |
+| `workers` | id, user_id (FK), **worker_type**, full_name/dni/phone (BYTEA cifrado), district, trade_category, years_experience, avg_rating, is_available, profile_completeness, **embedding**, bio, job_title, username (único) |
+| `employers` | id, user_id, company_name, ruc (cifrado), contact_name (cifrado), district, sector, is_verified |
+| `job_offers` | id, employer_id, title, description, required_skills/preferred_skills (JSONB), district, modality, salary_min/max, worker_type_target, is_active, expires_at, **embedding**, views_count, applications_count |
+| `applications` | id, worker_id, job_offer_id, status (enviada/en_revision/entrevista/descartada/contratada), match_score, cover_note, employer_notes |
+| `portfolio_entries` | id, worker_id, title, description, extracted_skills (JSONB), photos (JSONB), period_start/end, client_rating, is_public, **embedding** |
+| `wizard_progress` | id, worker_id (único), current_step, answers (JSONB), extracted_skills (JSONB), job_interests (JSONB) |
+| `service_listing` | id, worker_id, title, description, trade_category, enriched_keywords (JSONB), **embedding** |
+| otras | contracts, audit_log, notification, match_event, job_alert, search_log, tracking, consent_record, economic_survey, equity_audit_log, generated_cv, model_version |
+
+---
+
+## 📄 GENERACIÓN DE PDF / CV — FLUJO CRÍTICO (RF096-RF110)
+
+Esta sección es prioritaria para auditoría. Tecnología: **WeasyPrint + Jinja2**.
+
+### Componentes
+- **Plantillas:** `backend/app/utils/cv_templates/{primer_empleo,oficio,experiencia}.html`
+- **Generador:** `backend/app/services/cv_builder/pdf_generator.py` → `generate_cv_pdf(worker_id, db) -> bytes`
+- **Endpoint API:** `backend/app/api/v1/cv.py`
+- **Tarea async:** `backend/app/tasks/cv_generator.py` → `generate_cv_task` (cola `cv_generation`, worker-cv)
+- **Frontend:** `frontend/src/modules/primer-empleo/wizard/steps/Step6Preview.tsx`
+
+### Flujo
+```
+[Wizard Step 6 / dashboard]
+   ↓ POST /api/v1/cv/generate/{worker_id}     (async, encola Celery → { task_id, status:"processing" })
+   ↓ GET  /api/v1/cv/download/{worker_id}     (SÍNCRONO: genera y devuelve application/pdf en el request)
+[Descarga del PDF]
+```
+- `generate_cv_pdf` selecciona el template por `worker.worker_type` (`TEMPLATE_MAP`, fallback `experiencia.html`).
+- Construye el contexto (`_build_template_context`): descifra PII, busca email vía `users`, y según el tipo arma:
+  - **primer_empleo:** skills + education/activities/objective desde `wizard_progress.answers`.
+  - **oficio:** hasta 6 `portfolio_entries` públicas + trade_category, rating, slug público.
+  - **experiencia:** job_title, bio, years_experience desde `Worker`.
+- Si WeasyPrint no está disponible (faltan libs del sistema) lanza `RuntimeError` con mensaje claro.
+- Autorización: ambos endpoints requieren rol `WORKER` y verifican `worker.user_id == token.sub` (un trabajador solo genera **su** CV).
+
+### ⚠️ Riesgos conocidos del PDF a vigilar en auditoría
+1. **`download` es síncrono** y ejecuta WeasyPrint dentro del request → puede bloquear/timeout con carga. Apropiado para dev; en prod debería servirse desde el resultado de la tarea Celery / storage.
+2. Las plantillas HTML carecían de `<title>` (3 bugs MAJOR detectados por SonarQube). Verificar si ya están corregidas.
+3. WeasyPrint **depende de libs del SO**: el contenedor `api` y `worker-cv` deben tener las libs del Dockerfile. Si el PDF falla con `RuntimeError`, revisar la imagen.
+4. Para `oficio`/`experiencia` el contexto depende de datos opcionales (`getattr` con defaults) → un perfil incompleto genera un PDF pobre pero no debe romper.
+
+### Cómo PROBAR la generación de PDF (manual)
+```bash
+# 1. Login y captura del token
+TOKEN=$(curl -s -X POST http://localhost:8000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"<email>","password":"<pass>"}' | python -c "import sys,json;print(json.load(sys.stdin)['access_token'])")
+
+# 2. Descargar el CV (síncrono) — debe devolver un PDF válido
+curl -s -D - -o /tmp/cv.pdf \
+  -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8000/api/v1/cv/download/<WORKER_ID>
+
+# 3. Verificar que es un PDF real (cabecera %PDF y tamaño > 0)
+head -c 5 /tmp/cv.pdf   # debe imprimir: %PDF-
+```
+Criterios de aceptación: HTTP 200, `Content-Type: application/pdf`, archivo empieza con `%PDF-`, tamaño > 1 KB, abre sin corrupción.
+
+---
+
+## 🤖 ML / NLP — ESTADO REAL
+
+- **Embeddings (REAL):** `nlp/embeddings/generator.py`, modelo `paraphrase-multilingual-MiniLM-L12-v2` (dim 384). Normalización con ftfy + nltk + diccionario `huancayo_trades.json`. **Fallback hash SHA256** si el modelo no carga (para no romper).
+- **Skill extraction (REAL):** `first_job_extractor.py` (wizard), `trade_extractor.py` (portfolio).
+- **CV parsing (parcial):** `cv_parser/parser.py` (`parse_pdf`, `parse_docx`, `extract_cv_fields`) para tipo `experiencia`.
+- **Matching:** `ml/matching_engine/scorer.py` → `combined_score = α·cosine + β·ml_score + γ·(reputation/5)`.
+  - Pesos por tipo: primer_empleo (0.65, 0.35, 0.00) · experiencia (0.50, 0.30, 0.20) · oficio (0.45, 0.25, 0.30).
+  - ⚠️ **`ml_score` está fijo en 0.5 (STUB)** en `api/v1/matching.py` — el modelo ML supervisado aún no está entrenado/cargado. La similitud coseno (pgvector) sí es real.
+- **Equidad:** `ml/equity_ranker/ranker.py` calcula *disparate impact* (< 0.80 dispara re-ranking) y registra `equity_audit_log`.
+- **Explainability:** `ml/explainer/explainer.py` (`explain_match`).
+- Endpoints NLP reales: `POST /api/v1/nlp/extract-skills/wizard`, `POST /api/v1/nlp/parse-cv`, `POST /api/v1/nlp/extract-skills/portfolio`.
+
+> ⚠️ **Posible desajuste front/back a verificar:** el frontend (Step3 del wizard) parece llamar `POST /nlp/extract-skills` con body `{user_text, worker_type}`, pero el backend expone `POST /nlp/extract-skills/wizard` con body `{step, text}`. Confirmar en auditoría que la ruta y el payload coinciden; si no, es un bug de integración.
+
+---
+
+## ⚙️ CELERY — colas y tareas reales
+
+App Celery: `app/tasks/__init__.py` (broker y backend en Redis). **No usar** `celery_app.py` (deprecado).
+
+| Cola | Worker (compose) | Tareas |
+|------|------------------|--------|
+| `embeddings` | worker-embeddings | generate_worker/job/portfolio/listing_embedding, regenerate_all_embeddings |
+| `cv_generation` | worker-cv | generate_cv_task |
+| `notifications`, `default` | worker-notifications | send_reset_email, send_push_notification, notify_* (**STUBS**) |
+| `reports` | worker-reports | generate_research_dataset |
+
+**Celery Beat** (scheduler, TZ America/Lima): regenerar embeddings (02:00), procesar alertas (cada hora), KPIs (06:00), reindexar marketplace (03:00), reentrenar matching (lun 04:00), limpiar tokens (01:00).
+
+---
+
+## 🌐 VARIABLES DE ENTORNO REALES
+
+### Backend (`core/config.py`) — env file: `backend/.env`
+```env
+DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/intermediacion_laboral
+REDIS_URL=redis://redis:6379/0
+JWT_ALGORITHM=RS256
+JWT_PRIVATE_KEY_PATH=keys/private.pem
+JWT_PUBLIC_KEY_PATH=keys/public.pem
+ACCESS_TOKEN_EXPIRE_MINUTES=1440
+REFRESH_TOKEN_EXPIRE_DAYS=7
+AES_KEY=<base64 de 32 bytes>          # PII; cambiar en prod
+BCRYPT_COST=12
+ENVIRONMENT=development                # o "production"
+LOG_LEVEL=INFO
+ALLOWED_ORIGINS=http://localhost:5173  # usado solo si ENVIRONMENT=production
+EMBEDDING_MODEL=paraphrase-multilingual-MiniLM-L12-v2
+EMBEDDING_DIM=384
+GCS_BUCKET_NAME=intermediacion-laboral-dev
+```
+> En `development`, CORS está **hardcodeado** a `http://localhost:5173` en `main.py` (no usa `ALLOWED_ORIGINS`).
+
+### Frontend — `frontend/.env` (NO existe aún; crear si se necesita override)
+```env
+VITE_API_URL=http://localhost:8000     # default si no se define
+```
+
+---
+
+## 📋 CONVENCIONES DE CÓDIGO
+
+### Python / FastAPI
+- `snake_case` funciones, `PascalCase` clases. Type hints + docstrings (Google style) en funciones públicas.
+- Rutas: cada router define su `prefix` (ej. `APIRouter(prefix="/cv")`); se montan bajo `/api/v1` en `main.py`.
+- Errores con `HTTPException`. Logging con `structlog` (`logger.info("evento", clave=valor)`).
+- Async en todo el path de I/O (DB con `AsyncSession`, `await db.execute(select(...))`).
+- **Nunca** exponer `hashed_password`, claves ni PII en respuestas.
+- SQL siempre parametrizado vía SQLAlchemy (no concatenar).
+
+### Frontend (React/TS)
+- Componentes `PascalCase`, hooks `useX`. Llamadas HTTP vía `api/client.ts` o hooks/services, no en componentes sueltos.
+- Manejar siempre `loading` / `error` / `data`. Textos en **español peruano** (DNI, S/., boleta).
+- Estado de wizard en Zustand (`store/wizardStore.ts`, persistido).
+
+### Git
+- Commits en español: `feat:`, `fix:`, `chore:`. Branches: `feature/…`, `fix/…`, `hotfix/…`.
+- No commitear: `.env`, `keys/`, `settings.local.json`, `__pycache__/`, `*.pyc`.
+
+---
+
+## ✅ CALIDAD — SonarQube (configurado)
+
+Servidor SonarQube en Docker (contenedor `sonarqube`, no en compose), config en `sonar-project.properties`.
 
 ```bash
-# Levantar entorno completo
-docker-compose up -d
+# Levantar SonarQube (una vez)
+docker run -d --name sonarqube -p 9000:9000 \
+  -e SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true sonarqube:lts-community
+# Esperar a status UP: curl -s http://localhost:9000/api/system/status
 
-# Ver logs
-docker-compose logs api --tail=50
-docker-compose logs celery_worker --tail=30
-
-# Migraciones
-alembic upgrade head
-alembic revision --autogenerate -m "descripcion"
-alembic history --verbose
-
-# Tests
-pytest tests/ --cov=app --cov-report=term-missing --cov-fail-under=80 -v
-pytest tests/unit/test_auth_jwt.py -v  # test específico
-
-# Linting
-ruff check . && ruff format .
-
-# Celery worker
-celery -A app.tasks worker --loglevel=info
-
-# Embeddings
-python -m app.tasks.embeddings regenerate_all --type all
-python -m app.tasks.embeddings regenerate_all --type primer_empleo
-
-# Seed de datos
-python backend/scripts/seed_data.py
-
-# Reentrenar modelo ML
-python -m app.ml.train --validate --deploy-if-better --worker-type all
-
-# Frontend
-cd frontend && npm run dev
-npx tsc --noEmit  # verificar tipos sin compilar
+# Analizar (token desde la UI o API)
+docker run --rm --network host -v "$PWD:/usr/src" \
+  -e SONAR_HOST_URL=http://localhost:9000 -e SONAR_TOKEN=<token> \
+  sonarsource/sonar-scanner-cli:latest
 ```
+- Cobertura backend: generar `backend/coverage.xml` con `pytest --cov=app --cov-report=xml` (lo lee `sonar.python.coverage.reportPaths`).
+- Cobertura frontend: `frontend/coverage/lcov.info` (`npm run test -- --coverage`, si hay tests).
+- Último análisis (2026-05-31): Quality Gate **OK**, 0 vulnerabilidades, Rating Seguridad **A**, Mantenibilidad **A**, Fiabilidad **C** (3 bugs HTML `<title>` en templates de CV), 40 code smells, 1 security hotspot en `portfolio.py:320`.
+- Acceso UI: `http://localhost:9000` (admin / `Linku2026!`).
 
 ---
 
-## 🌍 CONTEXTO LOCAL — HUANCAYO
+## 🩺 PROTOCOLO DE AUDITORÍA TOTAL — SIMULANDO UN USUARIO
 
-### Diccionario de equivalencias NLP
-Archivo: `backend/app/utils/local_dict/huancayo_trades.json`
-Aplicar SIEMPRE con `apply_local_dictionary()` ANTES de generar embeddings.
+Cuando el usuario pida "auditoría", "revisar el flujo completo" o "auditoría de producción", recorre el sistema **como lo haría un usuario real**, end-to-end, y reporta evidencia (status HTTP, capturas de respuesta, logs). Orden de prioridad: **Auth → Onboarding → Perfil/Wizard → PDF → Vacantes → Matching → Postulación → Admin**.
 
-```json
-{
-  "gasfitero":     ["plomero", "fontanero", "instalador sanitario"],
-  "techero":       ["techadista", "instalador de techos", "techador"],
-  "fierrero":      ["soldador", "herrero", "metalurgista"],
-  "albañil":       ["constructor", "obrero de construcción", "operario civil"],
-  "electricista":  ["instalador eléctrico", "técnico eléctrico"],
-  "pintor":        ["aplicador de pintura", "pintor de obras"],
-  "carpintero":    ["ebanista", "trabajador de madera"],
-  "mecánico":      ["técnico automotriz", "mecánico automotriz"],
-  "plomero":       ["gasfitero"],
-  "instalador":    ["técnico de instalaciones"]
-}
+### Paso 0 — Diagnóstico de salud
+```bash
+docker-compose ps
+docker-compose logs --tail=50 api
+curl -s http://localhost:8000/api/v1/health        # { status:"ok", ... }
+curl -s http://localhost:8000/api/docs > /dev/null  # OpenAPI accesible en dev
 ```
+Verifica que arrancaron `db`, `redis`, `api`, `frontend` y los `worker-*`. Si un worker está `Exited`, los flujos async (CV, embeddings) fallarán.
 
-### Categorías de oficio
-```python
-class TradeCategory(str, Enum):
-    ELECTRICIDAD = "Electricidad"
-    GASFITERIA   = "Gasfitería"
-    CARPINTERIA  = "Carpintería"
-    ALBANILERIA  = "Albañilería"
-    PINTURA      = "Pintura"
-    MECANICA     = "Mecánica automotriz"
-    TECHADO      = "Techado"
-    SOLDADURA    = "Soldadura y metalurgia"
-    JARDINERIA   = "Jardinería"
-    LIMPIEZA     = "Limpieza y mantenimiento"
-    COCINA       = "Cocina y pastelería"
-    COSTURA      = "Costura y confección"
-    OTROS        = "Otros oficios"
+### Paso 1 — Auth (registro + login + me) como usuario
+Para cada rol (worker, employer):
+```bash
+# Registro
+curl -s -X POST http://localhost:8000/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"audit_worker@test.pe","password":"Audit2026","role":"WORKER", ...}'
+# Login → guarda access_token
+# GET /me con el token → 200 y datos correctos (sin password_hash)
 ```
+Verifica: status 2xx, token válido (decodifica el JWT y comprueba `role`/`exp`), errores específicos (401 credenciales, 422 validación), rate limiting tras múltiples intentos.
 
-### Datos locales
-- **Distritos:** `Huancayo`, `El Tambo`, `Chilca`
-- **Moneda:** `S/.` (Sol peruano, PEN) — formato `S/. 1,000.00`
-- **Teléfonos:** `+51 9XXXXXXXX` (9 dígitos tras +51)
-- **DNI:** 8 dígitos numéricos exactos
-- **RUC:** 11 dígitos numéricos exactos
+### Paso 2 — Onboarding (detect-type)
+```bash
+curl -s -X POST http://localhost:8000/api/v1/onboarding/detect-type \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{...respuestas...}'   # debe devolver worker_type ∈ {primer_empleo, oficio, experiencia}
+```
+Verifica en frontend que la redirección coincide (primer_empleo→/wizard/step/1, oficio→/oficio/portfolio, experiencia→/dashboard).
+
+### Paso 3 — Construcción de perfil (los 3 tipos)
+- **primer_empleo:** recorre el wizard de 6 pasos. En Step3 confirma que la **extracción NLP de skills** responde (revisa ruta/payload front vs back — ver advertencia en sección ML/NLP). Verifica que `wizard_progress` persiste.
+- **oficio:** crea entradas de portafolio (`/portfolio`), confirma extracción de skills y que `is_public` controla visibilidad.
+- **experiencia:** sube un CV (PDF/DOCX) a `/nlp/parse-cv`, valida los campos extraídos.
+
+### Paso 4 — Generación de PDF (CRÍTICO) — para cada worker_type
+Sigue "Cómo PROBAR la generación de PDF" (sección PDF). Para los 3 tipos:
+- `POST /cv/generate/{id}` → `task_id` y, si hay worker-cv, la tarea termina (revisa Flower :5555).
+- `GET /cv/download/{id}` → archivo `%PDF-`, `application/pdf`, abre correctamente, contenido coherente con el tipo (skills, portafolio o bio según corresponda).
+- Verifica autorización: con el token de **otro** worker debe dar **403**.
+- Verifica que las plantillas tienen `<title>` (bug SonarQube) y que un perfil incompleto no rompe la generación.
+
+### Paso 5 — Vacantes (empleador)
+```bash
+# Crear oferta como employer → genera embedding (cola embeddings)
+# GET /jobs/feed → la oferta aparece
+```
+Verifica creación, validaciones (descripción mínima), expiración, y que el embedding se generó (worker-embeddings activo).
+
+### Paso 6 — Matching
+```bash
+curl -s -H "Authorization: Bearer $TOKEN" http://localhost:8000/api/v1/match/<WORKER_ID>
+```
+Verifica top-K ordenado por score, que el score es 0-1, y **anota que `ml_score` es stub (0.5)** — el ranking real lo domina la similitud coseno. Revisa que el re-ranking de equidad no rompa el orden.
+
+### Paso 7 — Postulación
+`POST /applications` desde worker → aparece en "mis postulaciones" y en candidatos del empleador, con `status` correcto. Verifica notificación (stub: solo log).
+
+### Paso 8 — Admin DRTPE
+Login admin → `GET /api/v1/admin/dashboard` y stats. En frontend, `/admin` con `KPIGlobe` (Three.js) renderiza sin errores de consola.
+
+### Paso 9 — Transversal (seguridad/UX)
+- CORS: el front en :5173 puede llamar al API :8000 sin error CORS.
+- 401: token expirado/invalid → front limpia sesión y va a `/login`.
+- Autorización por rol: un worker no accede a endpoints de employer/admin (403).
+- No hay PII ni secretos en respuestas ni en `console.log`.
+- Estados `loading`/`error` visibles en cada acción del front.
+
+### Entregable de la auditoría
+Para cada flujo: ✅/❌, evidencia (status + extracto de respuesta/log), y si ❌: causa raíz + archivo:línea + propuesta de fix. Registrar nuevos hallazgos en la tabla de bugs.
 
 ---
 
-## ⛔ PROHIBICIONES ABSOLUTAS
+## 🚨 BUGS / DEUDA CONOCIDA
 
-### Backend
-- No usar **Django** ni **Flask** — solo FastAPI
-- No usar **MongoDB** — solo PostgreSQL + pgvector
-- No usar **NumPy < 1.24** ni **pandas < 2.0**
-- No instalar librerías sin actualizar `requirements.txt`
-- No commits directos a `main` — siempre vía PR
-- No exponer `/api/v1/model/metrics` sin autenticación ADMIN
-- No eliminar logs de auditoría — son inmutables
-- No modificar `combined_score` sin validar impacto en F1
-- No mezclar lógica de tipos en un mismo servicio
-- No omitir `worker_type` en operaciones de matching o recomendación
-- No almacenar fotos en base64 en BD — siempre GCS/S3 con URL firmada
-- No modificar migraciones ya aplicadas — crear una nueva
-- No implementar funcionalidad sin trazarla a un RF del subcap. 4.3.2
-- No usar `print()` — solo `structlog`
-- No retornar stack traces en producción
-
-### Frontend
-- No bloquear el acceso al marketplace (`/marketplace`, `/servicios`) por tipo de usuario — es visible para todos
-- Solo OFICIO puede **publicar** en el marketplace — condicionar solo el botón/tab internamente
-- No abrir ContactModal sin verificar autenticación primero
-- No redirigir a /register cuando el usuario intenta contactar — redirigir a /login
-- No navegar a /dashboard hardcodeado después del login — usar sessionStorage return_url
-- No usar WorkerTypeGuard en la ruta /marketplace — solo en /oficio/portfolio y /wizard
-- La ruta `/` SIEMPRE debe mostrar LandingPage, no redirigir al dashboard
-
-### Ambos
-- No exponer DNI en ninguna respuesta del API ni en logs
-- No almacenar contraseñas en texto plano
+| ID | Descripción | Prioridad | Estado |
+|----|-------------|-----------|--------|
+| BUG-001 | Botón "Iniciar Sesión" estático (histórico) | 🔴 | ✅ Resuelto (login funciona: spinner + redirect a `/dashboard`) |
+| SONAR-1 | Templates de CV sin `<title>` (3 bugs MAJOR) — `cv_templates/*.html` | 🟡 | ✅ Resuelto (2026-05-31, `<title>` añadido a los 3) |
+| SONAR-2 | Security hotspot directorio escribible — `api/v1/portfolio.py:320` | 🟡 | Revisar |
+| ML-STUB | `ml_score` fijo 0.5 en `api/v1/matching.py` (modelo no entrenado) | 🟡 | Pendiente (entrenar/cargar) |
+| INT-NLP | Posible desajuste ruta/payload `extract-skills` front (`/nlp/extract-skills`) vs back (`/nlp/extract-skills/wizard`) | 🟠 | Verificar en auditoría |
+| AUTH-REFRESH | No hay refresh automático de access token; 401 desloguea | 🟡 | Mejora pendiente |
+| CV-EXP-VACIO | El CV tipo `experiencia` siempre sale sin experiencia/educación/skills: `_build_template_context` ([pdf_generator.py:152-168](backend/app/services/cv_builder/pdf_generator.py#L152)) no cablea los datos parseados de `/nlp/parse-cv` | 🟠 | Pendiente |
+| NOTIF-STUB | Emails/push son stubs (solo log); sin SMTP | 🟢 | Por implementar |
 
 ---
 
-## 📁 ARCHIVOS QUE NUNCA SE MODIFICAN SIN REVISIÓN DEL EQUIPO
+## 💡 MODO DE TRABAJO PARA CLAUDE CODE
 
-```
-backend/app/ml/train.py                          → entrenamiento del modelo
-backend/app/nlp/embeddings/generator.py          → generación de vectores
-backend/app/utils/local_dict/huancayo_trades.json → diccionario Huancayo
-backend/migrations/versions/*.py                 → migraciones aplicadas
-backend/app/core/config.py                       → configuración producción
-backend/app/services/reports/kpi_calculator.py   → cálculo KPIs de investigación
-CLAUDE.md                                        → este archivo
-```
+### Al iniciar sesión de trabajo
+1. Leer este `CLAUDE.md` completo.
+2. `docker-compose ps` y `docker-compose logs --tail=20 api`.
+3. Preguntar al usuario qué flujo/bug trabajar.
 
----
+### Al auditar
+1. Usar modelo **Opus** para análisis complejos.
+2. Seguir el Protocolo de Auditoría Total (arriba), simulando usuario, en orden de prioridad.
+3. Por flujo: leer código → reproducir como usuario → identificar problema (archivo:línea) → proponer → implementar → verificar.
+4. No tocar más de un flujo por sesión sin confirmar.
 
-## 🔗 TRAZABILIDAD RF → CARPETA
+### Al encontrar un bug
+1. Registrarlo en la tabla de bugs.
+2. Branch `fix/descripcion`. Corrección + test. Commit en español.
 
-| Módulo | RF | Carpeta |
-|--------|----|---------|
-| M01 Identidad y Autenticación | RF001–RF015 | `app/api/v1/auth.py`, `app/core/security.py` |
-| M02 Perfil del Trabajador | RF016–RF035 | `app/api/v1/workers.py`, `app/services/onboarding/` |
-| M03 Empleadores y Ofertas | RF036–RF055 | `app/api/v1/employers.py`, `app/api/v1/jobs.py` |
-| M04 NLP de Competencias | RF056–RF075 | `app/nlp/`, `app/api/v1/nlp.py` |
-| M05 Motor ML Emparejamiento | RF076–RF095 | `app/ml/`, `app/api/v1/matching.py` |
-| M06 Asistente Identidad Laboral | RF096–RF110 | `app/api/v1/wizard.py`, `app/services/cv_builder/` |
-| M07 Búsqueda y Recomendación | RF111–RF125 | `app/api/v1/marketplace.py`, `app/services/marketplace/` |
-| M08 Notificaciones | RF126–RF135 | `app/api/v1/ws_notifications.py`, `app/tasks/notifications.py` |
-| M09 Reportes DRTPE | RF136–RF145 | `app/api/v1/admin/`, `app/tasks/reports.py` |
-| M10 Equidad y Explicabilidad | RF146–RF155 | `app/ml/equity_ranker/`, `app/ml/explainer/` |
-| M11 Administración | RF156–RF160 | `app/api/v1/admin/dashboard.py` |
-| M12 Integración Institucional | RF161–RF165 | `app/integrations/drtpe/`, `app/api/v1/contracts.py` |
+### Al cerrar sesión
+1. Actualizar "Última actualización" y Sprint arriba.
+2. Actualizar la tabla de bugs.
+3. **Si el código cambió de forma que este archivo quedó desfasado, actualizar las secciones afectadas.**
 
 ---
 
-*Última actualización: Sprint 5 + Bugfix frontend — Rojas Peña W. / Tovar Sanchez C.*
+## 📞 CONTEXTO INSTITUCIONAL
+
+- **Institución:** Dirección Regional de Trabajo y Promoción del Empleo de Junín (DRTPE-Junín), Huancayo, Perú.
+- **Contexto:** alta informalidad laboral; muchos trabajadores sin CV ni perfil digital. UX **extremadamente simple**, asumir baja alfabetización digital.
+- **Idioma:** español peruano. Usar "DNI" (no "cédula"), "boleta de pago" (no "nómina"), "S/." para soles.
+
+---
+
+*Versión del documento: 2026-05-31 (reescrito contra el código real). El doc anterior contenía supuestos inexactos (marca SkillBridge, Next.js, HS256, puerto 3000, OCR, BD skillbridge_db) que han sido corregidos.*

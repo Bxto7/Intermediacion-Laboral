@@ -1,0 +1,48 @@
+# Entorno virtual local (¡nunca debe ir al contenedor!)
+.venv
+venv
+env
+
+# Caché de Python
+__pycache__
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info
+*.egg
+dist
+build
+.eggs
+
+# Herramientas de lint/test locales
+.ruff_cache
+.pytest_cache
+.coverage
+htmlcov
+.mypy_cache
+
+# Archivos de desarrollo
+*.log
+*.sqlite3
+celerybeat-schedule
+
+# Archivos de editor
+.vscode
+.idea
+*.swp
+*.swo
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Documentación
+*.md
+docs/
+
+# Keys (se montan vía volumen o secrets)
+# keys/   ← comentado: pueden ser necesarias en dev

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>{% block title %}CV - {{ full_name }} - DRTPE Junin{% endblock %}</title>
+<style>
+  @page {
+    size: A4;
+    margin: 0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+    color: #2d2d2d;
+    font-size: 10pt;
+    line-height: 1.45;
+  }
+
+  /* ── Barra lateral (se repite en cada pagina) ── */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 68mm;
+    height: 100%;
+    background: {{ accent_color }};
+    color: #ffffff;
+    padding: 14mm 9mm;
+  }
+  .sidebar .name {
+    font-size: 21pt;
+    font-weight: 800;
+    line-height: 1.1;
+    margin: 0 0 10mm 0;
+    letter-spacing: 0.3px;
+  }
+  .photo-wrap {
+    width: 42mm;
+    height: 42mm;
+    margin: 0 auto 9mm auto;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.55);
+    background: rgba(255,255,255,0.12);
+  }
+  .photo-wrap img { width: 100%; height: 100%; object-fit: cover; }
+  .photo-initials {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30pt; font-weight: 700; color: rgba(255,255,255,0.85);
+    text-align: center; line-height: 42mm;
+  }
+  .side-section { margin-bottom: 8mm; }
+  .side-section h3 {
+    font-size: 11pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin: 0 0 3mm 0;
+    padding-bottom: 1.5mm;
+    border-bottom: 1px solid rgba(255,255,255,0.4);
+  }
+  .side-item { margin-bottom: 3mm; font-size: 9pt; }
+  .side-item .label { font-weight: 700; display: block; }
+  .side-item .value { opacity: 0.92; word-wrap: break-word; }
+  .lang-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2mm; font-size: 9pt; }
+  .stars { white-space: nowrap; }
+  .dot { display: inline-block; width: 2.3mm; height: 2.3mm; border-radius: 50%; margin-left: 1mm; }
+  .dot-on { background: #f5c518; }
+  .dot-off { background: rgba(255,255,255,0.32); }
+  .side-list { margin: 0; padding-left: 4mm; font-size: 9pt; }
+  .side-list li { margin-bottom: 2mm; opacity: 0.95; }
+
+  /* ── Columna principal ── */
+  .main { margin-left: 68mm; padding: 14mm 12mm 14mm 11mm; }
+  .summary { font-size: 10pt; color: #3a3a3a; margin: 0 0 8mm 0; text-align: justify; }
+  .main h2 {
+    color: {{ accent_color }};
+    font-size: 14pt;
+    font-weight: 700;
+    margin: 0 0 4mm 0;
+    padding-bottom: 1.5mm;
+    border-bottom: 1.5px solid #e2e2e2;
+  }
+  .main-section { margin-bottom: 8mm; }
+  .entry { width: 100%; margin-bottom: 5mm; }
+  .entry td { vertical-align: top; }
+  .entry .period { width: 30mm; font-size: 8.5pt; color: #7a7a7a; padding-right: 4mm; padding-top: 0.5mm; }
+  .entry .role { font-weight: 700; color: #1f1f1f; font-size: 10.5pt; }
+  .entry .company { font-style: italic; color: #555; font-size: 9.5pt; margin-bottom: 1.5mm; }
+  .entry ul { margin: 1.5mm 0 0 0; padding-left: 4.5mm; }
+  .entry li { margin-bottom: 1mm; color: #3a3a3a; font-size: 9.5pt; }
+  .entry .achievements-label { font-weight: 700; color: #1f1f1f; margin-top: 1.5mm; font-size: 9.5pt; }
+  .skills-list { margin: 0; padding-left: 4.5mm; }
+  .skills-list li { margin-bottom: 1.5mm; color: #3a3a3a; font-size: 10pt; }
+  .empty { color: #9a9a9a; font-style: italic; font-size: 9.5pt; }
+  .verified-badge {
+    margin-top: 6mm; font-size: 8pt; color: #ffffff;
+    background: rgba(255,255,255,0.18); padding: 2mm 3mm; border-radius: 4px;
+    display: inline-block;
+  }
+</style>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="name">{{ full_name }}</div>
+
+    <div class="photo-wrap">
+      {% if photo_url %}
+        <img src="{{ photo_url }}" alt="Foto de {{ full_name }}">
+      {% else %}
+        <div class="photo-initials">{{ initials }}</div>
+      {% endif %}
+    </div>
+
+    <div class="side-section">
+      <h3>Datos de contacto</h3>
+      {% if email %}<div class="side-item"><span class="label">Email</span><span class="value">{{ email }}</span></div>{% endif %}
+      {% if phone %}<div class="side-item"><span class="label">Telefono</span><span class="value">{{ phone }}</span></div>{% endif %}
+      {% if address %}<div class="side-item"><span class="label">Direccion</span><span class="value">{{ address }}</span></div>{% endif %}
+      {% if linkedin %}<div class="side-item"><span class="label">LinkedIn</span><span class="value">{{ linkedin }}</span></div>{% endif %}
+      {% if public_url %}<div class="side-item"><span class="label">Perfil DRTPE</span><span class="value">{{ public_url }}</span></div>{% endif %}
+    </div>
+
+    {% if languages %}
+    <div class="side-section">
+      <h3>Idiomas</h3>
+      {% for lang in languages %}
+      <div class="lang-row">
+        <span>{{ lang.name }}{% if lang.level %} - {{ lang.level }}{% endif %}</span>
+        <span class="stars">{% for i in range(5) %}<span class="dot {% if i < lang.stars %}dot-on{% else %}dot-off{% endif %}"></span>{% endfor %}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% block sidebar_extra %}{% endblock %}
+
+    {% if additional_info %}
+    <div class="side-section">
+      <h3>Informacion adicional</h3>
+      <ul class="side-list">
+        {% for info in additional_info %}<li>{{ info }}</li>{% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <div class="verified-badge">Identidad verificada &middot; DRTPE Junin</div>
+  </div>
+
+  <div class="main">
+    {% if summary %}<p class="summary">{{ summary }}</p>{% endif %}
+    {% block main %}{% endblock %}
+  </div>
+</body>
+</html>

@@ -20,6 +20,58 @@ TEMPLATE_MAP = {
     "experiencia": "experiencia.html",
 }
 
+# Color de acento (barra lateral del CV) por tipo de trabajador
+ACCENT_COLOR = {
+    "primer_empleo": "#34508c",  # azul profesional
+    "oficio": "#1f4e5f",         # azul petroleo
+    "experiencia": "#8b1e2d",    # vino (estilo CV ejecutivo)
+}
+DEFAULT_ACCENT = "#8b1e2d"
+
+
+def _initials(name: str) -> str:
+    """Dos iniciales en mayuscula para el placeholder de foto."""
+    parts = [p for p in (name or "").split() if p]
+    if not parts:
+        return "?"
+    if len(parts) == 1:
+        return parts[0][:2].upper()
+    return (parts[0][0] + parts[1][0]).upper()
+
+
+def _norm_education(raw: list) -> list[dict]:
+    """Normaliza educacion (acepta dicts variados o strings)."""
+    out: list[dict] = []
+    for it in raw or []:
+        if isinstance(it, dict):
+            out.append({
+                "degree": it.get("degree") or it.get("title") or it.get("name") or "",
+                "institution": it.get("institution") or it.get("school") or it.get("place") or "",
+                "period": it.get("period") or "",
+            })
+        elif isinstance(it, str) and it.strip():
+            out.append({"degree": it, "institution": "", "period": ""})
+    return out
+
+
+def _norm_experiences(raw: list) -> list[dict]:
+    """Normaliza experiencias/actividades a {role, company, period, bullets, achievements}."""
+    out: list[dict] = []
+    for it in raw or []:
+        if isinstance(it, dict):
+            desc = it.get("description") or it.get("tasks") or ""
+            bullets = desc if isinstance(desc, list) else ([desc] if desc else [])
+            out.append({
+                "role": it.get("role") or it.get("title") or it.get("position") or "",
+                "company": it.get("company") or it.get("place") or it.get("organization") or "",
+                "period": it.get("period") or "",
+                "bullets": bullets,
+                "achievements": it.get("achievements") or [],
+            })
+        elif isinstance(it, str) and it.strip():
+            out.append({"role": it, "company": "", "period": "", "bullets": [], "achievements": []})
+    return out
+
 # Module-level singleton: building Environment per call is expensive (filesystem scan + caching)
 _jinja_env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)), autoescape=True)
 
@@ -79,11 +131,22 @@ async def _build_template_context(
     user = user_res.scalar_one_or_none()
     email = user.email if user else ""
 
+    district = worker.district or ""
+    address = f"{district}, Junin" if district else "Junin, Peru"
+
     base_ctx = {
         "full_name": full_name,
+        "initials": _initials(full_name),
         "phone": phone,
         "email": email,
-        "district": worker.district or "Junin",
+        "address": address,
+        "district": district or "Junin",
+        "photo_url": None,  # el modelo Worker aun no almacena foto
+        "accent_color": ACCENT_COLOR.get(worker_type, DEFAULT_ACCENT),
+        "languages": [],    # sin fuente de datos estructurada todavia
+        "additional_info": [],
+        "public_url": None,
+        "linkedin": None,
     }
 
     if worker_type == "primer_empleo":
@@ -94,13 +157,18 @@ async def _build_template_context(
         answers = progress.answers if progress else {}
         skills = list(progress.extracted_skills or []) if progress else []
 
+        objective = answers.get("job_interests") or answers.get("objective") or ""
+        if isinstance(objective, list):
+            objective = ", ".join(str(o) for o in objective)
+
         return {
             **base_ctx,
+            "job_title": "En busqueda de primer empleo",
+            "summary": objective,
+            "education": _norm_education(answers.get("education", [])),
+            "experiences": _norm_experiences(answers.get("activities", [])),
             "skills": skills,
-            "education": answers.get("education", []),
-            "activities": answers.get("activities", []),
-            "objective": answers.get("job_interests", ""),
-            "linkedin": answers.get("linkedin", ""),
+            "linkedin": answers.get("linkedin") or None,
         }
 
     elif worker_type == "oficio":
@@ -125,44 +193,60 @@ async def _build_template_context(
             "mes": "Disponible este mes",
         }.get(getattr(worker, "availability", "inmediata"), "Disponible")
 
+        trade = worker.trade_category or "Oficio"
+        years = worker.years_experience or 0
+        slug = getattr(worker, "username", "") or ""
+
+        experiences = []
+        for e in entries:
+            period = (
+                f"{e.period_start} - {e.period_end or 'actualidad'}" if e.period_start else ""
+            )
+            achievements = (
+                [f"Calificacion del cliente: {float(e.client_rating):.1f}/5.0"]
+                if e.client_rating
+                else []
+            )
+            experiences.append({
+                "role": e.title,
+                "company": "",
+                "period": period,
+                "bullets": [(e.description or "")[:220]] if e.description else [],
+                "achievements": achievements,
+            })
+
         return {
             **base_ctx,
-            "trade_category": worker.trade_category or "Oficio",
-            "years_experience": worker.years_experience or 0,
+            "job_title": trade,
+            "trade_category": trade,
+            "years_experience": years,
             "avg_rating": f"{avg_rating:.1f}",
             "portfolio_count": len(entries),
-            "slug": getattr(worker, "username", "") or "",
             "availability_text": availability_text,
-            "skills": list(set(all_skills))[:12],
-            "portfolio_entries": [
-                {
-                    "title": e.title,
-                    "description": (e.description or "")[:200],
-                    "period": (
-                        f"{e.period_start} - {e.period_end or 'actualidad'}"
-                        if e.period_start
-                        else ""
-                    ),
-                    "client_rating": float(e.client_rating) if e.client_rating else None,
-                }
-                for e in entries
-            ],
+            "public_url": f"drtpe.gob.pe/p/{slug}" if slug else None,
+            "summary": f"{trade} con {years} anios de experiencia en la region Junin.",
+            "skills": list(dict.fromkeys(all_skills))[:12],
+            "experiences": experiences,
+            "education": [],
         }
 
     else:  # experiencia
-        profile: dict = {}
-        if hasattr(worker, "bio") and worker.bio:
-            profile["bio"] = worker.bio
-        if hasattr(worker, "job_title") and worker.job_title:
-            profile["job_title"] = worker.job_title
+        bio = worker.bio if (hasattr(worker, "bio") and worker.bio) else ""
+        job_title = (
+            worker.job_title if (hasattr(worker, "job_title") and worker.job_title) else "Profesional"
+        )
+        years = worker.years_experience or 0
+        if not bio and years:
+            bio = f"Profesional con {years} anios de experiencia en la region Junin."
 
+        # NOTA (CV-EXP-VACIO): experiencias/educacion/skills no se persisten aun
+        # (parse-cv devuelve los datos pero no los guarda). Se renderiza con estado vacio.
         return {
             **base_ctx,
-            "job_title": profile.get("job_title", "Profesional"),
-            "years_experience": worker.years_experience or 0,
-            "bio": profile.get("bio", ""),
-            "experiences": profile.get("experiences", []),
-            "education": profile.get("education", []),
-            "skills": profile.get("skills", []),
-            "linkedin": profile.get("linkedin", ""),
+            "job_title": job_title,
+            "years_experience": years,
+            "summary": bio,
+            "experiences": [],
+            "education": [],
+            "skills": [],
         }
