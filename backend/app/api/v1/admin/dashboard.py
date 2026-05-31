@@ -155,3 +155,49 @@ async def list_workers(
         })
 
     return {"workers": workers, "total": total}
+
+
+@admin_router.get("/employers")
+async def list_employers(
+    limit: int = 100,
+    offset: int = 0,
+    db: AsyncSession = Depends(get_db),
+):
+    """Lista de empleadores con conteo real de ofertas y postulantes para el panel admin."""
+    sql = text("""
+        SELECT
+            e.id,
+            u.email,
+            e.company_name,
+            e.district,
+            e.sector,
+            e.is_verified,
+            u.created_at,
+            (SELECT COUNT(*) FROM job_offers jo WHERE jo.employer_id = e.id) AS jobs,
+            (SELECT COUNT(*) FROM applications a
+                JOIN job_offers jo2 ON jo2.id = a.job_offer_id
+                WHERE jo2.employer_id = e.id) AS candidates
+        FROM employers e
+        JOIN users u ON u.id = e.user_id
+        ORDER BY u.created_at DESC
+        LIMIT :limit OFFSET :offset
+    """)
+    rows = (await db.execute(sql, {"limit": limit, "offset": offset})).fetchall()
+    total = (await db.execute(text("SELECT COUNT(*) FROM employers"))).scalar() or 0
+
+    employers = [
+        {
+            "id": str(r.id),
+            "email": r.email,
+            "company_name": r.company_name or r.email,
+            "district": r.district or "—",
+            "sector": r.sector or "—",
+            "is_verified": r.is_verified,
+            "jobs": int(r.jobs or 0),
+            "candidates": int(r.candidates or 0),
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+        }
+        for r in rows
+    ]
+
+    return {"employers": employers, "total": total}

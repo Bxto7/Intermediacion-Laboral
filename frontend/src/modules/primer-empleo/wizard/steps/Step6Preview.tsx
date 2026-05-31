@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { Download, ArrowRight } from 'lucide-react'
 import { useWizardStore } from '../../../../store/wizardStore'
 import apiClient from '../../../../api/client'
+import { downloadCV } from '../../../../lib/downloadCV'
 import { useWorkerContext } from '../../../../context/WorkerContext'
 
 export const Step6Preview: React.FC = () => {
@@ -12,14 +13,15 @@ export const Step6Preview: React.FC = () => {
   const { answers, extractedSkills } = useWizardStore()
   const { worker } = useWorkerContext()
   const [isGenerating, setIsGenerating] = useState(false)
-  const [cvUrl, setCvUrl] = useState<string | null>(null)
+  const [downloaded, setDownloaded] = useState(false)
 
   const generateCV = async () => {
     if (!worker?.id) return
     setIsGenerating(true)
     try {
       await apiClient.post(`/cv/generate/${worker.id}`)
-      setCvUrl(`/api/v1/cv/download/${worker.id}`)
+      await downloadCV(worker.id)
+      setDownloaded(true)
     } catch { /* ignore */ }
     finally { setIsGenerating(false) }
   }
@@ -109,16 +111,14 @@ export const Step6Preview: React.FC = () => {
           )}
         </button>
 
-        {cvUrl && (
-          <a
-            href={cvUrl}
-            target="_blank"
-            rel="noreferrer"
+        {downloaded && (
+          <button
+            onClick={() => worker?.id && downloadCV(worker.id)}
             className="btn-secondary w-full flex items-center justify-center gap-2 py-3 text-sm"
           >
             <Download size={15} />
-            Descargar mi CV (PDF)
-          </a>
+            Descargar mi CV (PDF) de nuevo
+          </button>
         )}
 
         <button

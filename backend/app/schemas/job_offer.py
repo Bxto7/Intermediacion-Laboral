@@ -80,3 +80,4 @@ class ApplicationResponse(BaseModel):
     cover_note: str | None
     applied_at: datetime
     job_title: str
+    worker_name: str = ""

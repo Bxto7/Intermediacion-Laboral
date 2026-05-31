@@ -6,6 +6,7 @@ import { PortfolioCard } from './PortfolioCard'
 import { AddEntryModal } from './AddEntryModal'
 import { LoadingSpinner } from '../../../shared/LoadingSpinner'
 import apiClient from '../../../api/client'
+import { downloadCV } from '../../../lib/downloadCV'
 import { useWorkerContext } from '../../../context/WorkerContext'
 
 export const PortfolioPage: React.FC = () => {
@@ -26,7 +27,7 @@ export const PortfolioPage: React.FC = () => {
     setIsGeneratingCV(true)
     try {
       await apiClient.post(`/cv/generate/${worker.id}`)
-      window.open(`/api/v1/cv/download/${worker.id}`, '_blank')
+      await downloadCV(worker.id)
     } catch { /* ignore */ }
     finally { setIsGeneratingCV(false) }
   }

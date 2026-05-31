@@ -3,6 +3,7 @@ import { useDropzone } from 'react-dropzone'
 import { useIntl } from 'react-intl'
 import { Camera, X } from 'lucide-react'
 import { usePortfolio } from '../../../hooks/usePortfolio'
+import { parseApiError } from '../../../lib/parseApiError'
 
 interface Props { onClose: () => void }
 
@@ -24,6 +25,7 @@ export const AddEntryModal: React.FC<Props> = ({ onClose }) => {
   const [description, setDescription] = useState('')
   const [files, setFiles] = useState<File[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState('')
 
   const onDrop = useCallback((accepted: File[]) => {
     setFiles((prev) => [...prev, ...accepted].slice(0, 4))
@@ -37,17 +39,20 @@ export const AddEntryModal: React.FC<Props> = ({ onClose }) => {
   })
 
   const handleSubmit = async () => {
-    if (!title.trim() || !description.trim()) return
+    setError('')
+    const t = title.trim()
+    const d = description.trim()
+    if (t.length < 3) { setError('El título debe tener al menos 3 caracteres.'); return }
+    if (t.length > 200) { setError('El título no debe superar 200 caracteres.'); return }
+    if (d.length < 20) { setError('La descripción debe tener al menos 20 caracteres.'); return }
+    if (d.length > 2000) { setError(`La descripción es muy larga (${d.length}/2000). Acórtala un poco.`); return }
     setIsSubmitting(true)
     try {
-      const fd = new FormData()
-      fd.append('title', title)
-      fd.append('description', description)
-      files.forEach((f) => fd.append('photos', f))
-      await addEntry(fd)
+      await addEntry({ title: t, description: d, files })
       onClose()
-    } catch { /* ignore */ }
-    finally { setIsSubmitting(false) }
+    } catch (err) {
+      setError(parseApiError(err))
+    } finally { setIsSubmitting(false) }
   }
 
   const focusStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -89,6 +94,7 @@ export const AddEntryModal: React.FC<Props> = ({ onClose }) => {
               id="entry-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              maxLength={200}
               placeholder="Ej: Instalación eléctrica residencial en El Tambo"
               style={fieldStyle}
               onFocus={focusStyle}
@@ -102,12 +108,16 @@ export const AddEntryModal: React.FC<Props> = ({ onClose }) => {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
+              maxLength={2000}
               placeholder="Describe el trabajo: qué hiciste, cómo lo hiciste, materiales que usaste..."
               style={{ ...fieldStyle, resize: 'none' }}
               onFocus={focusStyle as unknown as React.FocusEventHandler<HTMLTextAreaElement>}
               onBlur={blurStyle as unknown as React.FocusEventHandler<HTMLTextAreaElement>}
             />
-            <p className="text-xs mt-1" style={{ color: 'var(--ink-muted)' }}>El sistema detectará automáticamente tus habilidades</p>
+            <div className="flex items-center justify-between mt-1">
+              <p className="text-xs" style={{ color: 'var(--ink-muted)' }}>El sistema detectará automáticamente tus habilidades</p>
+              <span className="text-xs" style={{ color: description.length > 2000 ? '#b91c1c' : 'var(--ink-muted)' }}>{description.length}/2000</span>
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: 'var(--ink-warm)' }}>Fotos del trabajo (máx. 4)</label>
@@ -145,6 +155,13 @@ export const AddEntryModal: React.FC<Props> = ({ onClose }) => {
             )}
           </div>
         </div>
+
+        {error && (
+          <div className="mx-5 mb-1 flex gap-2 px-3 py-2.5 rounded-xl text-sm" style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c' }}>
+            <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+            {error}
+          </div>
+        )}
 
         <div className="flex gap-3 p-5" style={{ borderTop: '1px solid var(--line)' }}>
           <button onClick={onClose} className="btn-secondary flex-1 py-2.5 text-sm">

@@ -26,11 +26,18 @@ export const LoginPage: React.FC = () => {
     setError('')
     try {
       await login(data.email, data.password)
-      const returnUrl = sessionStorage.getItem('login_return_url') || '/dashboard'
+      const PUBLIC = ['/', '/login', '/register', '/servicios']
+      let returnUrl = sessionStorage.getItem('login_return_url') || '/dashboard'
       sessionStorage.removeItem('login_return_url')
+      if (PUBLIC.includes(returnUrl) || returnUrl.startsWith('/p/')) returnUrl = '/dashboard'
       navigate(returnUrl)
-    } catch {
-      setError(intl.formatMessage({ id: 'auth.login.error' }))
+    } catch (err) {
+      const status = (err as { response?: { status?: number } })?.response?.status
+      setError(
+        status === 401 ? intl.formatMessage({ id: 'auth.login.error' })
+        : status === 429 ? 'Demasiados intentos. Espera unos minutos.'
+        : 'No pudimos iniciar sesión. Intenta de nuevo en un momento.'
+      )
     }
   }
 

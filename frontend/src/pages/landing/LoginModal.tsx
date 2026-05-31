@@ -26,11 +26,19 @@ export const LoginModal: React.FC<Props> = ({ onClose }) => {
     try {
       await login(email, password)
       onClose()
-      const returnUrl = sessionStorage.getItem('login_return_url') || '/dashboard'
+      // Nunca regresar a una ruta pública tras el login (landing, servicios, etc.)
+      const PUBLIC = ['/', '/login', '/register', '/servicios']
+      let returnUrl = sessionStorage.getItem('login_return_url') || '/dashboard'
       sessionStorage.removeItem('login_return_url')
+      if (PUBLIC.includes(returnUrl) || returnUrl.startsWith('/p/')) returnUrl = '/dashboard'
       navigate(returnUrl)
-    } catch {
-      setError('Credenciales incorrectas. Intenta nuevamente.')
+    } catch (err) {
+      const status = (err as { response?: { status?: number } })?.response?.status
+      setError(
+        status === 401 ? 'Credenciales incorrectas. Intenta nuevamente.'
+        : status === 429 ? 'Demasiados intentos. Espera unos minutos.'
+        : 'No pudimos iniciar sesión. Intenta de nuevo en un momento.'
+      )
     } finally {
       setLoading(false)
     }

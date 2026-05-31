@@ -22,6 +22,7 @@ class WorkerProfileResponse(BaseModel):
     id: UUID
     worker_type: WorkerType
     full_name: str
+    display_name: str = ""
     district: District | None
     trade_category: TradeCategory | None
     years_experience: int
@@ -29,6 +30,7 @@ class WorkerProfileResponse(BaseModel):
     is_available: bool
     profile_completeness: int
     username: str | None = None
+    slug: str | None = None
     bio: str | None = None
     job_title: str | None = None
     education_level: str | None = None

@@ -23,8 +23,11 @@ export const LandingPage: React.FC = () => {
   const filtered = activeFilter === 'Todos' ? JOBS : JOBS.filter(j => j.category === activeFilter)
 
   const handleLoginClick = () => {
-    if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
-      sessionStorage.setItem('login_return_url', window.location.pathname + window.location.search)
+    // Solo guardar retorno para rutas protegidas; nunca rutas públicas como la landing
+    const PUBLIC = ['/', '/login', '/register', '/servicios']
+    const path = window.location.pathname
+    if (!PUBLIC.includes(path) && !path.startsWith('/p/')) {
+      sessionStorage.setItem('login_return_url', path + window.location.search)
     }
     setLoginOpen(true)
   }

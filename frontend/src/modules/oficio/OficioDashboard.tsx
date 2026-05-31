@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom'
 import { Star, Folder, Store, Briefcase, FileText, Plus, ChevronRight, Eye, TrendingUp } from 'lucide-react'
 import { useWorkerContext } from '../../context/WorkerContext'
 import { useMatches } from '../../hooks/useMatches'
+import { usePortfolio } from '../../hooks/usePortfolio'
+import { useApplications } from '../../hooks/useApplications'
 import { JobMatchCard } from '../../matching/JobMatchCard'
 import { LoadingSpinner } from '../../shared/LoadingSpinner'
 
@@ -17,9 +19,21 @@ const CHECKLIST = [
 export const OficioDashboard: React.FC = () => {
   const { worker } = useWorkerContext()
   const { matches, isLoading } = useMatches(4)
-  const name = worker?.display_name?.split(' ')[0] ?? 'aquí'
+  const { entries } = usePortfolio()
+  const { applications } = useApplications()
+  const name = worker?.display_name?.split(' ')[0] || 'aquí'
   const pct  = worker?.profile_completeness ?? 0
-  const done = Math.round((pct / 100) * CHECKLIST.length)
+  const rating = Number(worker?.avg_rating ?? 0)
+  const photos = entries.flatMap((e) => e.photos).filter(Boolean).slice(0, 4)
+  // Progreso real basado en señales de la cuenta
+  const checklistState = [
+    entries.length > 0,            // portfolio
+    worker?.is_available ?? false, // disponibilidad
+    false,                         // marketplace (sin señal aún)
+    pct >= 80,                     // cv / perfil completo
+    false,                         // primer contacto (sin señal aún)
+  ]
+  const done = checklistState.filter(Boolean).length
 
   return (
     <div className="space-y-5">
@@ -45,10 +59,10 @@ export const OficioDashboard: React.FC = () => {
           {/* Stats row */}
           <div className="flex flex-wrap items-center gap-4 md:gap-6">
             {[
-              { icon: Star,       label: 'Rating',        value: worker?.avg_rating ? `${worker.avg_rating.toFixed(1)} ★` : '—',   color: 'var(--gold-light)' },
-              { icon: Folder,     label: 'Trabajos',      value: '—',  color: 'var(--coral)' },
+              { icon: Star,       label: 'Rating',        value: rating > 0 ? `${rating.toFixed(1)} ★` : '—',   color: 'var(--gold-light)' },
+              { icon: Folder,     label: 'Trabajos',      value: `${entries.length}`,  color: 'var(--coral)' },
               { icon: Eye,        label: 'Visibilidad',   value: `${pct}%`, color: 'var(--olive)' },
-              { icon: FileText,   label: 'Postulaciones', value: '0',  color: 'var(--blue)' },
+              { icon: FileText,   label: 'Postulaciones', value: `${applications.length}`,  color: 'var(--blue)' },
             ].map(s => (
               <div key={s.label} className="flex items-center gap-2">
                 <s.icon size={14} style={{ color: s.color }} />
@@ -149,17 +163,23 @@ export const OficioDashboard: React.FC = () => {
                   linku.pe/p/{worker.slug}
                 </p>
               )}
-              {/* 4 mini thumbnail placeholders */}
+              {/* Thumbnails reales del portafolio */}
               <div className="grid grid-cols-4 gap-1.5 mb-4">
-                {[...Array(4)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="aspect-square rounded-[8px] flex items-center justify-center"
-                    style={{ background: i === 0 ? 'var(--terra-100)' : 'rgba(61,40,24,0.06)' }}
-                  >
-                    {i === 0 ? <Plus size={12} style={{ color: 'var(--terra-500)' }} /> : null}
-                  </div>
-                ))}
+                {[...Array(4)].map((_, i) => {
+                  const photo = photos[i]
+                  return (
+                    <Link
+                      key={i}
+                      to="/oficio/portfolio"
+                      className="aspect-square rounded-[8px] overflow-hidden flex items-center justify-center"
+                      style={{ background: photo ? 'transparent' : (i === photos.length ? 'var(--terra-100)' : 'rgba(61,40,24,0.06)') }}
+                    >
+                      {photo
+                        ? <img src={photo} alt="" className="w-full h-full object-cover" />
+                        : i === photos.length ? <Plus size={12} style={{ color: 'var(--terra-500)' }} /> : null}
+                    </Link>
+                  )
+                })}
               </div>
               <Link to="/oficio/portfolio" className="btn-primary w-full text-xs py-2 block text-center">
                 + Agregar trabajo

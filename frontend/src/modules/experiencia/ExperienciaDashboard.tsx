@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { Star, ChevronRight, Search, Bell, Briefcase, TrendingUp, Eye, FileText } from 'lucide-react'
 import { useIntl } from 'react-intl'
 import { useMatches } from '../../hooks/useMatches'
+import { useApplications } from '../../hooks/useApplications'
 import { JobMatchCard } from '../../matching/JobMatchCard'
 import { LoadingSpinner } from '../../shared/LoadingSpinner'
 import { useWorkerContext } from '../../context/WorkerContext'
@@ -9,8 +10,11 @@ import { useWorkerContext } from '../../context/WorkerContext'
 export const ExperienciaDashboard: React.FC = () => {
   const intl = useIntl()
   const { matches, isLoading } = useMatches(10)
+  const { applications } = useApplications()
   const { worker } = useWorkerContext()
   const completeness = worker?.profile_completeness ?? 0
+  const rating = Number(worker?.avg_rating ?? 0)
+  const visible = completeness >= 40
   const name = worker?.display_name?.split(' ')[0] ?? ''
 
   return (
@@ -46,10 +50,10 @@ export const ExperienciaDashboard: React.FC = () => {
           {/* Stats row */}
           <div className="flex flex-wrap items-center gap-4 md:gap-8 mt-5 pt-4" style={{ borderTop: '1px solid rgba(253,246,234,0.10)' }}>
             {[
-              { Icon: Star,        label: 'Rating',         value: worker?.avg_rating ? `${worker.avg_rating.toFixed(1)} ★` : '—',   color: 'var(--gold-light)' },
+              { Icon: Star,        label: 'Rating',         value: rating > 0 ? `${rating.toFixed(1)} ★` : '—',   color: 'var(--gold-light)' },
               { Icon: Eye,         label: 'Completitud',    value: `${completeness}%`, color: 'var(--coral)' },
-              { Icon: TrendingUp,  label: 'Visibilidad',    value: '—',  color: 'var(--olive)' },
-              { Icon: FileText,    label: 'Postulaciones',  value: '0',  color: 'var(--blue)' },
+              { Icon: TrendingUp,  label: 'Visibilidad',    value: visible ? 'Visible' : 'Oculta',  color: 'var(--olive)' },
+              { Icon: FileText,    label: 'Postulaciones',  value: `${applications.length}`,  color: 'var(--blue)' },
             ].map(s => (
               <div key={s.label} className="flex items-center gap-1.5">
                 <s.Icon size={13} style={{ color: s.color }} />
@@ -107,8 +111,8 @@ export const ExperienciaDashboard: React.FC = () => {
             <div className="grid grid-cols-3 gap-2 mb-4">
               {[
                 { label: 'Completitud',    value: `${completeness}%`, color: completeness >= 60 ? 'var(--olive-deep)' : 'var(--terra-500)' },
-                { label: 'Visibilidad',    value: '—',  color: 'var(--ink-muted)' },
-                { label: 'Postulaciones', value: '0',  color: 'var(--ink-strong)' },
+                { label: 'Visibilidad',    value: visible ? 'Sí' : 'No',  color: 'var(--ink-muted)' },
+                { label: 'Postulaciones', value: `${applications.length}`,  color: 'var(--ink-strong)' },
               ].map(s => (
                 <div key={s.label} className="text-center rounded-xl p-2.5" style={{ background: 'var(--bg-soft)', border: '1px solid var(--line)' }}>
                   <p className="text-base font-bold" style={{ color: s.color }}>{s.value}</p>

@@ -133,9 +133,12 @@ const CompletenessCard: React.FC = () => {
 // ─── Sidenav ────────────────────────────────────────────────────────────────
 const SideNav: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const { user, logout } = useAuthContext()
-  const { workerType } = useWorkerContext()
+  const { workerType, worker } = useWorkerContext()
   const navigate = useNavigate()
   const { primary, account } = getNavItems(workerType, user?.role ?? '')
+
+  const displayName =
+    (user?.role === 'worker' && worker?.display_name) || user?.email?.split('@')[0] || 'Usuario'
 
   const handleLogout = async () => {
     await logout()
@@ -182,11 +185,11 @@ const SideNav: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
           className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
           style={{ background: 'linear-gradient(135deg, var(--terra-400), var(--terra-500))' }}
         >
-          {user?.email?.charAt(0).toUpperCase() ?? 'U'}
+          {displayName.charAt(0).toUpperCase()}
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-[12px] font-medium truncate" style={{ color: 'var(--ink-strong)' }}>
-            {user?.email?.split('@')[0]}
+            {displayName}
           </p>
           <p className="text-[10.5px] truncate" style={{ color: 'var(--ink-muted)' }}>
             {user?.role === 'worker' ? workerType?.replace('_', ' ') : user?.role}
@@ -210,7 +213,10 @@ const SideNav: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
 // ─── TopBar ─────────────────────────────────────────────────────────────────
 const TopBar: React.FC<{ onMenuToggle: () => void }> = ({ onMenuToggle }) => {
   const { user } = useAuthContext()
+  const { worker } = useWorkerContext()
   const navigate = useNavigate()
+  const displayName =
+    (user?.role === 'worker' && worker?.display_name) || user?.email?.split('@')[0] || 'Usuario'
 
   return (
     <header
@@ -272,10 +278,10 @@ const TopBar: React.FC<{ onMenuToggle: () => void }> = ({ onMenuToggle }) => {
             className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
             style={{ background: 'linear-gradient(135deg, var(--terra-400), var(--terra-500))' }}
           >
-            {user?.email?.charAt(0).toUpperCase() ?? 'U'}
+            {displayName.charAt(0).toUpperCase()}
           </div>
-          <span className="text-[12.5px] font-medium max-w-[96px] truncate" style={{ color: 'var(--ink-strong)' }}>
-            {user?.email?.split('@')[0]}
+          <span className="text-[12.5px] font-medium max-w-[120px] truncate" style={{ color: 'var(--ink-strong)' }}>
+            {displayName}
           </span>
           <ChevronDown size={12} style={{ color: 'var(--ink-muted)' }} />
         </button>

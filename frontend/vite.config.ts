@@ -6,6 +6,12 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 5173,
+    // Docker en Windows: los eventos inotify del host no cruzan al contenedor,
+    // así que Vite no detecta cambios sin polling. Necesario para HMR.
+    watch: {
+      usePolling: true,
+      interval: 200,
+    },
     proxy: {
       '/api': {
         target: 'http://api:8000',

@@ -21,22 +21,26 @@ const NEXT_STATUS: Record<string, { label: string; value: string; icon: LucideIc
   entrevista: [{ label: 'Contratar',  value: 'contratada',  icon: CheckCircle }, { label: 'Descartar', value: 'descartada', icon: XCircle }],
 }
 
-const MOCK_CANDIDATES = [
-  { id: 'mock-1', job_offer_id: '', worker_id: 'w-1', status: 'enviada',    match_score: 0.87, cover_note: 'Me interesa mucho esta posición, tengo experiencia relevante.', applied_at: new Date(Date.now() - 86400000 * 2).toISOString(), job_title: '', _name: 'Ana Torres' },
-  { id: 'mock-2', job_offer_id: '', worker_id: 'w-2', status: 'en_revision', match_score: 0.72, cover_note: null, applied_at: new Date(Date.now() - 86400000 * 4).toISOString(), job_title: '', _name: 'Carlos Quispe' },
-  { id: 'mock-3', job_offer_id: '', worker_id: 'w-3', status: 'entrevista',  match_score: 0.91, cover_note: 'Disponible para entrevista esta semana.', applied_at: new Date(Date.now() - 86400000 * 6).toISOString(), job_title: '', _name: 'María Huanca' },
-]
-
-interface CandidateRowProps {
-  candidate: typeof MOCK_CANDIDATES[0]
-  onStatus: (id: string, next: string) => void
-  isMock?: boolean
+interface Candidate {
+  id: string
+  worker_id: string
+  status: string
+  match_score: number | null
+  cover_note: string | null
+  applied_at: string
+  worker_name?: string
 }
 
-const CandidateRow: React.FC<CandidateRowProps> = ({ candidate, onStatus, isMock = false }) => {
+interface CandidateRowProps {
+  candidate: Candidate
+  onStatus: (id: string, next: string) => void
+}
+
+const CandidateRow: React.FC<CandidateRowProps> = ({ candidate, onStatus }) => {
   const cfg = STATUS_CFG[candidate.status] ?? { label: candidate.status, color: 'var(--ink-muted)', bg: 'rgba(61,40,24,0.07)' }
   const transitions = NEXT_STATUS[candidate.status] ?? []
-  const initials = (candidate._name ?? candidate.worker_id.slice(0, 2)).slice(0, 2).toUpperCase()
+  const name = candidate.worker_name || `Trabajador ${candidate.worker_id.slice(0, 8)}`
+  const initials = name.slice(0, 2).toUpperCase()
   const pct = candidate.match_score ? Math.round(candidate.match_score * 100) : null
 
   return (
@@ -51,16 +55,11 @@ const CandidateRow: React.FC<CandidateRowProps> = ({ candidate, onStatus, isMock
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <p className="font-semibold text-sm" style={{ color: 'var(--ink-strong)' }}>
-              {candidate._name ?? `Trabajador ${candidate.worker_id.slice(0, 8)}`}
+              {name}
             </p>
             {pct !== null && (
               <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: pct >= 70 ? 'var(--olive-100)' : 'rgba(184,137,58,0.14)', color: pct >= 70 ? 'var(--olive-deep)' : 'var(--gold)' }}>
                 {pct}% compatibilidad
-              </span>
-            )}
-            {isMock && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(61,40,24,0.06)', color: 'var(--ink-muted)' }}>
-                Ejemplo
               </span>
             )}
           </div>
@@ -107,17 +106,9 @@ const CandidateRow: React.FC<CandidateRowProps> = ({ candidate, onStatus, isMock
 
 const JobCandidatesPanel: React.FC<{ jobId: string; jobTitle: string }> = ({ jobId, jobTitle }) => {
   const { applications, isLoading, updateStatus } = useJobApplications(jobId)
-  const [localMock, setLocalMock] = useState(MOCK_CANDIDATES)
-
-  const isMockMode = !isLoading && applications.length === 0
-  const list = isMockMode ? localMock : applications.map(a => ({ ...a, _name: undefined as undefined | string }))
 
   const handleStatus = async (id: string, next: string) => {
-    if (isMockMode) {
-      setLocalMock(prev => prev.map(c => c.id === id ? { ...c, status: next } : c))
-    } else {
-      try { await updateStatus(id, next) } catch { /* show silently */ }
-    }
+    try { await updateStatus(id, next) } catch { /* show silently */ }
   }
 
   return (
@@ -127,16 +118,24 @@ const JobCandidatesPanel: React.FC<{ jobId: string; jobTitle: string }> = ({ job
           Candidatos
         </h2>
         <p className="text-xs mt-0.5" style={{ color: 'var(--ink-muted)' }}>
-          {jobTitle}{isMockMode && ' · Datos de ejemplo'}
+          {jobTitle} · {applications.length} {applications.length === 1 ? 'postulante' : 'postulantes'}
         </p>
       </div>
 
       {isLoading ? (
         <LoadingSpinner />
+      ) : applications.length === 0 ? (
+        <div className="card-warm p-10 text-center space-y-3">
+          <div className="w-14 h-14 mx-auto rounded-2xl flex items-center justify-center" style={{ background: 'rgba(61,40,24,0.05)', border: '1px solid var(--line)' }}>
+            <Users size={24} style={{ color: 'var(--ink-muted)' }} strokeWidth={1.5} />
+          </div>
+          <p className="font-semibold text-sm" style={{ color: 'var(--ink-warm)' }}>Aún no hay candidatos</p>
+          <p className="text-xs" style={{ color: 'var(--ink-muted)' }}>Cuando un trabajador postule a esta oferta, aparecerá aquí.</p>
+        </div>
       ) : (
         <div className="space-y-3">
-          {list.map(c => (
-            <CandidateRow key={c.id} candidate={c as typeof MOCK_CANDIDATES[0]} onStatus={handleStatus} isMock={isMockMode} />
+          {applications.map(c => (
+            <CandidateRow key={c.id} candidate={c as Candidate} onStatus={handleStatus} />
           ))}
         </div>
       )}

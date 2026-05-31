@@ -5,6 +5,7 @@ import { useMatches } from '../../hooks/useMatches'
 import { JobMatchCard } from '../../matching/JobMatchCard'
 import { LoadingSpinner } from '../../shared/LoadingSpinner'
 import { useWorkerContext } from '../../context/WorkerContext'
+import { downloadCV } from '../../lib/downloadCV'
 
 const TIPS = [
   { Icon: Lightbulb, title: '¿Cómo ir a una entrevista?',      desc: 'Viste de forma limpia y ordenada. Llega 10 minutos antes.' },
@@ -108,14 +109,12 @@ export const PrimerEmpleoDashboard: React.FC = () => {
                 {intl.formatMessage({ id: 'primer_empleo.dashboard.continue_wizard' })}
               </Link>
               {worker?.id && (
-                <a
-                  href={`/api/v1/cv/download/${worker.id}`}
-                  target="_blank"
-                  rel="noreferrer"
+                <button
+                  onClick={() => downloadCV(worker.id)}
                   className="btn-secondary block w-full text-center py-2.5 text-xs"
                 >
                   Descargar CV (PDF)
-                </a>
+                </button>
               )}
             </div>
           </div>

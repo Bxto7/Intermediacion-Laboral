@@ -17,14 +17,22 @@ apiClient.interceptors.request.use((config) => {
   return config
 })
 
-// Interceptor: manejar 401 → limpiar sesión
+// Rutas públicas: no deben redirigir al login ante un 401
+// (p. ej. la landing valida un token viejo en segundo plano)
+const PUBLIC_PATHS = ['/', '/login', '/register', '/servicios']
+const isPublicPath = (path: string) =>
+  PUBLIC_PATHS.includes(path) || path.startsWith('/p/')
+
+// Interceptor: manejar 401 → limpiar sesión (y redirigir solo en rutas protegidas)
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('access_token')
       localStorage.removeItem('refresh_token')
-      window.location.href = '/login'
+      if (!isPublicPath(window.location.pathname)) {
+        window.location.href = '/login'
+      }
     }
     return Promise.reject(error)
   },

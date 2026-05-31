@@ -7,11 +7,12 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.security import UserRole, encrypt_field, require_role
+from app.core.security import UserRole, decrypt_field, encrypt_field, require_role
 from app.models.application import Application
 from app.models.audit_log import AuditLog
 from app.models.employer import Employer
 from app.models.job_offer import JobOffer
+from app.models.worker import Worker
 from app.schemas.common import MessageResponse
 from app.schemas.employer import (
     EmployerProfileCreate,
@@ -288,6 +289,18 @@ async def list_job_applications(
     )
     apps = result.scalars().all()
 
+    # Nombres reales de los candidatos (PII descifrada) para que el empleador los vea
+    worker_ids = {str(a.worker_id) for a in apps}
+    names: dict[str, str] = {}
+    if worker_ids:
+        workers_res = await db.execute(select(Worker).where(Worker.id.in_(worker_ids)))
+        for w in workers_res.scalars().all():
+            try:
+                name = decrypt_field(w.full_name) if w.full_name else ""
+            except Exception:
+                name = ""
+            names[str(w.id)] = "" if name == "pendiente" else name
+
     return [
         ApplicationResponse(
             id=str(a.id),
@@ -298,6 +311,7 @@ async def list_job_applications(
             cover_note=a.cover_note,
             applied_at=a.applied_at,
             job_title=offer.title,
+            worker_name=names.get(str(a.worker_id), ""),
         )
         for a in apps
     ]

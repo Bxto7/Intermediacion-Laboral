@@ -338,6 +338,10 @@ lib/
 lib64/
 parts/
 sdist/
+
+# Excepción: frontend/src/lib es código fuente del frontend, NO un lib de Python
+!frontend/src/lib/
+!frontend/src/lib/**
 var/
 wheels/
 share/python-wheels/
