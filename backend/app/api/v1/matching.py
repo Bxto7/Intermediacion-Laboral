@@ -103,7 +103,7 @@ async def match_worker(
         ml_score = 0.5
 
         # Cosine similarity via embedding if available
-        if worker.embedding and offer.embedding:
+        if worker.embedding is not None and offer.embedding is not None:
             try:
                 import numpy as np
                 w_vec = np.array(worker.embedding)

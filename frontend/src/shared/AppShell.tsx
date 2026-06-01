@@ -99,9 +99,11 @@ const SideItem: React.FC<{ item: NavItemDef }> = ({ item }) => {
 // ─── Sidenav completeness card (dark nudge) ──────────────────────────────────
 const CompletenessCard: React.FC = () => {
   const { worker } = useWorkerContext()
+  const { user } = useAuthContext()
   const navigate = useNavigate()
   const pct = worker?.profile_completeness ?? 0
-  if (pct >= 100) return null
+  // Solo para trabajadores con perfil; nunca para empleador/admin
+  if (user?.role !== 'worker' || !worker || pct >= 100) return null
   return (
     <div
       className="mx-2 mb-3 rounded-[14px] p-3.5 cursor-pointer"

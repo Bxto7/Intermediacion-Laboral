@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { CheckCircle, LogOut } from 'lucide-react'
+import { CheckCircle, LogOut, Circle } from 'lucide-react'
 import { useWorkerContext } from '../context/WorkerContext'
 import { useAuthContext } from '../context/AuthContext'
+import { useCompleteness } from '../hooks/useCompleteness'
 import apiClient from '../api/client'
 
 const DISTRICTS = ['Huancayo', 'El Tambo', 'Chilca']
@@ -20,6 +21,7 @@ const inputStyle: React.CSSProperties = {
 export const SettingsPage: React.FC = () => {
   const { worker, refreshWorker } = useWorkerContext()
   const { user, logout } = useAuthContext()
+  const { completeness } = useCompleteness(user?.role === 'worker')
 
   const [fullName, setFullName] = useState(worker?.full_name ?? worker?.display_name ?? '')
   const [district, setDistrict] = useState(worker?.district ?? '')
@@ -168,23 +170,37 @@ export const SettingsPage: React.FC = () => {
         </form>
       )}
 
-      {/* Profile completeness nudge */}
-      {user?.role === 'worker' && worker && worker.profile_completeness < 100 && (
+      {/* Profile completeness nudge — con detalle de lo que falta */}
+      {user?.role === 'worker' && completeness && completeness.percentage < 100 && (
         <div
-          className="rounded-2xl p-4 flex items-center gap-3"
+          className="rounded-2xl p-4"
           style={{ background: 'var(--terra-100)', border: '1px solid rgba(194,86,46,0.2)' }}
         >
-          <div className="flex-1">
-            <p className="text-xs font-semibold" style={{ color: 'var(--terra-700)' }}>
-              Tu perfil está al {worker.profile_completeness}%
-            </p>
-            <p className="text-[11px] mt-0.5" style={{ color: 'var(--terra-500)' }}>
-              Complétalo para aparecer en más búsquedas
-            </p>
+          <div className="flex items-center gap-3">
+            <div className="flex-1">
+              <p className="text-xs font-semibold" style={{ color: 'var(--terra-700)' }}>
+                Tu perfil está al {completeness.percentage}%
+              </p>
+              <p className="text-[11px] mt-0.5" style={{ color: 'var(--terra-500)' }}>
+                {completeness.next_action || 'Complétalo para aparecer en más búsquedas'}
+              </p>
+            </div>
+            <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0" style={{ background: 'var(--terra-500)', color: '#fff' }}>
+              {completeness.percentage}%
+            </div>
           </div>
-          <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm" style={{ background: 'var(--terra-500)', color: '#fff' }}>
-            {worker.profile_completeness}%
-          </div>
+
+          {completeness.missing_fields.length > 0 && (
+            <div className="mt-3 pt-3 space-y-1.5" style={{ borderTop: '1px solid rgba(194,86,46,0.18)' }}>
+              <p className="text-[11px] font-semibold" style={{ color: 'var(--terra-700)' }}>Para llegar al 100% te falta:</p>
+              {completeness.missing_fields.map((item) => (
+                <div key={item} className="flex items-center gap-2">
+                  <Circle size={11} strokeWidth={2.5} style={{ color: 'var(--terra-500)' }} />
+                  <span className="text-[11.5px]" style={{ color: 'var(--terra-700)' }}>{item}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

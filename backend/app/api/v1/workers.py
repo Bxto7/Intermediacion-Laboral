@@ -1,7 +1,7 @@
 # RF: RF026-RF031
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -175,7 +175,38 @@ async def get_completeness(
     db: AsyncSession = Depends(get_db),
 ) -> CompletenessResponse:
     worker = await _get_worker_or_404(payload["sub"], db)
-    percentage, missing, next_action = _calculate_completeness(worker)
+
+    # Señales reales del perfil para un cálculo preciso de completitud
+    from app.models.generated_cv import GeneratedCV
+    from app.models.portfolio import PortfolioEntry
+    from app.models.wizard import WizardProgress
+
+    portfolio_count = await db.scalar(
+        select(func.count())
+        .select_from(PortfolioEntry)
+        .where(PortfolioEntry.worker_id == str(worker.id))
+    )
+    wiz = await db.scalar(
+        select(WizardProgress.current_step).where(WizardProgress.worker_id == str(worker.id))
+    )
+    has_cv = await db.scalar(
+        select(func.count())
+        .select_from(GeneratedCV)
+        .where(GeneratedCV.worker_id == str(worker.id))
+    )
+
+    percentage, missing, next_action = _calculate_completeness(
+        worker,
+        wizard_step=int(wiz or 0),
+        has_cv=bool(has_cv),
+        has_portfolio=bool(portfolio_count),
+    )
+
+    # Sincroniza el valor almacenado (usado por dashboards) con el cálculo real
+    if worker.profile_completeness != percentage:
+        worker.profile_completeness = percentage
+        await db.commit()
+
     return CompletenessResponse(
         percentage=percentage,
         missing_fields=missing,
