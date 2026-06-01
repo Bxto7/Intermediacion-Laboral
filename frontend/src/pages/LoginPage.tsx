@@ -84,7 +84,7 @@ export const LoginPage: React.FC = () => {
             </div>
           </div>
 
-          <p className="relative z-10 text-xs font-mono tracking-widest uppercase" style={{ color: '#8a6648' }}>
+          <p className="relative z-10 text-xs font-mono tracking-widest uppercase" style={{ color: '#785536' }}>
             Huancayo, Perú · 2026
           </p>
         </div>
@@ -96,7 +96,7 @@ export const LoginPage: React.FC = () => {
               <h1 className="text-3xl font-bold" style={{ color: '#3d2818', letterSpacing: '-0.03em' }}>
                 {intl.formatMessage({ id: 'auth.login.title' })}
               </h1>
-              <p style={{ color: '#8a6648' }}>Ingresa a tu cuenta para continuar</p>
+              <p style={{ color: '#785536' }}>Ingresa a tu cuenta para continuar</p>
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
@@ -159,7 +159,7 @@ export const LoginPage: React.FC = () => {
               </button>
             </form>
 
-            <p className="text-center text-sm" style={{ color: '#8a6648' }}>
+            <p className="text-center text-sm" style={{ color: '#785536' }}>
               ¿No tienes cuenta?{' '}
               <Link to="/register" className="font-semibold transition-colors hover:text-opacity-80" style={{ color: '#c2562e' }}>
                 Regístrate gratis

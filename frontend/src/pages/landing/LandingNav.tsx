@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { LinkuLogoIcon } from '../../shared/LinkuLogo'
 
-interface Props { onLoginClick: () => void; scrolled: boolean }
+interface Props { onLoginClick: () => void; onRegisterClick: () => void; scrolled: boolean }
 
-export const LandingNav: React.FC<Props> = ({ onLoginClick, scrolled }) => {
+export const LandingNav: React.FC<Props> = ({ onLoginClick, onRegisterClick, scrolled }) => {
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
@@ -22,7 +22,7 @@ export const LandingNav: React.FC<Props> = ({ onLoginClick, scrolled }) => {
           <LinkuLogoIcon size={36} variant="default" />
           <div className="leading-tight">
             <p className="text-sm font-bold" style={{ color: '#3d2818', letterSpacing: '-0.02em' }}>Linku</p>
-            <p className="text-[10px] font-mono uppercase tracking-wider" style={{ color: '#8a6648' }}>DRTPE-Junín · Empleo formal</p>
+            <p className="text-[10px] font-mono uppercase tracking-wider" style={{ color: '#785536' }}>DRTPE-Junín · Empleo formal</p>
           </div>
         </div>
 
@@ -52,9 +52,9 @@ export const LandingNav: React.FC<Props> = ({ onLoginClick, scrolled }) => {
           <button onClick={onLoginClick} className="btn-secondary text-sm px-4 py-2 hidden sm:inline-flex">
             Iniciar sesión
           </button>
-          <Link to="/register" className="btn-primary text-sm px-4 py-2">
+          <button onClick={onRegisterClick} className="btn-primary text-sm px-4 py-2">
             Registrarse gratis
-          </Link>
+          </button>
           <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden p-2 rounded-xl" style={{ color: '#6b4a35' }}>
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d={menuOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'} />

@@ -91,7 +91,7 @@ export const RegisterPage: React.FC = () => {
               <h1 className="text-3xl font-bold" style={{ color: '#3d2818', letterSpacing: '-0.03em' }}>
                 {intl.formatMessage({ id: 'auth.register.title' })}
               </h1>
-              <p style={{ color: '#8a6648' }}>Crea tu cuenta gratis en minutos</p>
+              <p style={{ color: '#785536' }}>Crea tu cuenta gratis en minutos</p>
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
@@ -161,7 +161,7 @@ export const RegisterPage: React.FC = () => {
               </button>
             </form>
 
-            <p className="text-center text-sm" style={{ color: '#8a6648' }}>
+            <p className="text-center text-sm" style={{ color: '#785536' }}>
               ¿Ya tienes cuenta?{' '}
               <Link to="/login" className="font-semibold transition-colors hover:text-opacity-80" style={{ color: '#c2562e' }}>
                 Iniciar sesión

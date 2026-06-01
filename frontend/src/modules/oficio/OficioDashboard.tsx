@@ -46,7 +46,7 @@ export const OficioDashboard: React.FC = () => {
         <div className="absolute bottom-0 left-1/3 w-48 h-48 rounded-full blur-3xl opacity-15 pointer-events-none" style={{ background: 'var(--olive)' }} />
 
         <div className="relative z-10">
-          <p className="kicker mb-2" style={{ color: 'rgba(253,246,234,0.45)' }}>
+          <p className="kicker mb-2" style={{ color: 'rgba(253,246,234,0.7)' }}>
             {worker?.trade_category ?? 'Trabajador de oficio'}
           </p>
           <h1 className="text-2xl md:text-3xl font-bold leading-tight mb-5" style={{ letterSpacing: '-0.03em', color: 'var(--on-dark)' }}>
@@ -67,7 +67,7 @@ export const OficioDashboard: React.FC = () => {
               <div key={s.label} className="flex items-center gap-2">
                 <s.icon size={14} style={{ color: s.color }} />
                 <span className="text-sm font-semibold" style={{ color: 'var(--on-dark)' }}>{s.value}</span>
-                <span className="text-xs" style={{ color: 'rgba(253,246,234,0.45)' }}>{s.label}</span>
+                <span className="text-xs" style={{ color: 'rgba(253,246,234,0.7)' }}>{s.label}</span>
               </div>
             ))}
           </div>

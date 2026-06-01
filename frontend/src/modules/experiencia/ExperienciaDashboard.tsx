@@ -34,7 +34,7 @@ export const ExperienciaDashboard: React.FC = () => {
               {worker?.display_name?.[0]?.toUpperCase() ?? 'U'}
             </div>
             <div>
-              <p className="kicker mb-1" style={{ color: 'rgba(253,246,234,0.45)' }}>Profesional con experiencia</p>
+              <p className="kicker mb-1" style={{ color: 'rgba(253,246,234,0.7)' }}>Profesional con experiencia</p>
               <h1 className="text-xl md:text-2xl font-bold leading-tight" style={{ letterSpacing: '-0.03em', color: 'var(--on-dark)' }}>
                 {name ? `Hola ${name}, ` : ''}
                 <span className="serif-it" style={{ color: 'var(--coral)' }}>
@@ -42,7 +42,7 @@ export const ExperienciaDashboard: React.FC = () => {
                 </span>
               </h1>
               {worker?.district && (
-                <p className="text-xs mt-1" style={{ color: 'rgba(253,246,234,0.45)' }}>{worker.district}</p>
+                <p className="text-xs mt-1" style={{ color: 'rgba(253,246,234,0.7)' }}>{worker.district}</p>
               )}
             </div>
           </div>
@@ -58,7 +58,7 @@ export const ExperienciaDashboard: React.FC = () => {
               <div key={s.label} className="flex items-center gap-1.5">
                 <s.Icon size={13} style={{ color: s.color }} />
                 <span className="text-sm font-semibold" style={{ color: 'var(--on-dark)' }}>{s.value}</span>
-                <span className="text-xs" style={{ color: 'rgba(253,246,234,0.45)' }}>{s.label}</span>
+                <span className="text-xs" style={{ color: 'rgba(253,246,234,0.7)' }}>{s.label}</span>
               </div>
             ))}
           </div>

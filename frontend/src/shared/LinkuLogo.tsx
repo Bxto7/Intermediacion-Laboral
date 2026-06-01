@@ -104,7 +104,7 @@ export const LinkuLogoFull: React.FC<FullProps> = ({
     ? '#ffffff'
     : 'var(--ink-strong)'
   const subtitleColor = variant === 'white' || variant === 'mono-terra'
-    ? 'rgba(255,255,255,0.50)'
+    ? 'rgba(255,255,255,0.66)'
     : 'var(--ink-muted)'
 
   return (

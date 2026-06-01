@@ -26,7 +26,7 @@ class GlobeBoundary extends Component<{ children: ReactNode }, { failed: boolean
   render() {
     if (this.state.failed) return (
       <div style={{ height: 340, display: 'grid', placeItems: 'center', background: 'linear-gradient(160deg, #1a1208 0%, #2d1f14 100%)', borderRadius: 16 }}>
-        <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>Vista 3D no disponible en este entorno</p>
+        <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 13 }}>Vista 3D no disponible en este entorno</p>
       </div>
     )
     return this.props.children

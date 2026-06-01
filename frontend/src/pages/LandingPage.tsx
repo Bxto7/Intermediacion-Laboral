@@ -1,12 +1,62 @@
 import { useState, useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
 import { LoginModal } from './landing/LoginModal'
+import { RegisterModal } from './landing/RegisterModal'
 import { LandingNav } from './landing/LandingNav'
 import { JOBS, CATEGORIES, TESTIMONIALS } from './landing/data'
 import { LinkuLogoFull } from '../shared/LinkuLogo'
+import { Reveal } from '../shared/Reveal'
+
+// Empresas mostradas en "Empresas que confían en Linku".
+// Para usar un logo real: coloca el archivo en frontend/public/logos/ con el
+// nombre indicado en `logo`. Si el archivo no existe, se muestra la inicial.
+interface Company { name: string; initials: string; color: string; logo?: string }
+const COMPANIES: Company[] = [
+  { name: 'Cementos Andinos',  initials: 'CA', color: '#c2562e', logo: '/logos/cementos-andinos.svg' },
+  { name: 'Doe Run',           initials: 'DR', color: '#2d5a82', logo: '/logos/doe-run.svg' },
+  { name: 'Hidrandina',        initials: 'HD', color: '#b8893a', logo: '/logos/hidrandina.svg' },
+  { name: 'Volcan Mining',     initials: 'VM', color: '#4d6a8a', logo: '/logos/volcan.svg' },
+  { name: 'Agroindustria',     initials: 'AJ', color: '#7a8c5c', logo: '/logos/agroindustria.svg' },
+  { name: 'Caja Huancayo',     initials: 'CH', color: '#b8893a', logo: '/logos/caja-huancayo.svg' },
+  { name: 'Constructora Wari', initials: 'CW', color: '#7a8c5c', logo: '/logos/constructora-wari.svg' },
+  { name: 'Peruarbo',          initials: 'PA', color: '#c2562e', logo: '/logos/peruarbo.svg' },
+  { name: 'Electro Centro',    initials: 'EC', color: '#2d5a82', logo: '/logos/electro-centro.svg' },
+  { name: 'SEDAM Huancayo',    initials: 'SH', color: '#4d6a8a', logo: '/logos/sedam-huancayo.svg' },
+  { name: 'Coop. Tocache',     initials: 'CT', color: '#7a8c5c', logo: '/logos/coop-tocache.svg' },
+  { name: 'SEDAPAL Junín',     initials: 'SJ', color: '#b8893a', logo: '/logos/sedapal.svg' },
+]
+
+// Muestra el logo en imagen; si el archivo no existe, cae a la inicial.
+const CompanyLogo: React.FC<{ c: Company }> = ({ c }) => {
+  const [imgError, setImgError] = useState(false)
+  return (
+    <div className="card-warm py-4 px-3 flex flex-col items-center justify-center gap-2 text-center hover:shadow-warm hover:-translate-y-0.5 transition-all" style={{ minHeight: 80 }}>
+      {c.logo && !imgError ? (
+        <img
+          src={c.logo}
+          alt={c.name}
+          onError={() => setImgError(true)}
+          className="h-9 max-w-[85%] object-contain"
+          loading="lazy"
+        />
+      ) : (
+        <div
+          className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+          style={{ background: `linear-gradient(135deg, ${c.color}cc, ${c.color})` }}>
+          {c.initials}
+        </div>
+      )}
+      <span style={{ fontFamily: 'Instrument Serif, Georgia, serif', fontSize: '11px', color: '#6b4a35', fontWeight: 400, lineHeight: 1.3 }}>
+        {c.name}
+      </span>
+    </div>
+  )
+}
 
 export const LandingPage: React.FC = () => {
   const [loginOpen, setLoginOpen] = useState(false)
+  const [registerOpen, setRegisterOpen] = useState(false)
+  const openRegister = () => { setLoginOpen(false); setRegisterOpen(true) }
+  const openLogin = () => { setRegisterOpen(false); setLoginOpen(true) }
   const [scrolled, setScrolled] = useState(false)
   const [activeFilter, setActiveFilter] = useState('Todos')
   const [bookmarks, setBookmarks] = useState<Set<number>>(new Set())
@@ -62,7 +112,7 @@ export const LandingPage: React.FC = () => {
                   <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="#2d5a82"><path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
                 )}
               </div>
-              <p className="text-xs" style={{ color: '#8a6648' }}>{job.location}</p>
+              <p className="text-xs" style={{ color: '#785536' }}>{job.location}</p>
             </div>
           </div>
           <button onClick={() => toggleBookmark(job.id)} className="p-1.5 rounded-xl transition-colors" style={{ color: saved ? '#c2562e' : '#bba99c' }}>
@@ -82,8 +132,9 @@ export const LandingPage: React.FC = () => {
 
   return (
     <div className="grain min-h-screen" style={{ background: 'var(--grad-mesh)' }}>
-      <LandingNav onLoginClick={handleLoginClick} scrolled={scrolled} />
-      {loginOpen && <LoginModal onClose={() => setLoginOpen(false)} />}
+      <LandingNav onLoginClick={handleLoginClick} onRegisterClick={openRegister} scrolled={scrolled} />
+      {loginOpen && <LoginModal onClose={() => setLoginOpen(false)} onSwitchToRegister={openRegister} />}
+      {registerOpen && <RegisterModal onClose={() => setRegisterOpen(false)} onSwitchToLogin={openLogin} />}
 
       {/* ═══ HERO ═══ */}
       <section className="pt-32 pb-20 px-5 max-w-6xl mx-auto">
@@ -107,7 +158,7 @@ export const LandingPage: React.FC = () => {
             </p>
 
             <div className="flex flex-wrap gap-3">
-              <Link to="/register" className="btn-primary text-base px-7 py-3.5">Encontrar empleo</Link>
+              <button onClick={openRegister} className="btn-primary text-base px-7 py-3.5">Encontrar empleo</button>
               <button onClick={() => setLoginOpen(true)} className="btn-secondary text-base px-7 py-3.5">Soy empresa</button>
             </div>
           </div>
@@ -126,7 +177,7 @@ export const LandingPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="font-semibold text-sm" style={{ color: '#3d2818' }}>{f.title}</p>
-                  <p className="text-xs mt-0.5 leading-relaxed" style={{ color: '#8a6648' }}>{f.desc}</p>
+                  <p className="text-xs mt-0.5 leading-relaxed" style={{ color: '#785536' }}>{f.desc}</p>
                 </div>
               </div>
             ))}
@@ -135,7 +186,7 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* ═══ STATS ═══ */}
-      <section style={{ background: 'rgba(61,40,24,0.04)', borderTop: '1px solid rgba(61,40,24,0.08)', borderBottom: '1px solid rgba(61,40,24,0.08)' }}>
+      <section style={{ background: 'linear-gradient(135deg, #f8e7dd 0%, #f3dccf 100%)', borderTop: '1px solid rgba(194,86,46,0.16)', borderBottom: '1px solid rgba(194,86,46,0.16)' }}>
         <div className="max-w-6xl mx-auto px-5 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
           {[
             { value: '2,400+', unit: 'trabajadores', color: '#c2562e' },
@@ -145,7 +196,7 @@ export const LandingPage: React.FC = () => {
           ].map(s => (
             <div key={s.unit} className="text-center space-y-1">
               <p className="stat-number" style={{ color: s.color }}>{s.value}</p>
-              <p className="font-mono text-xs uppercase tracking-widest" style={{ color: '#8a6648' }}>{s.unit}</p>
+              <p className="font-mono text-xs uppercase tracking-widest" style={{ color: '#785536' }}>{s.unit}</p>
             </div>
           ))}
         </div>
@@ -159,7 +210,7 @@ export const LandingPage: React.FC = () => {
             { ph: 'Dónde (Huancayo…)', icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg> },
           ].map(f => (
             <div key={f.ph} className="flex-1 flex items-center gap-2 px-4 py-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.7)' }}>
-              <span style={{ color: '#8a6648' }}>{f.icon}</span>
+              <span style={{ color: '#785536' }}>{f.icon}</span>
               <input className="flex-1 bg-transparent text-sm outline-none" placeholder={f.ph} style={{ color: '#3d2818' }} />
             </div>
           ))}
@@ -180,13 +231,13 @@ export const LandingPage: React.FC = () => {
             <p className="kicker" style={{ color: '#c2562e' }}>Empleos disponibles</p>
             <h2 className="text-3xl font-bold mt-1" style={{ color: '#3d2818', letterSpacing: '-0.03em' }}>Encuentra tu próxima oportunidad</h2>
           </div>
-          <p className="text-sm" style={{ color: '#8a6648' }}>{filtered.length} resultados</p>
+          <p className="text-sm" style={{ color: '#785536' }}>{filtered.length} resultados</p>
         </div>
 
         <div className="flex flex-wrap gap-2">
           {CATEGORIES.map(c => (
             <button key={c} onClick={() => setActiveFilter(c)}
-              className="px-4 py-1.5 rounded-full text-sm font-medium transition-all"
+              className="px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-150 hover:-translate-y-0.5 active:scale-95"
               style={activeFilter === c
                 ? { background: '#c2562e', color: 'white', border: '1.5px solid #c2562e' }
                 : { background: 'rgba(255,255,255,0.55)', color: '#6b4a35', border: '1.5px solid rgba(61,40,24,0.12)' }}>
@@ -196,11 +247,15 @@ export const LandingPage: React.FC = () => {
         </div>
 
         <div className="grid md:grid-cols-2 gap-4">
-          {filtered.map(job => <JobCard key={job.id} job={job} />)}
+          {filtered.map((job, i) => (
+            <Reveal key={job.id} delay={Math.min(i * 0.05, 0.25)}>
+              <JobCard job={job} />
+            </Reveal>
+          ))}
         </div>
 
         <div className="text-center pt-4">
-          <Link to="/register" className="btn-secondary px-8 py-3">Ver todos los empleos →</Link>
+          <button onClick={openRegister} className="btn-secondary px-8 py-3">Ver todos los empleos →</button>
         </div>
       </section>
 
@@ -221,17 +276,19 @@ export const LandingPage: React.FC = () => {
               { n: '01', color: '#c2562e', bg: 'rgba(194,86,46,0.15)', title: 'Crea tu perfil', desc: 'Regístrate y responde 2 preguntas. El sistema detecta tu tipo de perfil y personaliza tu experiencia.' },
               { n: '02', color: '#2d5a82', bg: 'rgba(45,90,130,0.15)', title: 'Genera tu CV con IA', desc: 'Nuestro asistente extrae tus habilidades y genera un CV profesional listo para descargar.' },
               { n: '03', color: '#b8893a', bg: 'rgba(184,137,58,0.15)', title: 'Conecta con empleadores', desc: 'El motor de ML cruza tu perfil con ofertas reales y te muestra las más compatibles.' },
-            ].map(s => (
-              <div key={s.n} className="rounded-2xl p-6 space-y-4" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            ].map((s, i) => (
+              <Reveal key={s.n} delay={i * 0.08}>
+              <div className="rounded-2xl p-6 space-y-4 h-full" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
                 <div className="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg"
                   style={{ background: s.bg, color: s.color, border: `1px solid ${s.color}30` }}>
                   {s.n}
                 </div>
                 <div>
                   <h3 className="font-bold text-white text-lg">{s.title}</h3>
-                  <p className="text-sm mt-2 leading-relaxed" style={{ color: 'rgba(255,255,255,0.55)' }}>{s.desc}</p>
+                  <p className="text-sm mt-2 leading-relaxed" style={{ color: 'rgba(255,255,255,0.74)' }}>{s.desc}</p>
                 </div>
               </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -240,37 +297,11 @@ export const LandingPage: React.FC = () => {
       {/* ═══ LOGOS EMPRESAS ═══ */}
       <section className="py-16 px-5 border-b" style={{ borderColor: 'rgba(61,40,24,0.08)' }} id="empleadores">
         <div className="max-w-6xl mx-auto space-y-8">
-          <p className="text-center font-mono text-xs uppercase tracking-widest" style={{ color: '#8a6648' }}>
+          <p className="text-center font-mono text-xs uppercase tracking-widest" style={{ color: '#785536' }}>
             Empresas que confían en Linku · DRTPE-Junín
           </p>
           <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
-            {[
-              { name: 'Cementos Andinos', initials: 'CA', color: '#c2562e' },
-              { name: 'Doe Run',          initials: 'DR', color: '#2d5a82' },
-              { name: 'Hidrandina',       initials: 'HD', color: '#b8893a' },
-              { name: 'Volcan Mining',    initials: 'VM', color: '#4d6a8a' },
-              { name: 'Agroindustria',    initials: 'AJ', color: '#7a8c5c' },
-              { name: 'Caja Huancayo',    initials: 'CH', color: '#b8893a' },
-              { name: 'Constructora Wari',initials: 'CW', color: '#7a8c5c' },
-              { name: 'Peruarbo',         initials: 'PA', color: '#c2562e' },
-              { name: 'Electro Centro',   initials: 'EC', color: '#2d5a82' },
-              { name: 'SEDAM Huancayo',   initials: 'SH', color: '#4d6a8a' },
-              { name: 'Coop. Tocache',    initials: 'CT', color: '#7a8c5c' },
-              { name: 'SEDAPAL Junín',    initials: 'SJ', color: '#b8893a' },
-            ].map(c => (
-              <div key={c.name}
-                className="card-warm py-4 px-3 flex flex-col items-center justify-center gap-2 text-center hover:shadow-warm transition-all"
-                style={{ minHeight: 80 }}>
-                <div
-                  className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-                  style={{ background: `linear-gradient(135deg, ${c.color}cc, ${c.color})` }}>
-                  {c.initials}
-                </div>
-                <span style={{ fontFamily: 'Instrument Serif, Georgia, serif', fontSize: '11px', color: '#6b4a35', fontWeight: 400, lineHeight: 1.3 }}>
-                  {c.name}
-                </span>
-              </div>
-            ))}
+            {COMPANIES.map(c => <CompanyLogo key={c.name} c={c} />)}
           </div>
         </div>
       </section>
@@ -285,8 +316,9 @@ export const LandingPage: React.FC = () => {
           </h2>
         </div>
         <div className="grid md:grid-cols-3 gap-5">
-          {TESTIMONIALS.map(t => (
-            <div key={t.name} className="card-warm p-6 space-y-5" style={{ borderTop: `3px solid ${t.color}` }}>
+          {TESTIMONIALS.map((t, i) => (
+            <Reveal key={t.name} delay={i * 0.08} className="h-full">
+            <div className="card-warm p-6 space-y-5 h-full" style={{ borderTop: `3px solid ${t.color}` }}>
               <p className="text-4xl font-serif leading-none" style={{ color: t.color, opacity: 0.4 }}>"</p>
               <p className="text-sm leading-relaxed" style={{ color: '#5a3d2b' }}>{t.quote}</p>
               <div className="flex items-center gap-3 pt-2">
@@ -296,10 +328,11 @@ export const LandingPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="font-semibold text-sm" style={{ color: '#3d2818' }}>{t.name}</p>
-                  <p className="text-xs" style={{ color: '#8a6648' }}>{t.role}</p>
+                  <p className="text-xs" style={{ color: '#785536' }}>{t.role}</p>
                 </div>
               </div>
             </div>
+            </Reveal>
           ))}
         </div>
       </section>
@@ -315,14 +348,14 @@ export const LandingPage: React.FC = () => {
               Es gratis.
             </span>
           </h2>
-          <p className="text-lg" style={{ color: 'rgba(255,255,255,0.55)' }}>
+          <p className="text-lg" style={{ color: 'rgba(255,255,255,0.74)' }}>
             Crea tu cuenta y accede a la bolsa de empleo formal de Junín en menos de 3 minutos.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link to="/register" className="btn-primary text-base px-8 py-4">Crear cuenta gratis</Link>
+            <button onClick={openRegister} className="btn-primary text-base px-8 py-4">Crear cuenta gratis</button>
             <button onClick={() => setLoginOpen(true)}
-              className="text-base px-8 py-4 rounded-xl font-semibold transition-all"
-              style={{ background: 'rgba(255,255,255,0.12)', color: 'white', border: '1.5px solid rgba(255,255,255,0.35)' }}
+              className="text-base px-8 py-4 rounded-xl font-semibold transition-all duration-150 active:scale-[0.97]"
+              style={{ background: 'rgba(255,255,255,0.12)', color: 'white', border: '1.5px solid rgba(255,255,255,0.45)' }}
               onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.20)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.55)' }}
               onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.35)' }}>
               Ya tengo cuenta
@@ -336,7 +369,7 @@ export const LandingPage: React.FC = () => {
         <div className="max-w-6xl mx-auto px-5 py-14 grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="col-span-2 md:col-span-1 space-y-3">
             <LinkuLogoFull size={30} variant="white" />
-            <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.35)' }}>
+            <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.62)' }}>
               Bolsa de empleo formal respaldada por la Dirección Regional de Trabajo de Junín.
             </p>
           </div>
@@ -346,13 +379,13 @@ export const LandingPage: React.FC = () => {
             { title: 'Institucional', links: ['Acerca de', 'DRTPE-Junín', 'Privacidad', 'Términos'] },
           ].map(col => (
             <div key={col.title} className="space-y-3">
-              <p className="font-mono text-xs uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.40)' }}>{col.title}</p>
+              <p className="font-mono text-xs uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.62)' }}>{col.title}</p>
               <ul className="space-y-2">
                 {col.links.map(l => (
                   <li key={l}>
-                    <a href="#" className="text-sm transition-colors" style={{ color: 'rgba(255,255,255,0.45)' }}
-                      onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.85)')}
-                      onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.45)')}>
+                    <a href="#" className="text-sm transition-colors" style={{ color: 'rgba(255,255,255,0.66)' }}
+                      onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.95)')}
+                      onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.66)')}>
                       {l}
                     </a>
                   </li>
@@ -362,8 +395,8 @@ export const LandingPage: React.FC = () => {
           ))}
         </div>
         <div className="border-t px-5 py-5 flex flex-col md:flex-row items-center justify-between gap-2 max-w-6xl mx-auto" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>© 2026 Linku · DRTPE-Junín. Todos los derechos reservados.</p>
-          <p className="text-xs font-mono" style={{ color: 'rgba(255,255,255,0.20)' }}>Huancayo, Perú · Investigación aplicada</p>
+          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.55)' }}>© 2026 Linku · DRTPE-Junín. Todos los derechos reservados.</p>
+          <p className="text-xs font-mono" style={{ color: 'rgba(255,255,255,0.48)' }}>Huancayo, Perú · Investigación aplicada</p>
         </div>
       </footer>
     </div>

@@ -20,7 +20,7 @@
   --ink-strong:  #3d2818;
   --ink:         #5a3d2b;
   --ink-warm:    #6b4a35;
-  --ink-muted:   #8a6648;
+  --ink-muted:   #785536;   /* oscurecido para pasar WCAG AA sobre fondos cálidos (antes #8a6648 = 3.9:1) */
 
   /* ZONAS OSCURAS */
   --dark:        #4a3120;

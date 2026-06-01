@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { useAuthContext } from '../../context/AuthContext'
 import { LinkuLogoFull } from '../../shared/LinkuLogo'
 
-interface Props { onClose: () => void }
+interface Props { onClose: () => void; onSwitchToRegister: () => void }
 
-export const LoginModal: React.FC<Props> = ({ onClose }) => {
+export const LoginModal: React.FC<Props> = ({ onClose, onSwitchToRegister }) => {
   const { login } = useAuthContext()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
@@ -89,19 +89,19 @@ export const LoginModal: React.FC<Props> = ({ onClose }) => {
             </div>
           </div>
 
-          <p className="relative z-10 text-xs" style={{ color: '#8a6648' }}>Huancayo, Perú · 2026</p>
+          <p className="relative z-10 text-xs" style={{ color: '#785536' }}>Huancayo, Perú · 2026</p>
         </div>
 
         {/* ── Panel derecho — formulario ── */}
         <div className="flex-1 p-8 flex flex-col justify-center" style={{ background: 'var(--bg-base)' }}>
-          <button onClick={onClose} className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center hover:bg-warm-200 transition-colors" style={{ color: '#8a6648' }}>
+          <button onClick={onClose} className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center hover:bg-warm-200 transition-colors" style={{ color: '#785536' }}>
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
 
           <div className="max-w-sm mx-auto w-full space-y-7">
             <div>
               <h3 className="text-2xl font-bold" style={{ color: '#3d2818', letterSpacing: '-0.03em' }}>Iniciar sesión</h3>
-              <p className="text-sm mt-1" style={{ color: '#8a6648' }}>Ingresa tus credenciales para continuar</p>
+              <p className="text-sm mt-1" style={{ color: '#785536' }}>Ingresa tus credenciales para continuar</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -142,7 +142,7 @@ export const LoginModal: React.FC<Props> = ({ onClose }) => {
 
             <div className="flex items-center gap-3">
               <div className="flex-1 h-px" style={{ background: 'var(--bg-warm)' }} />
-              <span className="text-xs" style={{ color: '#8a6648' }}>o continúa con</span>
+              <span className="text-xs" style={{ color: '#785536' }}>o continúa con</span>
               <div className="flex-1 h-px" style={{ background: 'var(--bg-warm)' }} />
             </div>
 
@@ -157,9 +157,9 @@ export const LoginModal: React.FC<Props> = ({ onClose }) => {
               ))}
             </div>
 
-            <p className="text-center text-sm" style={{ color: '#8a6648' }}>
+            <p className="text-center text-sm" style={{ color: '#785536' }}>
               ¿No tienes cuenta?{' '}
-              <a href="/register" className="font-semibold" style={{ color: '#c2562e' }}>Regístrate gratis</a>
+              <button type="button" onClick={onSwitchToRegister} className="font-semibold" style={{ color: '#c2562e' }}>Regístrate gratis</button>
             </p>
           </div>
         </div>
