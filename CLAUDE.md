@@ -1,6 +1,6 @@
 # CLAUDE.md — Linku · Sistema de Intermediación Laboral ML/NLP
 # DRTPE-Junín | Huancayo, Perú | 2026
-# Última actualización: 2026-05-31 — Sprint 5
+# Última actualización: 2026-06-03 — Sprint 5 (rediseño UI "Andino")
 
 ---
 
@@ -14,7 +14,7 @@ Este documento describe el **estado REAL del código** (verificado contra el rep
 
 ## 🏗️ VISIÓN DEL PRODUCTO
 
-**Marca comercial:** **Linku** (componente `LinkuLogo` en frontend).
+**Marca comercial:** **Linku** (componente `LinkuLogo` en frontend — desde 2026-06-03 renderiza la **imagen real** del logo en `public/institucional/linku.png` y `linku-blanco.png`, ya no un SVG dibujado).
 **Título oficial:** "Sistema de Intermediación Laboral DRTPE-Junín" (título de la app FastAPI).
 **Título académico:** IMPLEMENTACIÓN DE UN SISTEMA DE INTERMEDIACIÓN LABORAL MEDIANTE MACHINE LEARNING Y NLP PARA LA REDUCCIÓN DE BRECHAS DE ACCESO AL EMPLEO — DRTPE Junín.
 
@@ -127,7 +127,9 @@ App-Intermediacion-Laboral/
 │   │   ├── admin/                  # AdminDashboard, KPIGlobe.tsx (Three.js), WorkersAdmin…
 │   │   ├── matching/MatchesPage.tsx
 │   │   ├── store/wizardStore.ts    # Zustand (persist localStorage)
-│   │   ├── shared/                 # AppShell, NavBar, LinkuLogo, NotificationBell…
+│   │   ├── shared/                 # AppShell, NavBar, LinkuLogo (imagen real), NotificationBell…
+│   ├── public/institucional/       # logos oficiales: linku(.png/-blanco), drtpe.png, gobierno-regional-junin.png
+│   ├── public/logos/               # logos de empresas (PNG): volcan, doe-run, hidrandina, caja-huancayo…
 │   │   └── i18n/es-PE.json         # único idioma
 │   ├── package.json
 │   └── vite.config.ts              # dev port 5173, proxy /api → http://api:8000
@@ -158,6 +160,7 @@ App-Intermediacion-Laboral/
 - **Vite 6.0** · **React 18.3** · **TypeScript 5.7** · **puerto dev 5173**
 - **react-router-dom 7** · **Zustand 5** (persist localStorage) · **Axios 1.7** (interceptores)
 - **Tailwind 3.4** + **shadcn/ui** + Radix + **lucide-react** · **Framer Motion**
+- **Identidad visual (desde 2026-06-03): paleta "Andino"** — los design tokens de `src/index.css` (`:root`, `@layer`) se remapearon a: **arcilla `#b8442a`** (acento cálido / primario), **teal `#0f6e6e`** (autoridad / secundario), **oro maíz `#e0a32e`** (sello), **hueso `#f4ece0`** (fondo), **tinta `#2a1d14`** (texto/oscuros), oliva `#7a8c5c`. Aplica a TODA la app. Tipografía display: **Fraunces** (serif) en la landing; Geist (UI) + Geist Mono (etiquetas). La landing tiene además tokens scopeados `.linku-landing` (`--i-*`).
 - **react-hook-form + Zod** (formularios) · **react-intl** (i18n, solo `es-PE`)
 - **Three.js + @react-three/fiber** (componente `KPIGlobe` en admin) · **Recharts** · react-dropzone
 
@@ -243,7 +246,8 @@ GET  /api/v1/auth/me
 - Tiene estado `isSubmitting` (spinner) y `error`.
 - Guarda `access_token` y `refresh_token` en **localStorage**.
 - **Redirección post-login:** `sessionStorage.login_return_url` si existe, si no → **`/dashboard`** (NO `/dashboard/trabajador`). El reparto por tipo de trabajador se hace en **`/onboarding`** y los guards.
-- Interceptor Axios: en **401** limpia tokens y redirige a `/login`. **OJO: no hay refresh automático** del access token; al expirar, el siguiente 401 desloguea. (Mejora pendiente.)
+- Interceptor Axios: en **401** limpia tokens; redirige a `/login` **solo en rutas protegidas y si no se está cerrando sesión** (bandera `beginLogout()` en `api/client.ts`). **OJO: no hay refresh automático** del access token; al expirar, el siguiente 401 desloguea. (Mejora pendiente.)
+- **Logout → landing:** `AuthGuard` redirige los no-autenticados a **`/`** (antes `/login`), y `logout()` activa `beginLogout()` para que el interceptor no fuerce `/login`. Resultado: cerrar sesión lleva a la landing; una sesión expirada (401 en background) sigue yendo a `/login`.
 
 ### Mapa de redirección real
 ```
@@ -254,6 +258,10 @@ Login OK → /dashboard
         experiencia   → /dashboard
   ↳ Employer → /employer/dashboard
   ↳ Admin    → /admin
+
+Logout (cualquier rol)     → /         (landing)
+Ruta protegida sin sesión  → /         (AuthGuard)
+Sesión expirada (401 bg)   → /login    (interceptor Axios)
 ```
 
 ---
