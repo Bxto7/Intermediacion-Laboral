@@ -8,7 +8,7 @@ import { parseApiError } from '../../../lib/parseApiError'
 interface Props { onClose: () => void }
 
 const fieldStyle = {
-  border: '1px solid rgba(61,40,24,0.14)',
+  border: '1px solid rgba(42,29,20,0.14)',
   background: 'var(--bg-soft)',
   color: 'var(--ink-strong)',
   borderRadius: '12px',
@@ -57,10 +57,10 @@ export const AddEntryModal: React.FC<Props> = ({ onClose }) => {
 
   const focusStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     e.currentTarget.style.borderColor = 'var(--terra-500)'
-    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(194,86,46,0.12)'
+    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,68,42,0.12)'
   }
   const blurStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    e.currentTarget.style.borderColor = 'rgba(61,40,24,0.14)'
+    e.currentTarget.style.borderColor = 'rgba(42,29,20,0.14)'
     e.currentTarget.style.boxShadow = 'none'
   }
 
@@ -80,7 +80,7 @@ export const AddEntryModal: React.FC<Props> = ({ onClose }) => {
             aria-label="Cerrar modal"
             className="w-11 h-11 rounded-full flex items-center justify-center transition-colors cursor-pointer"
             style={{ color: 'var(--ink-muted)' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(61,40,24,0.07)' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(42,29,20,0.07)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
           >
             <X size={16} />
@@ -116,7 +116,7 @@ export const AddEntryModal: React.FC<Props> = ({ onClose }) => {
             />
             <div className="flex items-center justify-between mt-1">
               <p className="text-xs" style={{ color: 'var(--ink-muted)' }}>El sistema detectará automáticamente tus habilidades</p>
-              <span className="text-xs" style={{ color: description.length > 2000 ? '#b91c1c' : 'var(--ink-muted)' }}>{description.length}/2000</span>
+              <span className="text-xs" style={{ color: description.length > 2000 ? '#9e2b25' : 'var(--ink-muted)' }}>{description.length}/2000</span>
             </div>
           </div>
           <div>
@@ -125,8 +125,8 @@ export const AddEntryModal: React.FC<Props> = ({ onClose }) => {
               {...getRootProps()}
               className="border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors"
               style={{
-                borderColor: isDragActive ? 'var(--terra-500)' : 'rgba(61,40,24,0.18)',
-                background: isDragActive ? 'rgba(194,86,46,0.04)' : 'var(--bg-soft)',
+                borderColor: isDragActive ? 'var(--terra-500)' : 'rgba(42,29,20,0.18)',
+                background: isDragActive ? 'rgba(184,68,42,0.04)' : 'var(--bg-soft)',
               }}
             >
               <input {...getInputProps()} />
@@ -157,7 +157,7 @@ export const AddEntryModal: React.FC<Props> = ({ onClose }) => {
         </div>
 
         {error && (
-          <div className="mx-5 mb-1 flex gap-2 px-3 py-2.5 rounded-xl text-sm" style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c' }}>
+          <div className="mx-5 mb-1 flex gap-2 px-3 py-2.5 rounded-xl text-sm" style={{ background: '#fbeceb', border: '1px solid #f3d4d2', color: '#9e2b25' }}>
             <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
             {error}
           </div>

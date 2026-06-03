@@ -46,7 +46,7 @@ export const OficioDashboard: React.FC = () => {
         <div className="absolute bottom-0 left-1/3 w-48 h-48 rounded-full blur-3xl opacity-15 pointer-events-none" style={{ background: 'var(--olive)' }} />
 
         <div className="relative z-10">
-          <p className="kicker mb-2" style={{ color: 'rgba(253,246,234,0.7)' }}>
+          <p className="kicker mb-2" style={{ color: 'rgba(244,236,224,0.7)' }}>
             {worker?.trade_category ?? 'Trabajador de oficio'}
           </p>
           <h1 className="text-2xl md:text-3xl font-bold leading-tight mb-5" style={{ letterSpacing: '-0.03em', color: 'var(--on-dark)' }}>
@@ -67,7 +67,7 @@ export const OficioDashboard: React.FC = () => {
               <div key={s.label} className="flex items-center gap-2">
                 <s.icon size={14} style={{ color: s.color }} />
                 <span className="text-sm font-semibold" style={{ color: 'var(--on-dark)' }}>{s.value}</span>
-                <span className="text-xs" style={{ color: 'rgba(253,246,234,0.7)' }}>{s.label}</span>
+                <span className="text-xs" style={{ color: 'rgba(244,236,224,0.7)' }}>{s.label}</span>
               </div>
             ))}
           </div>
@@ -143,7 +143,7 @@ export const OficioDashboard: React.FC = () => {
             style={{
               background: 'linear-gradient(140deg, var(--bg-warm), var(--bg-soft))',
               border: '1px solid var(--line)',
-              boxShadow: '0 0 0 1px rgba(194,86,46,0.06), var(--shadow-md)',
+              boxShadow: '0 0 0 1px rgba(184,68,42,0.06), var(--shadow-md)',
             }}
           >
             <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-2xl opacity-30 pointer-events-none" style={{ background: 'var(--terra-400)' }} />
@@ -172,7 +172,7 @@ export const OficioDashboard: React.FC = () => {
                       key={i}
                       to="/oficio/portfolio"
                       className="aspect-square rounded-[8px] overflow-hidden flex items-center justify-center"
-                      style={{ background: photo ? 'transparent' : (i === photos.length ? 'var(--terra-100)' : 'rgba(61,40,24,0.06)') }}
+                      style={{ background: photo ? 'transparent' : (i === photos.length ? 'var(--terra-100)' : 'rgba(42,29,20,0.06)') }}
                     >
                       {photo
                         ? <img src={photo} alt="" className="w-full h-full object-cover" />
@@ -203,7 +203,7 @@ export const OficioDashboard: React.FC = () => {
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--bg-warm)' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--bg-soft)' }}
               >
-                <div className="w-7 h-7 rounded-[8px] flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(61,40,24,0.06)' }}>
+                <div className="w-7 h-7 rounded-[8px] flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(42,29,20,0.06)' }}>
                   <item.Icon size={13} style={{ color: item.color }} />
                 </div>
                 <span className="text-[12.5px] font-medium flex-1" style={{ color: 'var(--ink-warm)' }}>{item.label}</span>

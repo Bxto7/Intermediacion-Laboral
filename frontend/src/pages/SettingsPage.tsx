@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { CheckCircle, LogOut, Circle } from 'lucide-react'
 import { useWorkerContext } from '../context/WorkerContext'
 import { useAuthContext } from '../context/AuthContext'
@@ -19,6 +20,7 @@ const inputStyle: React.CSSProperties = {
 }
 
 export const SettingsPage: React.FC = () => {
+  const navigate = useNavigate()
   const { worker, refreshWorker } = useWorkerContext()
   const { user, logout } = useAuthContext()
   const { completeness } = useCompleteness(user?.role === 'worker')
@@ -33,7 +35,7 @@ export const SettingsPage: React.FC = () => {
 
   const onFocus = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     e.currentTarget.style.borderColor = 'var(--terra-500)'
-    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(194,86,46,0.12)'
+    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,68,42,0.12)'
   }
   const onBlur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     e.currentTarget.style.borderColor = 'var(--line-strong)'
@@ -157,7 +159,7 @@ export const SettingsPage: React.FC = () => {
           </div>
 
           {error && (
-            <p role="alert" className="text-xs px-3 py-2 rounded-xl" style={{ background: 'rgba(194,86,46,0.08)', color: 'var(--terra-500)', border: '1px solid rgba(194,86,46,0.2)' }}>
+            <p role="alert" className="text-xs px-3 py-2 rounded-xl" style={{ background: 'rgba(184,68,42,0.08)', color: 'var(--terra-500)', border: '1px solid rgba(184,68,42,0.2)' }}>
               {error}
             </p>
           )}
@@ -174,7 +176,7 @@ export const SettingsPage: React.FC = () => {
       {user?.role === 'worker' && completeness && completeness.percentage < 100 && (
         <div
           className="rounded-2xl p-4"
-          style={{ background: 'var(--terra-100)', border: '1px solid rgba(194,86,46,0.2)' }}
+          style={{ background: 'var(--terra-100)', border: '1px solid rgba(184,68,42,0.2)' }}
         >
           <div className="flex items-center gap-3">
             <div className="flex-1">
@@ -191,7 +193,7 @@ export const SettingsPage: React.FC = () => {
           </div>
 
           {completeness.missing_fields.length > 0 && (
-            <div className="mt-3 pt-3 space-y-1.5" style={{ borderTop: '1px solid rgba(194,86,46,0.18)' }}>
+            <div className="mt-3 pt-3 space-y-1.5" style={{ borderTop: '1px solid rgba(184,68,42,0.18)' }}>
               <p className="text-[11px] font-semibold" style={{ color: 'var(--terra-700)' }}>Para llegar al 100% te falta:</p>
               {completeness.missing_fields.map((item) => (
                 <div key={item} className="flex items-center gap-2">
@@ -208,10 +210,10 @@ export const SettingsPage: React.FC = () => {
       <div className="card-warm p-5">
         <p className="kicker mb-3">Sesión</p>
         <button
-          onClick={() => logout()}
+          onClick={async () => { await logout(); navigate('/') }}
           className="w-full py-2.5 text-sm font-medium rounded-xl transition-all flex items-center justify-center gap-2"
-          style={{ border: '1.5px solid rgba(194,86,46,0.25)', color: 'var(--terra-500)', background: 'transparent' }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(194,86,46,0.06)' }}
+          style={{ border: '1.5px solid rgba(184,68,42,0.25)', color: 'var(--terra-500)', background: 'transparent' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(184,68,42,0.06)' }}
           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
         >
           <LogOut size={14} /> Cerrar sesión

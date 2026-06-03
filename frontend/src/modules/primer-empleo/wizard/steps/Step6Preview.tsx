@@ -72,7 +72,7 @@ export const Step6Preview: React.FC = () => {
                   <span
                     key={s}
                     className="text-xs px-2.5 py-1 rounded-full"
-                    style={{ background: 'rgba(253,246,234,0.15)', color: 'var(--on-dark)', border: '1px solid rgba(253,246,234,0.20)' }}
+                    style={{ background: 'rgba(244,236,224,0.15)', color: 'var(--on-dark)', border: '1px solid rgba(244,236,224,0.20)' }}
                   >
                     {s}
                   </span>

@@ -15,9 +15,9 @@ const TYPE_LABELS: Record<string, string> = {
 }
 
 const TYPE_COLORS: Record<string, string> = {
-  primer_empleo: '#4299e1',
-  experiencia: '#48bb78',
-  oficio: '#ed8936',
+  primer_empleo: '#2d9a9a',
+  experiencia: '#5d6b46',
+  oficio: '#e0a32e',
 }
 
 class GlobeBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
@@ -25,7 +25,7 @@ class GlobeBoundary extends Component<{ children: ReactNode }, { failed: boolean
   static getDerivedStateFromError() { return { failed: true } }
   render() {
     if (this.state.failed) return (
-      <div style={{ height: 340, display: 'grid', placeItems: 'center', background: 'linear-gradient(160deg, #1a1208 0%, #2d1f14 100%)', borderRadius: 16 }}>
+      <div style={{ height: 340, display: 'grid', placeItems: 'center', background: 'linear-gradient(160deg, #150d06 0%, #241910 100%)', borderRadius: 16 }}>
         <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 13 }}>Vista 3D no disponible en este entorno</p>
       </div>
     )
@@ -94,19 +94,19 @@ export const AdminDashboard: React.FC = () => {
             label={intl.formatMessage({ id: 'admin.kpi.workers_total' })}
             value={totalOficio}
             subtitle="Trabajadores OFICIO registrados"
-            color="#ed8936"
+            color="#e0a32e"
           />
           <KPICard
             label={intl.formatMessage({ id: 'admin.kpi.formalization' })}
             value={`${avgFormalization}%`}
             subtitle="Tasa promedio de formalización"
-            color="#48bb78"
+            color="#5d6b46"
           />
           <KPICard
             label={intl.formatMessage({ id: 'admin.kpi.ivm' })}
             value={`${ivmPct.toFixed(1)}%`}
             subtitle={`Índice Visibilidad Marketplace OFICIO`}
-            color="#b8893a"
+            color="#c9961f"
           />
         </div>
 
@@ -130,11 +130,11 @@ export const AdminDashboard: React.FC = () => {
             {vilData.length > 0 ? (
               <ResponsiveContainer width="100%" height={180}>
                 <BarChart data={vilData} barSize={40}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(61,40,24,0.06)" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(42,29,20,0.06)" />
                   <XAxis dataKey="label" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
                   <YAxis unit=" d" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
                   <Tooltip formatter={(v: number) => [`${v} días`, 'Promedio VIL']} />
-                  <Bar dataKey="dias" radius={[6, 6, 0, 0]} fill="#4299e1" />
+                  <Bar dataKey="dias" radius={[6, 6, 0, 0]} fill="#2d9a9a" />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -150,11 +150,11 @@ export const AdminDashboard: React.FC = () => {
             {tfData.length > 0 ? (
               <ResponsiveContainer width="100%" height={180}>
                 <BarChart data={tfData} barSize={40}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(61,40,24,0.06)" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(42,29,20,0.06)" />
                   <XAxis dataKey="label" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
                   <YAxis unit="%" domain={[0, 100]} tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
                   <Tooltip formatter={(v: number) => [`${v}%`, 'Tasa formalización']} />
-                  <Bar dataKey="porcentaje" radius={[6, 6, 0, 0]} fill="#48bb78" />
+                  <Bar dataKey="porcentaje" radius={[6, 6, 0, 0]} fill="#5d6b46" />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -170,11 +170,11 @@ export const AdminDashboard: React.FC = () => {
             {tccData.length > 0 ? (
               <ResponsiveContainer width="100%" height={180}>
                 <BarChart data={tccData} barSize={40}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(61,40,24,0.06)" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(42,29,20,0.06)" />
                   <XAxis dataKey="label" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
                   <YAxis unit="%" domain={[0, 100]} tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
                   <Tooltip formatter={(v: number) => [`${v}%`, 'Tasa completitud CV']} />
-                  <Bar dataKey="porcentaje" radius={[6, 6, 0, 0]} fill="#ed8936" />
+                  <Bar dataKey="porcentaje" radius={[6, 6, 0, 0]} fill="#e0a32e" />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -188,11 +188,11 @@ export const AdminDashboard: React.FC = () => {
             {tcssData.length > 0 ? (
               <ResponsiveContainer width="100%" height={180}>
                 <BarChart data={tcssData} barSize={40}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(61,40,24,0.06)" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(42,29,20,0.06)" />
                   <XAxis dataKey="label" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
                   <YAxis unit="%" domain={[0, 100]} tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
                   <Tooltip formatter={(v: number) => [`${v}%`, 'Cold-start superado']} />
-                  <Bar dataKey="porcentaje" radius={[6, 6, 0, 0]} fill="#9b59b6" />
+                  <Bar dataKey="porcentaje" radius={[6, 6, 0, 0]} fill="#6c4fa3" />
                 </BarChart>
               </ResponsiveContainer>
             ) : (

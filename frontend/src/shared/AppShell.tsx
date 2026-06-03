@@ -109,17 +109,17 @@ const CompletenessCard: React.FC = () => {
       className="mx-2 mb-3 rounded-[14px] p-3.5 cursor-pointer"
       style={{
         background: 'radial-gradient(200px 120px at 80% 0%, rgba(217,119,87,0.35), transparent 60%), linear-gradient(140deg, var(--dark-deep), var(--dark))',
-        boxShadow: '0 0 0 1px rgba(253,246,234,0.08), 0 0 24px -8px rgba(194,86,46,0.25)',
+        boxShadow: '0 0 0 1px rgba(244,236,224,0.08), 0 0 24px -8px rgba(184,68,42,0.25)',
       }}
       onClick={() => navigate('/wizard/step/1')}
     >
-      <p className="text-[11px] font-mono uppercase tracking-widest mb-1.5" style={{ color: 'rgba(253,246,234,0.5)' }}>
+      <p className="text-[11px] font-mono uppercase tracking-widest mb-1.5" style={{ color: 'rgba(244,236,224,0.5)' }}>
         Perfil
       </p>
       <p className="text-[13px] font-medium leading-snug mb-2.5" style={{ color: 'var(--on-dark)' }}>
         Estás casi <span className="serif-it" style={{ color: 'var(--coral)' }}>listo</span> · {pct}%
       </p>
-      <div className="h-1.5 rounded-full overflow-hidden mb-2.5" style={{ background: 'rgba(253,246,234,0.12)' }}>
+      <div className="h-1.5 rounded-full overflow-hidden mb-2.5" style={{ background: 'rgba(244,236,224,0.12)' }}>
         <div
           className="h-full rounded-full transition-all duration-500"
           style={{ width: `${pct}%`, background: 'linear-gradient(90deg, var(--terra-400), var(--gold-light))' }}
@@ -144,7 +144,7 @@ const SideNav: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
 
   const handleLogout = async () => {
     await logout()
-    navigate('/login')
+    navigate('/')
   }
 
   return (

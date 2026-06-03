@@ -109,7 +109,7 @@ export const JobsAdmin: React.FC = () => {
             <div key={job.id} className="card-warm p-4">
               <div className="flex items-start gap-3 justify-between">
                 <div className="flex items-start gap-3 flex-1 min-w-0">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: job.is_active ? 'var(--terra-100)' : 'rgba(61,40,24,0.05)' }}>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: job.is_active ? 'var(--terra-100)' : 'rgba(42,29,20,0.05)' }}>
                     <Briefcase size={18} style={{ color: job.is_active ? 'var(--terra-500)' : 'var(--ink-muted)' }} />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -118,14 +118,14 @@ export const JobsAdmin: React.FC = () => {
                       <span
                         className="text-[10px] px-1.5 py-0.5 rounded-full"
                         style={{
-                          background: job.is_active ? 'rgba(122,140,92,0.14)' : 'rgba(61,40,24,0.07)',
+                          background: job.is_active ? 'rgba(122,140,92,0.14)' : 'rgba(42,29,20,0.07)',
                           color: job.is_active ? 'var(--olive-deep)' : 'var(--ink-muted)',
                         }}
                       >
                         {job.is_active ? 'Activa' : 'Inactiva'}
                       </span>
                       {job.worker_type_target && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(184,137,58,0.14)', color: 'var(--gold)' }}>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(201,150,31,0.14)', color: 'var(--gold)' }}>
                           {WORKER_TYPE_LABELS[job.worker_type_target] ?? job.worker_type_target}
                         </span>
                       )}

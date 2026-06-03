@@ -75,7 +75,7 @@ export const ContactModal: React.FC<Props> = ({ listingId, workerUsername, worke
             onClick={onClose}
             className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
             style={{ color: 'var(--ink-muted)' }}
-            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(61,40,24,0.06)')}
+            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(42,29,20,0.06)')}
             onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
           >
             <X size={16} />
@@ -155,7 +155,7 @@ export const ContactModal: React.FC<Props> = ({ listingId, workerUsername, worke
                   background: 'var(--bg-soft)',
                   color: 'var(--ink-strong)',
                 }}
-                onFocus={e => { e.currentTarget.style.borderColor = 'var(--terra-500)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(194,86,46,0.14)' }}
+                onFocus={e => { e.currentTarget.style.borderColor = 'var(--terra-500)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,68,42,0.14)' }}
                 onBlur={e => { e.currentTarget.style.borderColor = '#d6c5a8'; e.currentTarget.style.boxShadow = 'none' }}
               />
               <p className="text-right text-[11px] mt-0.5" style={{ color: 'var(--ink-muted)' }}>{message.length}/500</p>
@@ -163,7 +163,7 @@ export const ContactModal: React.FC<Props> = ({ listingId, workerUsername, worke
 
             <div
               className="rounded-xl px-4 py-3 flex items-start gap-2.5"
-              style={{ background: 'var(--blue-100)', border: '1px solid rgba(45,90,130,0.15)' }}
+              style={{ background: 'var(--blue-100)', border: '1px solid rgba(15,110,110,0.15)' }}
             >
               <Shield size={15} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--blue)' }} />
               <p className="text-xs leading-relaxed" style={{ color: 'var(--blue)' }}>

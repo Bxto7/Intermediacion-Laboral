@@ -27,7 +27,7 @@ export const NotificationBell: React.FC = () => {
         onClick={toggle}
         className="relative w-9 h-9 rounded-xl flex items-center justify-center transition-colors"
         style={{ color: 'var(--ink-warm)' }}
-        onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(61,40,24,0.07)' }}
+        onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(42,29,20,0.07)' }}
         onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
         aria-label="Notificaciones"
       >
@@ -73,7 +73,7 @@ export const NotificationBell: React.FC = () => {
             <div className="max-h-80 overflow-y-auto" style={{ borderBottom: '1px solid var(--line)' }}>
               {notifications.length === 0 ? (
                 <div className="py-10 text-center">
-                  <div className="w-10 h-10 rounded-2xl mx-auto mb-2 flex items-center justify-center" style={{ background: 'rgba(61,40,24,0.06)' }}>
+                  <div className="w-10 h-10 rounded-2xl mx-auto mb-2 flex items-center justify-center" style={{ background: 'rgba(42,29,20,0.06)' }}>
                     <Bell size={18} style={{ color: 'var(--ink-muted)' }} strokeWidth={1.5} />
                   </div>
                   <p className="text-xs" style={{ color: 'var(--ink-muted)' }}>No tienes notificaciones</p>
@@ -84,7 +84,7 @@ export const NotificationBell: React.FC = () => {
                     key={n.id}
                     className="flex items-start gap-3 px-4 py-3 transition-colors"
                     style={{
-                      background: n.read ? 'transparent' : 'rgba(194,86,46,0.04)',
+                      background: n.read ? 'transparent' : 'rgba(184,68,42,0.04)',
                       borderBottom: '1px solid var(--line)',
                     }}
                   >

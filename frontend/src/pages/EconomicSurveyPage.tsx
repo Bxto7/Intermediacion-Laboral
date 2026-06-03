@@ -22,7 +22,7 @@ const EMPLOYMENT_LABELS: Record<string, string> = {
 }
 
 const fieldStyle = {
-  border: '1px solid rgba(61,40,24,0.14)',
+  border: '1px solid rgba(42,29,20,0.14)',
   background: 'var(--bg-soft)',
   color: 'var(--ink-strong)',
   borderRadius: '12px',
@@ -69,10 +69,10 @@ export const EconomicSurveyPage: React.FC = () => {
 
   const onFocus = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
     e.currentTarget.style.borderColor = 'var(--terra-500)'
-    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(194,86,46,0.12)'
+    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,68,42,0.12)'
   }
   const onBlur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
-    e.currentTarget.style.borderColor = 'rgba(61,40,24,0.14)'
+    e.currentTarget.style.borderColor = 'rgba(42,29,20,0.14)'
     e.currentTarget.style.boxShadow = 'none'
   }
 
@@ -170,7 +170,7 @@ export const EconomicSurveyPage: React.FC = () => {
             {/* Consentimiento */}
             <div
               className="rounded-xl p-4"
-              style={{ background: 'var(--blue-100)', border: '1px solid rgba(45,90,130,0.15)' }}
+              style={{ background: 'var(--blue-100)', border: '1px solid rgba(15,110,110,0.15)' }}
             >
               <label className="flex items-start gap-3 cursor-pointer">
                 <input
@@ -189,7 +189,7 @@ export const EconomicSurveyPage: React.FC = () => {
             </div>
 
             {error && (
-              <div className="rounded-xl px-3 py-2.5 flex items-start gap-2" style={{ background: 'rgba(194,86,46,0.08)', border: '1px solid rgba(194,86,46,0.20)' }}>
+              <div className="rounded-xl px-3 py-2.5 flex items-start gap-2" style={{ background: 'rgba(184,68,42,0.08)', border: '1px solid rgba(184,68,42,0.20)' }}>
                 <AlertCircle size={14} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--terra-500)' }} />
                 <p className="text-xs" style={{ color: 'var(--terra-700)' }}>{error}</p>
               </div>

@@ -5,13 +5,13 @@ import { useEmployerJobs, useJobApplications } from '../../hooks/useEmployer'
 import { LoadingSpinner } from '../../shared/LoadingSpinner'
 
 const STATUS_CFG: Record<string, { label: string; color: string; bg: string }> = {
-  PENDING:    { label: 'Enviada',      color: 'var(--gold)',       bg: 'rgba(184,137,58,0.14)' },
-  enviada:    { label: 'Enviada',      color: 'var(--gold)',       bg: 'rgba(184,137,58,0.14)' },
+  PENDING:    { label: 'Enviada',      color: 'var(--gold)',       bg: 'rgba(201,150,31,0.14)' },
+  enviada:    { label: 'Enviada',      color: 'var(--gold)',       bg: 'rgba(201,150,31,0.14)' },
   en_revision:{ label: 'En revisión',  color: 'var(--blue)',       bg: 'var(--blue-100)' },
   entrevista: { label: 'Entrevista',   color: 'var(--olive-deep)', bg: 'var(--olive-100)' },
   contratada: { label: 'Contratado',   color: '#fff',              bg: 'var(--olive-deep)' },
   descartada: { label: 'Descartado',   color: 'var(--terra-500)',  bg: 'var(--terra-100)' },
-  WITHDRAWN:  { label: 'Retirado',     color: 'var(--ink-muted)',  bg: 'rgba(61,40,24,0.07)' },
+  WITHDRAWN:  { label: 'Retirado',     color: 'var(--ink-muted)',  bg: 'rgba(42,29,20,0.07)' },
 }
 
 const NEXT_STATUS: Record<string, { label: string; value: string; icon: LucideIcon }[]> = {
@@ -37,7 +37,7 @@ interface CandidateRowProps {
 }
 
 const CandidateRow: React.FC<CandidateRowProps> = ({ candidate, onStatus }) => {
-  const cfg = STATUS_CFG[candidate.status] ?? { label: candidate.status, color: 'var(--ink-muted)', bg: 'rgba(61,40,24,0.07)' }
+  const cfg = STATUS_CFG[candidate.status] ?? { label: candidate.status, color: 'var(--ink-muted)', bg: 'rgba(42,29,20,0.07)' }
   const transitions = NEXT_STATUS[candidate.status] ?? []
   const name = candidate.worker_name || `Trabajador ${candidate.worker_id.slice(0, 8)}`
   const initials = name.slice(0, 2).toUpperCase()
@@ -58,7 +58,7 @@ const CandidateRow: React.FC<CandidateRowProps> = ({ candidate, onStatus }) => {
               {name}
             </p>
             {pct !== null && (
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: pct >= 70 ? 'var(--olive-100)' : 'rgba(184,137,58,0.14)', color: pct >= 70 ? 'var(--olive-deep)' : 'var(--gold)' }}>
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: pct >= 70 ? 'var(--olive-100)' : 'rgba(201,150,31,0.14)', color: pct >= 70 ? 'var(--olive-deep)' : 'var(--gold)' }}>
                 {pct}% compatibilidad
               </span>
             )}
@@ -90,7 +90,7 @@ const CandidateRow: React.FC<CandidateRowProps> = ({ candidate, onStatus }) => {
                 style={{
                   background: isPositive ? 'var(--olive-100)' : 'var(--terra-100)',
                   color: isPositive ? 'var(--olive-deep)' : 'var(--terra-500)',
-                  border: `1px solid ${isPositive ? 'rgba(122,140,92,0.25)' : 'rgba(194,86,46,0.2)'}`,
+                  border: `1px solid ${isPositive ? 'rgba(122,140,92,0.25)' : 'rgba(184,68,42,0.2)'}`,
                 }}
               >
                 <t.icon size={12} />
@@ -126,7 +126,7 @@ const JobCandidatesPanel: React.FC<{ jobId: string; jobTitle: string }> = ({ job
         <LoadingSpinner />
       ) : applications.length === 0 ? (
         <div className="card-warm p-10 text-center space-y-3">
-          <div className="w-14 h-14 mx-auto rounded-2xl flex items-center justify-center" style={{ background: 'rgba(61,40,24,0.05)', border: '1px solid var(--line)' }}>
+          <div className="w-14 h-14 mx-auto rounded-2xl flex items-center justify-center" style={{ background: 'rgba(42,29,20,0.05)', border: '1px solid var(--line)' }}>
             <Users size={24} style={{ color: 'var(--ink-muted)' }} strokeWidth={1.5} />
           </div>
           <p className="font-semibold text-sm" style={{ color: 'var(--ink-warm)' }}>Aún no hay candidatos</p>
@@ -165,7 +165,7 @@ export const EmployerCandidatesPage: React.FC = () => {
         <LoadingSpinner />
       ) : jobs.length === 0 ? (
         <div className="card-warm p-12 text-center space-y-4">
-          <div className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center" style={{ background: 'rgba(61,40,24,0.05)', border: '1px solid var(--line)' }}>
+          <div className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center" style={{ background: 'rgba(42,29,20,0.05)', border: '1px solid var(--line)' }}>
             <Users size={28} style={{ color: 'var(--ink-muted)' }} strokeWidth={1.5} />
           </div>
           <div>
@@ -199,7 +199,7 @@ export const EmployerCandidatesPage: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                   {job.district && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(61,40,24,0.07)', color: 'var(--ink-muted)' }}>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(42,29,20,0.07)', color: 'var(--ink-muted)' }}>
                       {job.district}
                     </span>
                   )}
@@ -221,7 +221,7 @@ export const EmployerCandidatesPage: React.FC = () => {
             <JobCandidatesPanel jobId={selectedJob.id} jobTitle={selectedJob.title} />
           ) : (
             <div className="flex-1 card-warm p-12 text-center">
-              <div className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center" style={{ background: 'rgba(61,40,24,0.05)', border: '1px solid var(--line)' }}>
+              <div className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center" style={{ background: 'rgba(42,29,20,0.05)', border: '1px solid var(--line)' }}>
                 <ArrowRight size={28} style={{ color: 'var(--ink-muted)' }} strokeWidth={1.5} />
               </div>
               <p className="font-semibold text-sm mt-4" style={{ color: 'var(--ink-warm)' }}>

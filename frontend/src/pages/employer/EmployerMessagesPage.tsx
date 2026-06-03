@@ -14,7 +14,7 @@ export const EmployerMessagesPage: React.FC = () => {
       </div>
 
       <div className="card-warm p-12 text-center space-y-4">
-        <div className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center" style={{ background: 'rgba(61,40,24,0.05)', border: '1px solid var(--line)' }}>
+        <div className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center" style={{ background: 'rgba(42,29,20,0.05)', border: '1px solid var(--line)' }}>
           <MessageCircle size={28} style={{ color: 'var(--ink-muted)' }} strokeWidth={1.5} />
         </div>
         <div>

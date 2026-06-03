@@ -73,7 +73,7 @@ export const Step5Interests: React.FC = () => {
       {selected.length > 0 && (
         <div
           className="rounded-xl px-4 py-3 text-sm"
-          style={{ background: 'var(--terra-100)', border: '1px solid rgba(194,86,46,0.20)' }}
+          style={{ background: 'var(--terra-100)', border: '1px solid rgba(184,68,42,0.20)' }}
         >
           <strong style={{ color: 'var(--terra-700)' }}>Seleccionado:</strong>{' '}
           <span style={{ color: 'var(--terra-500)' }}>{selected.join(' · ')}</span>

@@ -8,7 +8,7 @@ import apiClient from '../../../../api/client'
 const LEVELS = ['Primaria', 'Secundaria', 'Técnica', 'Universitaria', 'Sin estudios']
 
 const fieldStyle = {
-  border: '1px solid rgba(61,40,24,0.14)',
+  border: '1px solid rgba(42,29,20,0.14)',
   background: 'var(--bg-soft)',
   color: 'var(--ink-strong)',
   borderRadius: '10px',
@@ -20,10 +20,10 @@ const fieldStyle = {
 
 const onFocus = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
   e.currentTarget.style.borderColor = 'var(--terra-500)'
-  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(194,86,46,0.12)'
+  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,68,42,0.12)'
 }
 const onBlur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
-  e.currentTarget.style.borderColor = 'rgba(61,40,24,0.14)'
+  e.currentTarget.style.borderColor = 'rgba(42,29,20,0.14)'
   e.currentTarget.style.boxShadow = 'none'
 }
 
@@ -102,13 +102,13 @@ export const Step2Education: React.FC = () => {
       <button
         onClick={() => setEducation([...education, { institution: '', level: '', year: '' }])}
         className="w-full py-2.5 text-sm font-medium rounded-xl flex items-center justify-center gap-2 transition-all"
-        style={{ border: '2px dashed rgba(194,86,46,0.20)', color: 'var(--ink-muted)' }}
+        style={{ border: '2px dashed rgba(184,68,42,0.20)', color: 'var(--ink-muted)' }}
         onMouseEnter={e => {
           (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--terra-500)'
           ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--terra-500)'
         }}
         onMouseLeave={e => {
-          (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(194,86,46,0.20)'
+          (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(184,68,42,0.20)'
           ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--ink-muted)'
         }}
       >
