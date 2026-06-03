@@ -11,10 +11,10 @@ interface KPINode {
 }
 
 const NODE_DATA: KPINode[] = [
-  { label: 'Trabajadores', value: 2400, color: '#c2562e', position: [0, 0, 0] },
-  { label: 'Ofertas',      value: 180,  color: '#2d5a82', position: [3, 1, -1] },
+  { label: 'Trabajadores', value: 2400, color: '#b8442a', position: [0, 0, 0] },
+  { label: 'Ofertas',      value: 180,  color: '#0f6e6e', position: [3, 1, -1] },
   { label: 'Contratos',    value: 95,   color: '#7a8c5c', position: [-2.5, 1.5, 1] },
-  { label: 'Matching',     value: 87,   color: '#b8893a', position: [1.5, -2, 1.5] },
+  { label: 'Matching',     value: 87,   color: '#c9961f', position: [1.5, -2, 1.5] },
   { label: 'Empresas',     value: 340,  color: '#6c4fa3', position: [-1.5, -1.5, -2] },
 ]
 
@@ -55,11 +55,11 @@ const FloatingNode = ({ node }: { node: KPINode }) => {
 }
 
 export const KPIGlobe: React.FC = () => (
-  <div style={{ width: '100%', height: 340, borderRadius: 16, overflow: 'hidden', background: 'linear-gradient(160deg, #1a1208 0%, #2d1f14 100%)' }}>
+  <div style={{ width: '100%', height: 340, borderRadius: 16, overflow: 'hidden', background: 'linear-gradient(160deg, #150d06 0%, #241910 100%)' }}>
     <Canvas camera={{ position: [0, 0, 8], fov: 50 }}>
       <ambientLight intensity={0.4} />
-      <pointLight position={[10, 10, 10]} intensity={1.2} color="#c2562e" />
-      <pointLight position={[-10, -5, -5]} intensity={0.6} color="#2d5a82" />
+      <pointLight position={[10, 10, 10]} intensity={1.2} color="#b8442a" />
+      <pointLight position={[-10, -5, -5]} intensity={0.6} color="#0f6e6e" />
       {NODE_DATA.map(n => <FloatingNode key={n.label} node={n} />)}
       <OrbitControls enableZoom={false} autoRotate autoRotateSpeed={0.8} />
     </Canvas>

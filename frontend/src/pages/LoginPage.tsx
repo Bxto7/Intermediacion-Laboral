@@ -48,12 +48,12 @@ export const LoginPage: React.FC = () => {
         
         {/* Lado izquierdo - Visual / Branding */}
         <div className="hidden lg:flex lg:w-[48%] flex-col justify-between p-12 relative overflow-hidden"
-             style={{ background: 'linear-gradient(160deg, #fdf6ea 0%, #f7ecd8 55%, #f0e0c4 100%)' }}>
+             style={{ background: 'linear-gradient(160deg, #f4ece0 0%, #f4ece0 55%, #ece0cf 100%)' }}>
           
           {/* Radial Glows */}
-          <div className="absolute top-0 left-0 w-48 h-48 rounded-full opacity-30 blur-3xl pointer-events-none" style={{ background: '#e8b45a' }} />
-          <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-20 blur-3xl pointer-events-none" style={{ background: '#2d5a82' }} />
-          <div className="absolute bottom-0 left-0 w-44 h-44 rounded-full opacity-25 blur-3xl pointer-events-none" style={{ background: '#c2562e' }} />
+          <div className="absolute top-0 left-0 w-48 h-48 rounded-full opacity-30 blur-3xl pointer-events-none" style={{ background: '#eab84e' }} />
+          <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-20 blur-3xl pointer-events-none" style={{ background: '#0f6e6e' }} />
+          <div className="absolute bottom-0 left-0 w-44 h-44 rounded-full opacity-25 blur-3xl pointer-events-none" style={{ background: '#b8442a' }} />
           <div className="absolute bottom-0 right-0 w-36 h-36 rounded-full opacity-20 blur-3xl pointer-events-none" style={{ background: '#7a8c5c' }} />
 
           <div className="relative z-10">
@@ -61,30 +61,30 @@ export const LoginPage: React.FC = () => {
           </div>
 
           <div className="relative z-10 space-y-6">
-            <h2 className="text-4xl font-bold leading-tight" style={{ color: '#3d2818', letterSpacing: '-0.03em' }}>
+            <h2 className="text-4xl font-bold leading-tight" style={{ color: '#2a1d14', letterSpacing: '-0.03em' }}>
               Tu próximo empleo{' '}
-              <span style={{ fontFamily: 'Instrument Serif, Georgia, serif', fontStyle: 'italic', color: '#c2562e' }}>
+              <span style={{ fontFamily: 'Instrument Serif, Georgia, serif', fontStyle: 'italic', color: '#b8442a' }}>
                 te espera.
               </span>
             </h2>
-            <p className="text-base leading-relaxed" style={{ color: '#6b4a35' }}>
+            <p className="text-base leading-relaxed" style={{ color: '#5a4a39' }}>
               La plataforma oficial de la región. Crea tu perfil en minutos y conéctate con empleos verificados.
             </p>
             <div className="space-y-3">
               {[
-                { dot: '#c2562e', text: 'CV automático con IA' },
-                { dot: '#2d5a82', text: 'Ofertas formales verificadas' },
+                { dot: '#b8442a', text: 'CV automático con IA' },
+                { dot: '#0f6e6e', text: 'Ofertas formales verificadas' },
                 { dot: '#7a8c5c', text: 'Conexión directa y gratuita' },
               ].map((f) => (
                 <div key={f.text} className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: f.dot }} />
-                  <span className="text-sm font-medium" style={{ color: '#5a3d2b' }}>{f.text}</span>
+                  <span className="text-sm font-medium" style={{ color: '#3f2c1d' }}>{f.text}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          <p className="relative z-10 text-xs font-mono tracking-widest uppercase" style={{ color: '#785536' }}>
+          <p className="relative z-10 text-xs font-mono tracking-widest uppercase" style={{ color: '#6e5d49' }}>
             Huancayo, Perú · 2026
           </p>
         </div>
@@ -93,15 +93,15 @@ export const LoginPage: React.FC = () => {
         <div className="flex-1 flex flex-col justify-center p-8 sm:p-12 lg:p-16 relative z-10" style={{ background: 'var(--bg-base)' }}>
           <div className="max-w-sm mx-auto w-full space-y-8">
             <div className="space-y-2">
-              <h1 className="text-3xl font-bold" style={{ color: '#3d2818', letterSpacing: '-0.03em' }}>
+              <h1 className="text-3xl font-bold" style={{ color: '#2a1d14', letterSpacing: '-0.03em' }}>
                 {intl.formatMessage({ id: 'auth.login.title' })}
               </h1>
-              <p style={{ color: '#785536' }}>Ingresa a tu cuenta para continuar</p>
+              <p style={{ color: '#6e5d49' }}>Ingresa a tu cuenta para continuar</p>
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
               <div className="space-y-1.5">
-                <label className="block text-sm font-semibold" style={{ color: '#5a3d2b' }}>
+                <label className="block text-sm font-semibold" style={{ color: '#3f2c1d' }}>
                   {intl.formatMessage({ id: 'auth.login.email' })}
                 </label>
                 <input
@@ -117,10 +117,10 @@ export const LoginPage: React.FC = () => {
 
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
-                  <label className="block text-sm font-semibold" style={{ color: '#5a3d2b' }}>
+                  <label className="block text-sm font-semibold" style={{ color: '#3f2c1d' }}>
                     {intl.formatMessage({ id: 'auth.login.password' })}
                   </label>
-                  <a href="#" className="text-xs" style={{ color: '#c2562e' }}>¿Olvidaste tu contraseña?</a>
+                  <a href="#" className="text-xs" style={{ color: '#b8442a' }}>¿Olvidaste tu contraseña?</a>
                 </div>
                 <input
                   {...register('password')}
@@ -133,7 +133,7 @@ export const LoginPage: React.FC = () => {
               </div>
 
               {error && (
-                <div className="flex items-start gap-3 px-4 py-3 rounded-xl" style={{ background: 'rgba(194,86,46,0.08)', border: '1px solid rgba(194,86,46,0.20)' }}>
+                <div className="flex items-start gap-3 px-4 py-3 rounded-xl" style={{ background: 'rgba(184,68,42,0.08)', border: '1px solid rgba(184,68,42,0.20)' }}>
                   <svg className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: 'var(--terra-500)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
@@ -159,9 +159,9 @@ export const LoginPage: React.FC = () => {
               </button>
             </form>
 
-            <p className="text-center text-sm" style={{ color: '#785536' }}>
+            <p className="text-center text-sm" style={{ color: '#6e5d49' }}>
               ¿No tienes cuenta?{' '}
-              <Link to="/register" className="font-semibold transition-colors hover:text-opacity-80" style={{ color: '#c2562e' }}>
+              <Link to="/register" className="font-semibold transition-colors hover:text-opacity-80" style={{ color: '#b8442a' }}>
                 Regístrate gratis
               </Link>
             </p>

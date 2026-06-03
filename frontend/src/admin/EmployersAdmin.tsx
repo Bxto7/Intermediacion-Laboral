@@ -85,7 +85,7 @@ export const EmployersAdmin: React.FC = () => {
                   <tr key={emp.id} style={{ borderTop: '1px solid var(--line)' }}>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(45,90,130,0.1)' }}>
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(15,110,110,0.1)' }}>
                           <Building size={14} style={{ color: 'var(--blue)' }} />
                         </div>
                         <span className="text-sm font-medium line-clamp-1" style={{ color: 'var(--ink-strong)' }}>{emp.company_name}</span>
@@ -99,7 +99,7 @@ export const EmployersAdmin: React.FC = () => {
                       <span
                         className="text-xs px-2 py-0.5 rounded-full"
                         style={{
-                          background: emp.is_verified ? 'rgba(122,140,92,0.14)' : 'rgba(184,137,58,0.14)',
+                          background: emp.is_verified ? 'rgba(122,140,92,0.14)' : 'rgba(201,150,31,0.14)',
                           color: emp.is_verified ? 'var(--olive-deep)' : 'var(--gold)',
                         }}
                       >

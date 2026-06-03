@@ -34,7 +34,7 @@ export const EmployerDashboard: React.FC = () => {
         <div className="relative z-10 flex items-center gap-5">
           <div
             className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 text-white text-xl font-bold"
-            style={{ background: 'rgba(253,246,234,0.15)', border: '1px solid rgba(253,246,234,0.2)' }}
+            style={{ background: 'rgba(244,236,224,0.15)', border: '1px solid rgba(244,236,224,0.2)' }}
           >
             {initial}
           </div>
@@ -50,7 +50,7 @@ export const EmployerDashboard: React.FC = () => {
           onClick={() => navigate('/employer/publish')}
           className="relative z-10 mt-5 sm:mt-0 flex items-center gap-2 font-medium text-sm px-5 py-2.5 rounded-full transition-colors"
           style={{ background: 'var(--on-dark)', color: 'var(--dark-deep)' }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(253,246,234,0.88)' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(244,236,224,0.88)' }}
           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--on-dark)' }}
         >
           <Plus size={16} />
@@ -105,7 +105,7 @@ export const EmployerDashboard: React.FC = () => {
           <div className="text-center py-14 space-y-4">
             <div
               className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center"
-              style={{ background: 'rgba(61,40,24,0.05)', border: '1px solid var(--line)' }}
+              style={{ background: 'rgba(42,29,20,0.05)', border: '1px solid var(--line)' }}
             >
               <Briefcase size={28} style={{ color: 'var(--ink-muted)' }} strokeWidth={1.5} />
             </div>
@@ -142,7 +142,7 @@ export const EmployerDashboard: React.FC = () => {
                     <span
                       className="text-[10px] px-1.5 py-0.5 rounded-full"
                       style={{
-                        background: job.is_active ? 'rgba(122,140,92,0.14)' : 'rgba(61,40,24,0.07)',
+                        background: job.is_active ? 'rgba(122,140,92,0.14)' : 'rgba(42,29,20,0.07)',
                         color: job.is_active ? 'var(--olive-deep)' : 'var(--ink-muted)',
                       }}
                     >
@@ -177,7 +177,7 @@ export const EmployerDashboard: React.FC = () => {
               <button
                 onClick={() => navigate('/employer/candidates')}
                 className="w-full text-center text-sm py-2.5 rounded-xl transition-all"
-                style={{ color: 'var(--terra-500)', border: '1.5px dashed rgba(194,86,46,0.3)' }}
+                style={{ color: 'var(--terra-500)', border: '1.5px dashed rgba(184,68,42,0.3)' }}
               >
                 Ver todas las ofertas ({jobs.length})
               </button>
@@ -189,7 +189,7 @@ export const EmployerDashboard: React.FC = () => {
       {/* Tip DRTPE */}
       <div
         className="rounded-2xl p-5 flex items-start gap-4"
-        style={{ background: 'var(--blue-100)', border: '1px solid rgba(45,90,130,0.18)' }}
+        style={{ background: 'var(--blue-100)', border: '1px solid rgba(15,110,110,0.18)' }}
       >
         <div
           className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"

@@ -104,7 +104,7 @@ export const OnboardingPage: React.FC = () => {
                   disabled={isLoading}
                   className="group w-full flex items-center gap-4 p-5 rounded-2xl transition-all disabled:opacity-50 text-left"
                   style={{ background: 'var(--bg-soft)', border: '1px solid var(--line)' }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--terra-500)'; e.currentTarget.style.background = 'rgba(194,86,46,0.04)' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--terra-500)'; e.currentTarget.style.background = 'rgba(184,68,42,0.04)' }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.background = 'var(--bg-soft)' }}
                 >
                   <div
@@ -130,12 +130,12 @@ export const OnboardingPage: React.FC = () => {
                   disabled={isLoading}
                   className="group w-full flex items-center gap-4 p-5 rounded-2xl transition-all disabled:opacity-50 text-left"
                   style={{ background: 'var(--bg-soft)', border: '1px solid var(--line)' }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--line-strong)'; e.currentTarget.style.background = 'rgba(61,40,24,0.03)' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--line-strong)'; e.currentTarget.style.background = 'rgba(42,29,20,0.03)' }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.background = 'var(--bg-soft)' }}
                 >
                   <div
                     className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                    style={{ background: 'rgba(61,40,24,0.06)' }}
+                    style={{ background: 'rgba(42,29,20,0.06)' }}
                   >
                     <Briefcase size={20} style={{ color: 'var(--ink-warm)' }} />
                   </div>
@@ -188,7 +188,7 @@ export const OnboardingPage: React.FC = () => {
                     >
                       <div
                         className="w-8 h-8 rounded-xl flex items-center justify-center"
-                        style={{ background: active ? 'rgba(194,86,46,0.15)' : 'rgba(61,40,24,0.05)' }}
+                        style={{ background: active ? 'rgba(184,68,42,0.15)' : 'rgba(42,29,20,0.05)' }}
                       >
                         <Icon size={15} style={{ color: active ? 'var(--terra-500)' : 'var(--ink-warm)' }} />
                       </div>

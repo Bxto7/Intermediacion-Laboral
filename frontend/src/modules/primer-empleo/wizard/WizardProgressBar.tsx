@@ -31,7 +31,7 @@ export const WizardProgressBar: React.FC = () => {
                   style={{
                     background: s.num < current ? 'var(--olive)' : s.num === current ? 'var(--terra-500)' : 'var(--bg-warm)',
                     color: s.num < current || s.num === current ? '#fff' : 'var(--ink-muted)',
-                    boxShadow: s.num === current ? '0 0 0 4px rgba(194,86,46,0.18)' : 'none',
+                    boxShadow: s.num === current ? '0 0 0 4px rgba(184,68,42,0.18)' : 'none',
                   }}
                 >
                   {s.num < current ? '✓' : s.num}

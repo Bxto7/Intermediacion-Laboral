@@ -69,7 +69,7 @@ export const Step4Activities: React.FC = () => {
               <span
                 className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all"
                 style={{
-                  border: `2px solid ${active ? 'var(--terra-500)' : 'rgba(61,40,24,0.18)'}`,
+                  border: `2px solid ${active ? 'var(--terra-500)' : 'rgba(42,29,20,0.18)'}`,
                   background: active ? 'var(--terra-500)' : 'transparent',
                 }}
               >
@@ -88,9 +88,9 @@ export const Step4Activities: React.FC = () => {
           onKeyDown={(e) => e.key === 'Enter' && addCustom()}
           placeholder="Otra actividad que hayas hecho..."
           className="flex-1 rounded-xl text-sm focus:outline-none"
-          style={{ border: '1px solid rgba(61,40,24,0.14)', background: 'var(--bg-soft)', color: 'var(--ink-strong)', padding: '10px 14px' }}
-          onFocus={e => { e.currentTarget.style.borderColor = 'var(--terra-500)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(194,86,46,0.12)' }}
-          onBlur={e => { e.currentTarget.style.borderColor = 'rgba(61,40,24,0.14)'; e.currentTarget.style.boxShadow = 'none' }}
+          style={{ border: '1px solid rgba(42,29,20,0.14)', background: 'var(--bg-soft)', color: 'var(--ink-strong)', padding: '10px 14px' }}
+          onFocus={e => { e.currentTarget.style.borderColor = 'var(--terra-500)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,68,42,0.12)' }}
+          onBlur={e => { e.currentTarget.style.borderColor = 'rgba(42,29,20,0.14)'; e.currentTarget.style.boxShadow = 'none' }}
         />
         <button
           onClick={addCustom}

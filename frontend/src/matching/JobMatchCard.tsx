@@ -13,8 +13,8 @@ interface Props {
 
 const labelColors = {
   Alta:  'bg-[rgba(122,140,92,0.14)] text-olive-deep border-[rgba(122,140,92,0.20)]',
-  Media: 'bg-[rgba(184,137,58,0.14)] text-gold border-[rgba(184,137,58,0.20)]',
-  Baja:  'bg-[rgba(194,86,46,0.10)] text-terra-500 border-[rgba(194,86,46,0.20)]',
+  Media: 'bg-[rgba(201,150,31,0.14)] text-gold border-[rgba(201,150,31,0.20)]',
+  Baja:  'bg-[rgba(184,68,42,0.10)] text-terra-500 border-[rgba(184,68,42,0.20)]',
 }
 
 const scoreBar = (score: number) => {
@@ -119,7 +119,7 @@ export const JobMatchCard: React.FC<Props> = ({ match, compact = false }) => {
             maxLength={500}
             className="w-full px-3 py-2 rounded-xl text-xs resize-none focus:outline-none"
             style={{ border: '1px solid var(--line-strong)', background: 'var(--bg-soft)', color: 'var(--ink-strong)' }}
-            onFocus={e => { e.currentTarget.style.borderColor = 'var(--terra-500)'; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(194,86,46,0.12)' }}
+            onFocus={e => { e.currentTarget.style.borderColor = 'var(--terra-500)'; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(184,68,42,0.12)' }}
             onBlur={e => { e.currentTarget.style.borderColor = 'var(--line-strong)'; e.currentTarget.style.boxShadow = 'none' }}
           />
           {applyError && <p role="alert" className="text-[11px]" style={{ color: 'var(--terra-500)' }}>{applyError}</p>}

@@ -55,7 +55,7 @@ export const CVLivePreview: React.FC = () => {
                   <span
                     key={skill}
                     className="text-[11px] px-2 py-0.5 rounded-full"
-                    style={{ background: 'rgba(253,246,234,0.15)', color: 'var(--on-dark)', border: '1px solid rgba(253,246,234,0.18)' }}
+                    style={{ background: 'rgba(244,236,224,0.15)', color: 'var(--on-dark)', border: '1px solid rgba(244,236,224,0.18)' }}
                   >
                     {skill}
                   </span>
@@ -65,7 +65,7 @@ export const CVLivePreview: React.FC = () => {
           )}
 
           {answers.education && answers.education.length > 0 && (
-            <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(253,246,234,0.15)' }}>
+            <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(244,236,224,0.15)' }}>
               <p className="text-xs uppercase tracking-wide font-semibold mb-1" style={{ color: 'var(--on-dark-muted)' }}>Educación</p>
               {answers.education.slice(0, 2).map((edu: { institution: string; level: string }, i: number) => (
                 <p key={i} className="text-xs opacity-90" style={{ color: 'var(--on-dark)' }}>{edu.institution} · {edu.level}</p>

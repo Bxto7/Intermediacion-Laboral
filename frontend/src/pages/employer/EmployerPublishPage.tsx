@@ -46,7 +46,7 @@ export const EmployerPublishPage: React.FC = () => {
 
   const onFocus = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     e.currentTarget.style.borderColor = 'var(--terra-500)'
-    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(194,86,46,0.12)'
+    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,68,42,0.12)'
   }
   const onBlur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     e.currentTarget.style.borderColor = 'var(--line-strong)'
@@ -259,7 +259,7 @@ export const EmployerPublishPage: React.FC = () => {
         </div>
 
         {error && (
-          <div role="alert" className="flex items-start gap-2 rounded-xl px-3 py-2.5" style={{ background: 'rgba(194,86,46,0.08)', border: '1px solid rgba(194,86,46,0.2)' }}>
+          <div role="alert" className="flex items-start gap-2 rounded-xl px-3 py-2.5" style={{ background: 'rgba(184,68,42,0.08)', border: '1px solid rgba(184,68,42,0.2)' }}>
             <AlertCircle size={14} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--terra-500)' }} />
             <p className="text-xs" style={{ color: 'var(--terra-700)' }}>{error}</p>
           </div>

@@ -16,7 +16,7 @@ export const PortfolioCard: React.FC<Props> = ({ entry, onDelete }) => (
     ) : (
       <div
         className="h-40 flex items-center justify-center"
-        style={{ background: 'rgba(61,40,24,0.05)' }}
+        style={{ background: 'rgba(42,29,20,0.05)' }}
       >
         <Wrench size={32} style={{ color: 'var(--ink-muted)' }} strokeWidth={1.5} />
       </div>

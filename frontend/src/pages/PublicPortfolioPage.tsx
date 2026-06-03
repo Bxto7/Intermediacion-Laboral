@@ -46,7 +46,7 @@ export const PublicPortfolioPage: React.FC = () => {
       <div className="text-center space-y-3">
         <div
           className="w-16 h-16 rounded-3xl mx-auto flex items-center justify-center"
-          style={{ background: 'rgba(61,40,24,0.06)' }}
+          style={{ background: 'rgba(42,29,20,0.06)' }}
         >
           <Search size={28} style={{ color: 'var(--ink-muted)' }} />
         </div>
@@ -93,12 +93,12 @@ export const PublicPortfolioPage: React.FC = () => {
               <Star size={14} style={{ color: 'var(--gold-light)' }} />
               <span style={{ color: 'var(--on-dark)' }}>{worker.avg_rating.toFixed(1)}</span>/5.0
             </span>
-            <span style={{ color: 'rgba(253,246,234,0.3)' }}>·</span>
+            <span style={{ color: 'rgba(244,236,224,0.3)' }}>·</span>
             <span className="flex items-center gap-1.5" style={{ color: 'var(--on-dark-muted)' }}>
               <Clock size={14} />
               {worker.years_experience} años de exp.
             </span>
-            <span style={{ color: 'rgba(253,246,234,0.3)' }}>·</span>
+            <span style={{ color: 'rgba(244,236,224,0.3)' }}>·</span>
             <span className="flex items-center gap-1.5" style={{ color: 'var(--on-dark-muted)' }}>
               <MapPin size={14} />
               {worker.district}
@@ -112,7 +112,7 @@ export const PublicPortfolioPage: React.FC = () => {
                 <span
                   key={s}
                   className="text-xs px-2.5 py-1 rounded-full"
-                  style={{ background: 'rgba(253,246,234,0.12)', color: 'var(--on-dark)', border: '1px solid rgba(253,246,234,0.15)' }}
+                  style={{ background: 'rgba(244,236,224,0.12)', color: 'var(--on-dark)', border: '1px solid rgba(244,236,224,0.15)' }}
                 >
                   {s}
                 </span>
@@ -161,7 +161,7 @@ export const PublicPortfolioPage: React.FC = () => {
           </div>
         ) : (
           <div className="text-center py-12 space-y-3">
-            <div className="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center" style={{ background: 'rgba(61,40,24,0.06)' }}>
+            <div className="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center" style={{ background: 'rgba(42,29,20,0.06)' }}>
               <Briefcase size={22} style={{ color: 'var(--ink-muted)' }} />
             </div>
             <p className="text-sm" style={{ color: 'var(--ink-muted)' }}>Sin trabajos publicados aún</p>

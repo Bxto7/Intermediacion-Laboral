@@ -26,7 +26,7 @@ const DISTRICTS = ['Huancayo', 'El Tambo', 'Chilca']
 const AVAIL_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
   inmediata: { label: 'Disponible ahora', color: 'var(--olive-deep)', bg: 'var(--olive-100)' },
   semana:    { label: 'Esta semana',      color: 'var(--gold)',       bg: 'var(--gold-100)'  },
-  mes:       { label: 'Este mes',         color: 'var(--ink-muted)',  bg: 'rgba(61,40,24,0.06)' },
+  mes:       { label: 'Este mes',         color: 'var(--ink-muted)',  bg: 'rgba(42,29,20,0.06)' },
 }
 
 const PRICE_UNIT_LABELS: Record<string, string> = {
@@ -128,7 +128,7 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, onContact }) => {
             href={`/p/${listing.worker_username}`}
             className="flex-1 py-2 text-xs font-medium text-center rounded-full transition-colors"
             style={{ border: '1px solid var(--line-strong)', color: 'var(--ink-warm)' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(61,40,24,0.04)' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(42,29,20,0.04)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'transparent' }}
           >
             Ver portfolio
@@ -232,7 +232,7 @@ export const ServiceSearchPage: React.FC = () => {
               placeholder='Ej: "necesito electricista para instalar tomacorrientes en mi casa"'
               className="w-full pl-10 pr-4 py-3 rounded-xl text-sm transition-all focus:outline-none"
               style={{ border: '1px solid #d6c5a8', background: 'var(--bg-soft)', color: 'var(--ink-strong)' }}
-              onFocus={e => { e.currentTarget.style.borderColor = 'var(--terra-500)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(194,86,46,0.14)' }}
+              onFocus={e => { e.currentTarget.style.borderColor = 'var(--terra-500)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,68,42,0.14)' }}
               onBlur={e => { e.currentTarget.style.borderColor = '#d6c5a8'; e.currentTarget.style.boxShadow = 'none' }}
             />
           </div>
@@ -269,7 +269,7 @@ export const ServiceSearchPage: React.FC = () => {
         {/* Badge DRTPE */}
         <div
           className="rounded-xl px-4 py-3 flex items-center gap-2.5"
-          style={{ background: 'var(--blue-100)', border: '1px solid rgba(45,90,130,0.18)' }}
+          style={{ background: 'var(--blue-100)', border: '1px solid rgba(15,110,110,0.18)' }}
         >
           <Shield size={15} className="flex-shrink-0" style={{ color: 'var(--blue)' }} />
           <p className="text-xs leading-relaxed" style={{ color: 'var(--blue)' }}>
@@ -298,7 +298,7 @@ export const ServiceSearchPage: React.FC = () => {
           <div className="text-center py-16 space-y-3">
             <div
               className="w-16 h-16 rounded-3xl mx-auto flex items-center justify-center"
-              style={{ background: 'rgba(61,40,24,0.06)' }}
+              style={{ background: 'rgba(42,29,20,0.06)' }}
             >
               <Search size={28} style={{ color: 'var(--ink-muted)' }} />
             </div>

@@ -70,7 +70,7 @@ export const RegisterPage: React.FC = () => {
           <div className="relative z-10 space-y-6">
             <h2 className="text-4xl font-bold leading-tight text-white" style={{ letterSpacing: '-0.03em' }}>
               El trabajo que buscas está{' '}
-              <span style={{ fontFamily: 'Instrument Serif, Georgia, serif', fontStyle: 'italic', color: '#8fb1d1' }}>
+              <span style={{ fontFamily: 'Instrument Serif, Georgia, serif', fontStyle: 'italic', color: '#5fb3b3' }}>
                 aquí.
               </span>
             </h2>
@@ -88,22 +88,22 @@ export const RegisterPage: React.FC = () => {
         <div className="flex-1 flex flex-col justify-center p-8 sm:p-12 lg:p-16 relative z-10" style={{ background: 'var(--bg-base)' }}>
           <div className="max-w-sm mx-auto w-full space-y-8">
             <div className="space-y-2">
-              <h1 className="text-3xl font-bold" style={{ color: '#3d2818', letterSpacing: '-0.03em' }}>
+              <h1 className="text-3xl font-bold" style={{ color: '#2a1d14', letterSpacing: '-0.03em' }}>
                 {intl.formatMessage({ id: 'auth.register.title' })}
               </h1>
-              <p style={{ color: '#785536' }}>Crea tu cuenta gratis en minutos</p>
+              <p style={{ color: '#6e5d49' }}>Crea tu cuenta gratis en minutos</p>
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="block text-sm font-semibold" style={{ color: '#5a3d2b' }}>DNI</label>
+                  <label className="block text-sm font-semibold" style={{ color: '#3f2c1d' }}>DNI</label>
                   <input {...register('dni')} type="text" className="input-warm" placeholder="12345678" maxLength={8} />
                   {errors.dni && <p className="text-[10px]" style={{ color: 'var(--terra-500)' }}>{errors.dni.message}</p>}
                 </div>
                 <div className="space-y-1.5">
-                  <label className="block text-sm font-semibold" style={{ color: '#5a3d2b' }}>Rol</label>
+                  <label className="block text-sm font-semibold" style={{ color: '#3f2c1d' }}>Rol</label>
                   <select {...register('role')} className="input-warm">
                     <option value="worker">Trabajador</option>
                     <option value="employer">Empleador</option>
@@ -112,7 +112,7 @@ export const RegisterPage: React.FC = () => {
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-sm font-semibold" style={{ color: '#5a3d2b' }}>
+                <label className="block text-sm font-semibold" style={{ color: '#3f2c1d' }}>
                   {intl.formatMessage({ id: 'auth.register.full_name' })}
                 </label>
                 <input {...register('fullName')} type="text" className="input-warm" placeholder="Juan Pérez" />
@@ -120,7 +120,7 @@ export const RegisterPage: React.FC = () => {
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-sm font-semibold" style={{ color: '#5a3d2b' }}>
+                <label className="block text-sm font-semibold" style={{ color: '#3f2c1d' }}>
                   {intl.formatMessage({ id: 'auth.register.email' })}
                 </label>
                 <input {...register('email')} type="email" className="input-warm" placeholder="tu@correo.com" />
@@ -128,7 +128,7 @@ export const RegisterPage: React.FC = () => {
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-sm font-semibold" style={{ color: '#5a3d2b' }}>
+                <label className="block text-sm font-semibold" style={{ color: '#3f2c1d' }}>
                   {intl.formatMessage({ id: 'auth.register.password' })}
                 </label>
                 <input {...register('password')} type="password" className="input-warm" placeholder="Mínimo 8 caracteres" />
@@ -136,7 +136,7 @@ export const RegisterPage: React.FC = () => {
               </div>
 
               {error && (
-                <div className="flex items-start gap-3 px-4 py-3 rounded-xl" style={{ background: 'rgba(194,86,46,0.08)', border: '1px solid rgba(194,86,46,0.20)' }}>
+                <div className="flex items-start gap-3 px-4 py-3 rounded-xl" style={{ background: 'rgba(184,68,42,0.08)', border: '1px solid rgba(184,68,42,0.20)' }}>
                   <svg className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: 'var(--terra-500)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
@@ -161,9 +161,9 @@ export const RegisterPage: React.FC = () => {
               </button>
             </form>
 
-            <p className="text-center text-sm" style={{ color: '#785536' }}>
+            <p className="text-center text-sm" style={{ color: '#6e5d49' }}>
               ¿Ya tienes cuenta?{' '}
-              <Link to="/login" className="font-semibold transition-colors hover:text-opacity-80" style={{ color: '#c2562e' }}>
+              <Link to="/login" className="font-semibold transition-colors hover:text-opacity-80" style={{ color: '#b8442a' }}>
                 Iniciar sesión
               </Link>
             </p>
