@@ -179,6 +179,11 @@ services:
   # ─── SonarQube (análisis de calidad de código) ───────────────
   sonarqube:
     image: sonarqube:10-community
+    # Hostname fijo + mapeo en /etc/hosts para que el Elasticsearch embebido
+    # pueda resolver su propio hostname (evita UnknownHostException en WSL/Docker).
+    hostname: sonarqube
+    extra_hosts:
+      - "sonarqube:127.0.0.1"
     environment:
       # ── Conexión a BD propia de Sonar ──
       SONAR_JDBC_URL: jdbc:postgresql://sonar-db:5432/sonar
