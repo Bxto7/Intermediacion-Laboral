@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom'
 import { Star, Folder, Store, Briefcase, FileText, Plus, ChevronRight, Eye, TrendingUp } from 'lucide-react'
 import { useWorkerContext } from '../../context/WorkerContext'
 import { useMatches } from '../../hooks/useMatches'
+import { usePortfolio } from '../../hooks/usePortfolio'
+import { useApplications } from '../../hooks/useApplications'
 import { JobMatchCard } from '../../matching/JobMatchCard'
 import { LoadingSpinner } from '../../shared/LoadingSpinner'
 
@@ -17,9 +19,21 @@ const CHECKLIST = [
 export const OficioDashboard: React.FC = () => {
   const { worker } = useWorkerContext()
   const { matches, isLoading } = useMatches(4)
-  const name = worker?.display_name?.split(' ')[0] ?? 'aquí'
+  const { entries } = usePortfolio()
+  const { applications } = useApplications()
+  const name = worker?.display_name?.split(' ')[0] || 'aquí'
   const pct  = worker?.profile_completeness ?? 0
-  const done = Math.round((pct / 100) * CHECKLIST.length)
+  const rating = Number(worker?.avg_rating ?? 0)
+  const photos = entries.flatMap((e) => e.photos).filter(Boolean).slice(0, 4)
+  // Progreso real basado en señales de la cuenta
+  const checklistState = [
+    entries.length > 0,            // portfolio
+    worker?.is_available ?? false, // disponibilidad
+    false,                         // marketplace (sin señal aún)
+    pct >= 80,                     // cv / perfil completo
+    false,                         // primer contacto (sin señal aún)
+  ]
+  const done = checklistState.filter(Boolean).length
 
   return (
     <div className="space-y-5">
@@ -32,7 +46,7 @@ export const OficioDashboard: React.FC = () => {
         <div className="absolute bottom-0 left-1/3 w-48 h-48 rounded-full blur-3xl opacity-15 pointer-events-none" style={{ background: 'var(--olive)' }} />
 
         <div className="relative z-10">
-          <p className="kicker mb-2" style={{ color: 'rgba(253,246,234,0.45)' }}>
+          <p className="kicker mb-2" style={{ color: 'rgba(244,236,224,0.7)' }}>
             {worker?.trade_category ?? 'Trabajador de oficio'}
           </p>
           <h1 className="text-2xl md:text-3xl font-bold leading-tight mb-5" style={{ letterSpacing: '-0.03em', color: 'var(--on-dark)' }}>
@@ -45,15 +59,15 @@ export const OficioDashboard: React.FC = () => {
           {/* Stats row */}
           <div className="flex flex-wrap items-center gap-4 md:gap-6">
             {[
-              { icon: Star,       label: 'Rating',        value: worker?.avg_rating ? `${worker.avg_rating.toFixed(1)} ★` : '—',   color: 'var(--gold-light)' },
-              { icon: Folder,     label: 'Trabajos',      value: '—',  color: 'var(--coral)' },
+              { icon: Star,       label: 'Rating',        value: rating > 0 ? `${rating.toFixed(1)} ★` : '—',   color: 'var(--gold-light)' },
+              { icon: Folder,     label: 'Trabajos',      value: `${entries.length}`,  color: 'var(--coral)' },
               { icon: Eye,        label: 'Visibilidad',   value: `${pct}%`, color: 'var(--olive)' },
-              { icon: FileText,   label: 'Postulaciones', value: '0',  color: 'var(--blue)' },
+              { icon: FileText,   label: 'Postulaciones', value: `${applications.length}`,  color: 'var(--blue)' },
             ].map(s => (
               <div key={s.label} className="flex items-center gap-2">
                 <s.icon size={14} style={{ color: s.color }} />
                 <span className="text-sm font-semibold" style={{ color: 'var(--on-dark)' }}>{s.value}</span>
-                <span className="text-xs" style={{ color: 'rgba(253,246,234,0.45)' }}>{s.label}</span>
+                <span className="text-xs" style={{ color: 'rgba(244,236,224,0.7)' }}>{s.label}</span>
               </div>
             ))}
           </div>
@@ -129,7 +143,7 @@ export const OficioDashboard: React.FC = () => {
             style={{
               background: 'linear-gradient(140deg, var(--bg-warm), var(--bg-soft))',
               border: '1px solid var(--line)',
-              boxShadow: '0 0 0 1px rgba(194,86,46,0.06), var(--shadow-md)',
+              boxShadow: '0 0 0 1px rgba(184,68,42,0.06), var(--shadow-md)',
             }}
           >
             <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-2xl opacity-30 pointer-events-none" style={{ background: 'var(--terra-400)' }} />
@@ -149,17 +163,23 @@ export const OficioDashboard: React.FC = () => {
                   linku.pe/p/{worker.slug}
                 </p>
               )}
-              {/* 4 mini thumbnail placeholders */}
+              {/* Thumbnails reales del portafolio */}
               <div className="grid grid-cols-4 gap-1.5 mb-4">
-                {[...Array(4)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="aspect-square rounded-[8px] flex items-center justify-center"
-                    style={{ background: i === 0 ? 'var(--terra-100)' : 'rgba(61,40,24,0.06)' }}
-                  >
-                    {i === 0 ? <Plus size={12} style={{ color: 'var(--terra-500)' }} /> : null}
-                  </div>
-                ))}
+                {[...Array(4)].map((_, i) => {
+                  const photo = photos[i]
+                  return (
+                    <Link
+                      key={i}
+                      to="/oficio/portfolio"
+                      className="aspect-square rounded-[8px] overflow-hidden flex items-center justify-center"
+                      style={{ background: photo ? 'transparent' : (i === photos.length ? 'var(--terra-100)' : 'rgba(42,29,20,0.06)') }}
+                    >
+                      {photo
+                        ? <img src={photo} alt="" className="w-full h-full object-cover" />
+                        : i === photos.length ? <Plus size={12} style={{ color: 'var(--terra-500)' }} /> : null}
+                    </Link>
+                  )
+                })}
               </div>
               <Link to="/oficio/portfolio" className="btn-primary w-full text-xs py-2 block text-center">
                 + Agregar trabajo
@@ -183,7 +203,7 @@ export const OficioDashboard: React.FC = () => {
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--bg-warm)' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--bg-soft)' }}
               >
-                <div className="w-7 h-7 rounded-[8px] flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(61,40,24,0.06)' }}>
+                <div className="w-7 h-7 rounded-[8px] flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(42,29,20,0.06)' }}>
                   <item.Icon size={13} style={{ color: item.color }} />
                 </div>
                 <span className="text-[12.5px] font-medium flex-1" style={{ color: 'var(--ink-warm)' }}>{item.label}</span>

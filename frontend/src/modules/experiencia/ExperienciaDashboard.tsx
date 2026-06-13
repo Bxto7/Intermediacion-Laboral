@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { Star, ChevronRight, Search, Bell, Briefcase, TrendingUp, Eye, FileText } from 'lucide-react'
 import { useIntl } from 'react-intl'
 import { useMatches } from '../../hooks/useMatches'
+import { useApplications } from '../../hooks/useApplications'
 import { JobMatchCard } from '../../matching/JobMatchCard'
 import { LoadingSpinner } from '../../shared/LoadingSpinner'
 import { useWorkerContext } from '../../context/WorkerContext'
@@ -9,8 +10,11 @@ import { useWorkerContext } from '../../context/WorkerContext'
 export const ExperienciaDashboard: React.FC = () => {
   const intl = useIntl()
   const { matches, isLoading } = useMatches(10)
+  const { applications } = useApplications()
   const { worker } = useWorkerContext()
   const completeness = worker?.profile_completeness ?? 0
+  const rating = Number(worker?.avg_rating ?? 0)
+  const visible = completeness >= 40
   const name = worker?.display_name?.split(' ')[0] ?? ''
 
   return (
@@ -25,12 +29,12 @@ export const ExperienciaDashboard: React.FC = () => {
           <div className="flex items-start gap-4">
             <div
               className="w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold text-white flex-shrink-0"
-              style={{ background: 'rgba(253,246,234,0.12)', border: '1px solid rgba(253,246,234,0.15)' }}
+              style={{ background: 'rgba(244,236,224,0.12)', border: '1px solid rgba(244,236,224,0.15)' }}
             >
               {worker?.display_name?.[0]?.toUpperCase() ?? 'U'}
             </div>
             <div>
-              <p className="kicker mb-1" style={{ color: 'rgba(253,246,234,0.45)' }}>Profesional con experiencia</p>
+              <p className="kicker mb-1" style={{ color: 'rgba(244,236,224,0.7)' }}>Profesional con experiencia</p>
               <h1 className="text-xl md:text-2xl font-bold leading-tight" style={{ letterSpacing: '-0.03em', color: 'var(--on-dark)' }}>
                 {name ? `Hola ${name}, ` : ''}
                 <span className="serif-it" style={{ color: 'var(--coral)' }}>
@@ -38,23 +42,23 @@ export const ExperienciaDashboard: React.FC = () => {
                 </span>
               </h1>
               {worker?.district && (
-                <p className="text-xs mt-1" style={{ color: 'rgba(253,246,234,0.45)' }}>{worker.district}</p>
+                <p className="text-xs mt-1" style={{ color: 'rgba(244,236,224,0.7)' }}>{worker.district}</p>
               )}
             </div>
           </div>
 
           {/* Stats row */}
-          <div className="flex flex-wrap items-center gap-4 md:gap-8 mt-5 pt-4" style={{ borderTop: '1px solid rgba(253,246,234,0.10)' }}>
+          <div className="flex flex-wrap items-center gap-4 md:gap-8 mt-5 pt-4" style={{ borderTop: '1px solid rgba(244,236,224,0.10)' }}>
             {[
-              { Icon: Star,        label: 'Rating',         value: worker?.avg_rating ? `${worker.avg_rating.toFixed(1)} ★` : '—',   color: 'var(--gold-light)' },
+              { Icon: Star,        label: 'Rating',         value: rating > 0 ? `${rating.toFixed(1)} ★` : '—',   color: 'var(--gold-light)' },
               { Icon: Eye,         label: 'Completitud',    value: `${completeness}%`, color: 'var(--coral)' },
-              { Icon: TrendingUp,  label: 'Visibilidad',    value: '—',  color: 'var(--olive)' },
-              { Icon: FileText,    label: 'Postulaciones',  value: '0',  color: 'var(--blue)' },
+              { Icon: TrendingUp,  label: 'Visibilidad',    value: visible ? 'Visible' : 'Oculta',  color: 'var(--olive)' },
+              { Icon: FileText,    label: 'Postulaciones',  value: `${applications.length}`,  color: 'var(--blue)' },
             ].map(s => (
               <div key={s.label} className="flex items-center gap-1.5">
                 <s.Icon size={13} style={{ color: s.color }} />
                 <span className="text-sm font-semibold" style={{ color: 'var(--on-dark)' }}>{s.value}</span>
-                <span className="text-xs" style={{ color: 'rgba(253,246,234,0.45)' }}>{s.label}</span>
+                <span className="text-xs" style={{ color: 'rgba(244,236,224,0.7)' }}>{s.label}</span>
               </div>
             ))}
           </div>
@@ -85,7 +89,7 @@ export const ExperienciaDashboard: React.FC = () => {
             </div>
           ) : (
             <div className="text-center py-12 space-y-3">
-              <div className="w-12 h-12 mx-auto rounded-xl flex items-center justify-center" style={{ background: 'rgba(61,40,24,0.05)' }}>
+              <div className="w-12 h-12 mx-auto rounded-xl flex items-center justify-center" style={{ background: 'rgba(42,29,20,0.05)' }}>
                 <Search size={22} style={{ color: 'var(--ink-muted)' }} strokeWidth={1.5} />
               </div>
               <p className="text-sm font-semibold" style={{ color: 'var(--ink-warm)' }}>
@@ -107,8 +111,8 @@ export const ExperienciaDashboard: React.FC = () => {
             <div className="grid grid-cols-3 gap-2 mb-4">
               {[
                 { label: 'Completitud',    value: `${completeness}%`, color: completeness >= 60 ? 'var(--olive-deep)' : 'var(--terra-500)' },
-                { label: 'Visibilidad',    value: '—',  color: 'var(--ink-muted)' },
-                { label: 'Postulaciones', value: '0',  color: 'var(--ink-strong)' },
+                { label: 'Visibilidad',    value: visible ? 'Sí' : 'No',  color: 'var(--ink-muted)' },
+                { label: 'Postulaciones', value: `${applications.length}`,  color: 'var(--ink-strong)' },
               ].map(s => (
                 <div key={s.label} className="text-center rounded-xl p-2.5" style={{ background: 'var(--bg-soft)', border: '1px solid var(--line)' }}>
                   <p className="text-base font-bold" style={{ color: s.color }}>{s.value}</p>
@@ -146,14 +150,14 @@ export const ExperienciaDashboard: React.FC = () => {
             </p>
             <button
               className="w-full py-2 text-[12px] font-medium rounded-xl transition-all"
-              style={{ border: '1.5px dashed rgba(194,86,46,0.25)', color: 'var(--ink-muted)' }}
+              style={{ border: '1.5px dashed rgba(184,68,42,0.25)', color: 'var(--ink-muted)' }}
               onMouseEnter={e => {
                 (e.currentTarget as HTMLElement).style.borderColor = 'var(--terra-500)'
                 ;(e.currentTarget as HTMLElement).style.color = 'var(--terra-500)'
-                ;(e.currentTarget as HTMLElement).style.background = 'rgba(194,86,46,0.04)'
+                ;(e.currentTarget as HTMLElement).style.background = 'rgba(184,68,42,0.04)'
               }}
               onMouseLeave={e => {
-                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(194,86,46,0.25)'
+                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,68,42,0.25)'
                 ;(e.currentTarget as HTMLElement).style.color = 'var(--ink-muted)'
                 ;(e.currentTarget as HTMLElement).style.background = 'transparent'
               }}

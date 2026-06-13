@@ -8,7 +8,7 @@ interface StatRow { worker_type: string; district: string | null; total: number;
 interface WorkerRow { id: string; email: string; name: string; worker_type: string; district: string; trade_category: string; profile_completeness: number; is_available: boolean; created_at: string | null }
 
 const TYPE_LABELS: Record<string, string> = { primer_empleo: 'Primer empleo', experiencia: 'Experiencia', oficio: 'Oficio' }
-const TYPE_COLORS: Record<string, string> = { primer_empleo: '#4299e1', experiencia: '#48bb78', oficio: '#ed8936' }
+const TYPE_COLORS: Record<string, string> = { primer_empleo: '#2d9a9a', experiencia: '#5d6b46', oficio: '#e0a32e' }
 
 export const WorkersAdmin: React.FC = () => {
   const [stats, setStats] = useState<StatRow[]>([])
@@ -75,11 +75,11 @@ export const WorkersAdmin: React.FC = () => {
           <h3 className="font-semibold text-sm mb-4" style={{ color: 'var(--ink-strong)' }}>Distribución por tipo</h3>
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={chartData} barSize={48}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(61,40,24,0.06)" />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(42,29,20,0.06)" />
               <XAxis dataKey="label" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
               <Tooltip />
-              <Bar dataKey="total" radius={[6, 6, 0, 0]} fill="#c2562e" />
+              <Bar dataKey="total" radius={[6, 6, 0, 0]} fill="#b8442a" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -119,7 +119,7 @@ export const WorkersAdmin: React.FC = () => {
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: w.is_available ? 'rgba(122,140,92,0.14)' : 'rgba(61,40,24,0.07)', color: w.is_available ? 'var(--olive-deep)' : 'var(--ink-muted)' }}>
+                    <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: w.is_available ? 'rgba(122,140,92,0.14)' : 'rgba(42,29,20,0.07)', color: w.is_available ? 'var(--olive-deep)' : 'var(--ink-muted)' }}>
                       {w.is_available ? 'Disponible' : 'No disponible'}
                     </span>
                   </td>

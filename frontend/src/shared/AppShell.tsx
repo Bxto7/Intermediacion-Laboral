@@ -99,25 +99,27 @@ const SideItem: React.FC<{ item: NavItemDef }> = ({ item }) => {
 // ─── Sidenav completeness card (dark nudge) ──────────────────────────────────
 const CompletenessCard: React.FC = () => {
   const { worker } = useWorkerContext()
+  const { user } = useAuthContext()
   const navigate = useNavigate()
   const pct = worker?.profile_completeness ?? 0
-  if (pct >= 100) return null
+  // Solo para trabajadores con perfil; nunca para empleador/admin
+  if (user?.role !== 'worker' || !worker || pct >= 100) return null
   return (
     <div
       className="mx-2 mb-3 rounded-[14px] p-3.5 cursor-pointer"
       style={{
         background: 'radial-gradient(200px 120px at 80% 0%, rgba(217,119,87,0.35), transparent 60%), linear-gradient(140deg, var(--dark-deep), var(--dark))',
-        boxShadow: '0 0 0 1px rgba(253,246,234,0.08), 0 0 24px -8px rgba(194,86,46,0.25)',
+        boxShadow: '0 0 0 1px rgba(244,236,224,0.08), 0 0 24px -8px rgba(184,68,42,0.25)',
       }}
       onClick={() => navigate('/wizard/step/1')}
     >
-      <p className="text-[11px] font-mono uppercase tracking-widest mb-1.5" style={{ color: 'rgba(253,246,234,0.5)' }}>
+      <p className="text-[11px] font-mono uppercase tracking-widest mb-1.5" style={{ color: 'rgba(244,236,224,0.5)' }}>
         Perfil
       </p>
       <p className="text-[13px] font-medium leading-snug mb-2.5" style={{ color: 'var(--on-dark)' }}>
         Estás casi <span className="serif-it" style={{ color: 'var(--coral)' }}>listo</span> · {pct}%
       </p>
-      <div className="h-1.5 rounded-full overflow-hidden mb-2.5" style={{ background: 'rgba(253,246,234,0.12)' }}>
+      <div className="h-1.5 rounded-full overflow-hidden mb-2.5" style={{ background: 'rgba(244,236,224,0.12)' }}>
         <div
           className="h-full rounded-full transition-all duration-500"
           style={{ width: `${pct}%`, background: 'linear-gradient(90deg, var(--terra-400), var(--gold-light))' }}
@@ -133,13 +135,16 @@ const CompletenessCard: React.FC = () => {
 // ─── Sidenav ────────────────────────────────────────────────────────────────
 const SideNav: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const { user, logout } = useAuthContext()
-  const { workerType } = useWorkerContext()
+  const { workerType, worker } = useWorkerContext()
   const navigate = useNavigate()
   const { primary, account } = getNavItems(workerType, user?.role ?? '')
 
+  const displayName =
+    (user?.role === 'worker' && worker?.display_name) || user?.email?.split('@')[0] || 'Usuario'
+
   const handleLogout = async () => {
     await logout()
-    navigate('/login')
+    navigate('/')
   }
 
   return (
@@ -182,11 +187,11 @@ const SideNav: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
           className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
           style={{ background: 'linear-gradient(135deg, var(--terra-400), var(--terra-500))' }}
         >
-          {user?.email?.charAt(0).toUpperCase() ?? 'U'}
+          {displayName.charAt(0).toUpperCase()}
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-[12px] font-medium truncate" style={{ color: 'var(--ink-strong)' }}>
-            {user?.email?.split('@')[0]}
+            {displayName}
           </p>
           <p className="text-[10.5px] truncate" style={{ color: 'var(--ink-muted)' }}>
             {user?.role === 'worker' ? workerType?.replace('_', ' ') : user?.role}
@@ -210,7 +215,10 @@ const SideNav: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
 // ─── TopBar ─────────────────────────────────────────────────────────────────
 const TopBar: React.FC<{ onMenuToggle: () => void }> = ({ onMenuToggle }) => {
   const { user } = useAuthContext()
+  const { worker } = useWorkerContext()
   const navigate = useNavigate()
+  const displayName =
+    (user?.role === 'worker' && worker?.display_name) || user?.email?.split('@')[0] || 'Usuario'
 
   return (
     <header
@@ -272,10 +280,10 @@ const TopBar: React.FC<{ onMenuToggle: () => void }> = ({ onMenuToggle }) => {
             className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
             style={{ background: 'linear-gradient(135deg, var(--terra-400), var(--terra-500))' }}
           >
-            {user?.email?.charAt(0).toUpperCase() ?? 'U'}
+            {displayName.charAt(0).toUpperCase()}
           </div>
-          <span className="text-[12.5px] font-medium max-w-[96px] truncate" style={{ color: 'var(--ink-strong)' }}>
-            {user?.email?.split('@')[0]}
+          <span className="text-[12.5px] font-medium max-w-[120px] truncate" style={{ color: 'var(--ink-strong)' }}>
+            {displayName}
           </span>
           <ChevronDown size={12} style={{ color: 'var(--ink-muted)' }} />
         </button>

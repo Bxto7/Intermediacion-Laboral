@@ -176,6 +176,63 @@ services:
     networks:
       - drtpe_net
 
+  # ─── SonarQube (análisis de calidad de código) ───────────────
+  sonarqube:
+    image: sonarqube:10-community
+    # Hostname fijo + mapeo en /etc/hosts para que el Elasticsearch embebido
+    # pueda resolver su propio hostname (evita UnknownHostException en WSL/Docker).
+    hostname: sonarqube
+    extra_hosts:
+      - "sonarqube:127.0.0.1"
+    environment:
+      # ── Conexión a BD propia de Sonar ──
+      SONAR_JDBC_URL: jdbc:postgresql://sonar-db:5432/sonar
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: sonar
+      # ── JVM tuning (reduce tiempo de arranque) ──
+      SONAR_WEB_JAVAOPTS: "-Xmx512m -Xms128m -XX:+HeapDumpOnOutOfMemoryError"
+      SONAR_CE_JAVAOPTS: "-Xmx512m -Xms128m"
+      SONAR_SEARCH_JAVAOPTS: "-Xmx512m -Xms512m -XX:+HeapDumpOnOutOfMemoryError"
+      # ── Desactiva checks lentos de Elasticsearch en dev ──
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - "9000:9000"
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_logs:/opt/sonarqube/logs
+      - sonarqube_extensions:/opt/sonarqube/extensions
+    depends_on:
+      sonar-db:
+        condition: service_healthy
+    networks:
+      - drtpe_net
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  # ─── BD dedicada para SonarQube ──────────────────────────────
+  sonar-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: sonar
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: sonar
+    volumes:
+      - sonar_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sonar -d sonar"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - drtpe_net
+
 networks:
   drtpe_net:
     driver: bridge
@@ -185,3 +242,7 @@ volumes:
   redis_data:
   prometheus_data:
   grafana_data:
+  sonarqube_data:
+  sonarqube_logs:
+  sonarqube_extensions:
+  sonar_db_data:

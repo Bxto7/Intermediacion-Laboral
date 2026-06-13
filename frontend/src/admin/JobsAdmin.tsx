@@ -32,13 +32,6 @@ const MODALITY_LABELS: Record<string, string> = {
   mixto:      'Mixto',
 }
 
-const MOCK_JOBS: JobFeedItem[] = [
-  { id: 'm1', title: 'Electricista residencial', description: '', district: 'El Tambo',  modality: 'presencial', worker_type_target: 'oficio',        salary_min: 1000, salary_max: 1500, is_active: true,  views_count: 34,  applications_count: 8,  created_at: new Date(Date.now() - 86400000 * 3).toISOString(),  days_until_expiry: 27 },
-  { id: 'm2', title: 'Asistente contable',       description: '', district: 'Huancayo',  modality: 'presencial', worker_type_target: 'experiencia',   salary_min: 1200, salary_max: 1800, is_active: true,  views_count: 56,  applications_count: 14, created_at: new Date(Date.now() - 86400000 * 5).toISOString(),  days_until_expiry: 25 },
-  { id: 'm3', title: 'Operario de construcción', description: '', district: 'Chilca',    modality: 'presencial', worker_type_target: 'all',           salary_min: 900,  salary_max: null, is_active: true,  views_count: 22,  applications_count: 5,  created_at: new Date(Date.now() - 86400000 * 7).toISOString(),  days_until_expiry: 23 },
-  { id: 'm4', title: 'Diseñador gráfico junior', description: '', district: 'Huancayo',  modality: 'remoto',     worker_type_target: 'primer_empleo', salary_min: 800,  salary_max: 1200, is_active: false, views_count: 91,  applications_count: 22, created_at: new Date(Date.now() - 86400000 * 15).toISOString(), days_until_expiry: null },
-]
-
 export const JobsAdmin: React.FC = () => {
   const [jobs, setJobs] = useState<JobFeedItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -51,8 +44,7 @@ export const JobsAdmin: React.FC = () => {
       .finally(() => setLoading(false))
   }, [])
 
-  const source = jobs.length > 0 ? jobs : MOCK_JOBS
-  const isMock = jobs.length === 0
+  const source = jobs
 
   const filtered = source.filter(j =>
     filter === 'all' ? true : filter === 'active' ? j.is_active : !j.is_active
@@ -68,7 +60,6 @@ export const JobsAdmin: React.FC = () => {
         <h2 className="font-bold text-lg" style={{ color: 'var(--ink-strong)', letterSpacing: '-0.02em' }}>Ofertas laborales</h2>
         <p className="text-sm mt-0.5" style={{ color: 'var(--ink-muted)' }}>
           Todas las vacantes publicadas en la plataforma
-          {isMock && <span className="ml-2 text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--terra-100)', color: 'var(--terra-600)' }}>Datos de ejemplo</span>}
         </p>
       </div>
 
@@ -106,13 +97,19 @@ export const JobsAdmin: React.FC = () => {
       {/* Jobs list */}
       {loading ? (
         <LoadingSpinner />
+      ) : filtered.length === 0 ? (
+        <div className="card-warm p-10 text-center">
+          <Briefcase size={26} className="mx-auto mb-2" strokeWidth={1.5} style={{ color: 'var(--ink-muted)' }} />
+          <p className="text-sm font-semibold" style={{ color: 'var(--ink-warm)' }}>No hay ofertas publicadas</p>
+          <p className="text-xs mt-1" style={{ color: 'var(--ink-muted)' }}>Las vacantes que publiquen los empleadores aparecerán aquí.</p>
+        </div>
       ) : (
         <div className="space-y-3">
           {filtered.map(job => (
             <div key={job.id} className="card-warm p-4">
               <div className="flex items-start gap-3 justify-between">
                 <div className="flex items-start gap-3 flex-1 min-w-0">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: job.is_active ? 'var(--terra-100)' : 'rgba(61,40,24,0.05)' }}>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: job.is_active ? 'var(--terra-100)' : 'rgba(42,29,20,0.05)' }}>
                     <Briefcase size={18} style={{ color: job.is_active ? 'var(--terra-500)' : 'var(--ink-muted)' }} />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -121,14 +118,14 @@ export const JobsAdmin: React.FC = () => {
                       <span
                         className="text-[10px] px-1.5 py-0.5 rounded-full"
                         style={{
-                          background: job.is_active ? 'rgba(122,140,92,0.14)' : 'rgba(61,40,24,0.07)',
+                          background: job.is_active ? 'rgba(122,140,92,0.14)' : 'rgba(42,29,20,0.07)',
                           color: job.is_active ? 'var(--olive-deep)' : 'var(--ink-muted)',
                         }}
                       >
                         {job.is_active ? 'Activa' : 'Inactiva'}
                       </span>
                       {job.worker_type_target && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(184,137,58,0.14)', color: 'var(--gold)' }}>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(201,150,31,0.14)', color: 'var(--gold)' }}>
                           {WORKER_TYPE_LABELS[job.worker_type_target] ?? job.worker_type_target}
                         </span>
                       )}

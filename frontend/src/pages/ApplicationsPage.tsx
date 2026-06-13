@@ -3,10 +3,10 @@ import { LoadingSpinner } from '../shared/LoadingSpinner'
 import { useApplications } from '../hooks/useApplications'
 
 const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string }> = {
-  PENDING:   { label: 'En revisión',  bg: 'rgba(184,137,58,0.14)', color: 'var(--gold)'        },
+  PENDING:   { label: 'En revisión',  bg: 'rgba(201,150,31,0.14)', color: 'var(--gold)'        },
   ACCEPTED:  { label: 'Aceptado',     bg: 'rgba(122,140,92,0.14)', color: 'var(--olive-deep)'  },
-  REJECTED:  { label: 'Descartado',   bg: 'rgba(194,86,46,0.10)', color: 'var(--terra-500)'    },
-  WITHDRAWN: { label: 'Retirado',     bg: 'rgba(61,40,24,0.07)',  color: 'var(--ink-muted)'    },
+  REJECTED:  { label: 'Descartado',   bg: 'rgba(184,68,42,0.10)', color: 'var(--terra-500)'    },
+  WITHDRAWN: { label: 'Retirado',     bg: 'rgba(42,29,20,0.07)',  color: 'var(--ink-muted)'    },
 }
 
 export const ApplicationsPage: React.FC = () => {
@@ -30,9 +30,9 @@ export const ApplicationsPage: React.FC = () => {
         ) : applications.length === 0 ? (
           <div
             className="rounded-2xl p-12 text-center"
-            style={{ border: '2px dashed rgba(61,40,24,0.14)', background: 'var(--bg-elevated)' }}
+            style={{ border: '2px dashed rgba(42,29,20,0.14)', background: 'var(--bg-elevated)' }}
           >
-            <div className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ background: 'rgba(61,40,24,0.05)' }}>
+            <div className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ background: 'rgba(42,29,20,0.05)' }}>
               <FileText size={28} style={{ color: 'var(--ink-muted)' }} strokeWidth={1.5} />
             </div>
             <h3 className="font-bold text-sm mb-1" style={{ color: 'var(--ink-warm)' }}>Aún no tienes postulaciones</h3>
@@ -45,7 +45,7 @@ export const ApplicationsPage: React.FC = () => {
         ) : (
           <div className="space-y-3">
             {applications.map(app => {
-              const cfg = STATUS_CONFIG[app.status] ?? { label: app.status, bg: 'rgba(61,40,24,0.07)', color: 'var(--ink-warm)' }
+              const cfg = STATUS_CONFIG[app.status] ?? { label: app.status, bg: 'rgba(42,29,20,0.07)', color: 'var(--ink-warm)' }
               return (
                 <div key={app.id} className="card-warm p-4">
                   <div className="flex items-start justify-between gap-3">

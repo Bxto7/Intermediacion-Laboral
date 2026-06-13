@@ -5,6 +5,7 @@ import { useMatches } from '../../hooks/useMatches'
 import { JobMatchCard } from '../../matching/JobMatchCard'
 import { LoadingSpinner } from '../../shared/LoadingSpinner'
 import { useWorkerContext } from '../../context/WorkerContext'
+import { downloadCV } from '../../lib/downloadCV'
 
 const TIPS = [
   { Icon: Lightbulb, title: '¿Cómo ir a una entrevista?',      desc: 'Viste de forma limpia y ordenada. Llega 10 minutos antes.' },
@@ -27,7 +28,7 @@ export const PrimerEmpleoDashboard: React.FC = () => {
         <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl opacity-20 pointer-events-none" style={{ background: 'var(--terra-500)' }} />
         <div className="absolute bottom-0 left-0 w-40 h-40 rounded-full blur-3xl opacity-10 pointer-events-none" style={{ background: 'var(--olive)' }} />
         <div className="relative z-10">
-          <p className="kicker mb-2" style={{ color: 'rgba(253,246,234,0.45)' }}>Tu primer empleo</p>
+          <p className="kicker mb-2" style={{ color: 'rgba(244,236,224,0.7)' }}>Tu primer empleo</p>
           <h1 className="text-2xl md:text-3xl font-bold leading-tight mb-4" style={{ letterSpacing: '-0.03em', color: 'var(--on-dark)' }}>
             {name ? `Hola ${name}, ` : ''}
             <span className="serif-it" style={{ color: 'var(--coral)' }}>
@@ -36,7 +37,7 @@ export const PrimerEmpleoDashboard: React.FC = () => {
           </h1>
           {/* Completeness bar */}
           <div className="flex items-center gap-3">
-            <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(253,246,234,0.16)' }}>
+            <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(244,236,224,0.16)' }}>
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{ width: `${completeness}%`, background: 'linear-gradient(90deg, var(--terra-400), var(--gold-light))' }}
@@ -44,7 +45,7 @@ export const PrimerEmpleoDashboard: React.FC = () => {
             </div>
             <span className="text-sm font-bold" style={{ color: 'var(--on-dark)' }}>{completeness}%</span>
           </div>
-          <p className="text-xs mt-1.5" style={{ color: 'rgba(253,246,234,0.45)' }}>completitud del perfil</p>
+          <p className="text-xs mt-1.5" style={{ color: 'rgba(244,236,224,0.7)' }}>completitud del perfil</p>
         </div>
       </div>
 
@@ -108,14 +109,12 @@ export const PrimerEmpleoDashboard: React.FC = () => {
                 {intl.formatMessage({ id: 'primer_empleo.dashboard.continue_wizard' })}
               </Link>
               {worker?.id && (
-                <a
-                  href={`/api/v1/cv/download/${worker.id}`}
-                  target="_blank"
-                  rel="noreferrer"
+                <button
+                  onClick={() => downloadCV(worker.id)}
                   className="btn-secondary block w-full text-center py-2.5 text-xs"
                 >
                   Descargar CV (PDF)
-                </a>
+                </button>
               )}
             </div>
           </div>

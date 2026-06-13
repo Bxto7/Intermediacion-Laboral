@@ -39,6 +39,7 @@ export interface CandidateApplication {
   cover_note: string | null
   applied_at: string
   job_title: string
+  worker_name?: string
 }
 
 export const useEmployerJobs = () => {

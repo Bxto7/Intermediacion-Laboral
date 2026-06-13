@@ -1,0 +1,63 @@
+{% macro experiences(items, heading="Experiencia laboral", empty_text="Sin experiencia registrada.") %}
+<div class="main-section">
+  <h2>{{ heading }}</h2>
+  {% for exp in items %}
+  <table class="entry">
+    <tr>
+      <td class="period">{{ exp.period }}</td>
+      <td>
+        <div class="role">{{ exp.role }}</div>
+        {% if exp.company %}<div class="company">{{ exp.company }}</div>{% endif %}
+        {% if exp.bullets %}
+        <ul>
+          {% for b in exp.bullets %}<li>{{ b }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+        {% if exp.achievements %}
+        <div class="achievements-label">Logros clave:</div>
+        <ul>
+          {% for a in exp.achievements %}<li>{{ a }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+      </td>
+    </tr>
+  </table>
+  {% else %}
+  <p class="empty">{{ empty_text }}</p>
+  {% endfor %}
+</div>
+{% endmacro %}
+
+
+{% macro education(items, heading="Educacion", empty_text="Sin educacion registrada.") %}
+<div class="main-section">
+  <h2>{{ heading }}</h2>
+  {% for edu in items %}
+  <table class="entry">
+    <tr>
+      <td class="period">{{ edu.period }}</td>
+      <td>
+        <div class="role">{{ edu.degree }}</div>
+        {% if edu.institution %}<div class="company">{{ edu.institution }}</div>{% endif %}
+      </td>
+    </tr>
+  </table>
+  {% else %}
+  <p class="empty">{{ empty_text }}</p>
+  {% endfor %}
+</div>
+{% endmacro %}
+
+
+{% macro skills(items, heading="Habilidades", empty_text="Sin habilidades registradas.") %}
+<div class="main-section">
+  <h2>{{ heading }}</h2>
+  {% if items %}
+  <ul class="skills-list">
+    {% for s in items %}<li>{{ s }}</li>{% endfor %}
+  </ul>
+  {% else %}
+  <p class="empty">{{ empty_text }}</p>
+  {% endif %}
+</div>
+{% endmacro %}

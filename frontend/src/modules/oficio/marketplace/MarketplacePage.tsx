@@ -31,7 +31,7 @@ const DISTRICTS = ['Huancayo', 'El Tambo', 'Chilca']
 const AVAIL_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
   inmediata: { label: 'Disponible ahora', color: 'var(--olive-deep)', bg: 'var(--olive-100)' },
   semana:    { label: 'Esta semana',      color: 'var(--gold)',       bg: 'var(--gold-100)'  },
-  mes:       { label: 'Este mes',         color: 'var(--ink-muted)',  bg: 'rgba(61,40,24,0.06)' },
+  mes:       { label: 'Este mes',         color: 'var(--ink-muted)',  bg: 'rgba(42,29,20,0.06)' },
 }
 
 const PRICE_UNIT_LABELS: Record<string, string> = {
@@ -104,7 +104,7 @@ const ListingModal: React.FC<ListingModalProps> = ({ initial, onClose, onCreate,
           <h2 className="font-bold text-base" style={{ color: 'var(--ink-strong)' }}>
             {initial ? 'Editar servicio' : 'Publicar nuevo servicio'}
           </h2>
-          <button onClick={onClose} aria-label="Cerrar" className="w-11 h-11 rounded-full flex items-center justify-center transition-colors cursor-pointer" style={{ color: 'var(--ink-muted)' }} onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(61,40,24,0.07)' }} onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}>
+          <button onClick={onClose} aria-label="Cerrar" className="w-11 h-11 rounded-full flex items-center justify-center transition-colors cursor-pointer" style={{ color: 'var(--ink-muted)' }} onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(42,29,20,0.07)' }} onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}>
             <X size={16} />
           </button>
         </div>
@@ -439,7 +439,7 @@ export const MarketplacePage: React.FC = () => {
               className="rounded-3xl p-12 text-center max-w-md mx-auto mt-4"
               style={{ background: 'var(--bg-elevated)', border: '2px dashed var(--line-strong)' }}
             >
-              <div className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ background: 'rgba(61,40,24,0.05)' }}>
+              <div className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ background: 'rgba(42,29,20,0.05)' }}>
                 <Store size={28} style={{ color: 'var(--ink-muted)' }} strokeWidth={1.5} />
               </div>
               <h3 className="font-bold text-base mb-1" style={{ color: 'var(--ink-strong)' }}>
@@ -468,7 +468,7 @@ export const MarketplacePage: React.FC = () => {
                   placeholder='Ej: "necesito electricista para mi casa"'
                   className="w-full pl-10 pr-4 py-3 rounded-xl text-sm transition-all focus:outline-none"
                   style={{ border: '1px solid #d6c5a8', background: 'var(--bg-soft)', color: 'var(--ink-strong)' }}
-                  onFocus={e => { e.currentTarget.style.borderColor = 'var(--terra-500)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(194,86,46,0.14)' }}
+                  onFocus={e => { e.currentTarget.style.borderColor = 'var(--terra-500)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,68,42,0.14)' }}
                   onBlur={e => { e.currentTarget.style.borderColor = '#d6c5a8'; e.currentTarget.style.boxShadow = 'none' }}
                 />
               </div>
@@ -520,7 +520,7 @@ export const MarketplacePage: React.FC = () => {
               </div>
             ) : (
               <div className="text-center py-14 space-y-3">
-                <div className="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center" style={{ background: 'rgba(61,40,24,0.06)' }}>
+                <div className="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center" style={{ background: 'rgba(42,29,20,0.06)' }}>
                   <Search size={24} style={{ color: 'var(--ink-muted)' }} />
                 </div>
                 <p className="text-sm" style={{ color: 'var(--ink-muted)' }}>No se encontraron servicios con esos filtros</p>

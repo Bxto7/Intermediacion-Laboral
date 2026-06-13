@@ -1,10 +1,13 @@
-FROM python:3.11-slim
+FROM python:3.11-slim-bookworm
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app
 
 WORKDIR /app
+
+# Switch apt sources to HTTPS (HTTP port 80 may be blocked on some networks)
+RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources
 
 RUN apt-get update && apt-get install -y \
     build-essential \

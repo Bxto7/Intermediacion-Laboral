@@ -6,6 +6,7 @@ import { PortfolioCard } from './PortfolioCard'
 import { AddEntryModal } from './AddEntryModal'
 import { LoadingSpinner } from '../../../shared/LoadingSpinner'
 import apiClient from '../../../api/client'
+import { downloadCV } from '../../../lib/downloadCV'
 import { useWorkerContext } from '../../../context/WorkerContext'
 
 export const PortfolioPage: React.FC = () => {
@@ -26,7 +27,7 @@ export const PortfolioPage: React.FC = () => {
     setIsGeneratingCV(true)
     try {
       await apiClient.post(`/cv/generate/${worker.id}`)
-      window.open(`/api/v1/cv/download/${worker.id}`, '_blank')
+      await downloadCV(worker.id)
     } catch { /* ignore */ }
     finally { setIsGeneratingCV(false) }
   }
@@ -75,9 +76,9 @@ export const PortfolioPage: React.FC = () => {
                 onClick={toggleAvailability}
                 className="flex items-center gap-2 px-4 py-2 rounded-full font-medium text-sm transition-all"
                 style={{
-                  background: isAvailable ? 'rgba(122,140,92,0.25)' : 'rgba(253,246,234,0.12)',
+                  background: isAvailable ? 'rgba(122,140,92,0.25)' : 'rgba(244,236,224,0.12)',
                   color: 'var(--on-dark)',
-                  border: '1px solid ' + (isAvailable ? 'rgba(122,140,92,0.40)' : 'rgba(253,246,234,0.20)'),
+                  border: '1px solid ' + (isAvailable ? 'rgba(122,140,92,0.40)' : 'rgba(244,236,224,0.20)'),
                 }}
               >
                 {isAvailable
@@ -93,7 +94,7 @@ export const PortfolioPage: React.FC = () => {
                   target="_blank"
                   rel="noreferrer"
                   className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-colors"
-                  style={{ background: 'rgba(253,246,234,0.12)', color: 'var(--on-dark-muted)', border: '1px solid rgba(253,246,234,0.15)' }}
+                  style={{ background: 'rgba(244,236,224,0.12)', color: 'var(--on-dark-muted)', border: '1px solid rgba(244,236,224,0.15)' }}
                 >
                   <ExternalLink size={11} />
                   {intl.formatMessage({ id: 'oficio.portfolio.view_public' })}
@@ -163,11 +164,11 @@ export const PortfolioPage: React.FC = () => {
         ) : (
           <div
             className="rounded-2xl p-10 text-center"
-            style={{ border: '2px dashed rgba(194,86,46,0.20)', background: 'var(--bg-elevated)' }}
+            style={{ border: '2px dashed rgba(184,68,42,0.20)', background: 'var(--bg-elevated)' }}
           >
             <div
               className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center"
-              style={{ background: 'rgba(61,40,24,0.05)' }}
+              style={{ background: 'rgba(42,29,20,0.05)' }}
             >
               <Wrench size={28} style={{ color: 'var(--ink-muted)' }} strokeWidth={1.5} />
             </div>

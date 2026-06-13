@@ -1,7 +1,7 @@
 # RF: RF026-RF031
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -46,6 +46,7 @@ def _build_response(worker: Worker) -> WorkerProfileResponse:
         id=worker.id,
         worker_type=WorkerType(worker.worker_type),
         full_name=full_name,
+        display_name=full_name or (worker.username or "Trabajador"),
         district=district,
         trade_category=trade_category,
         years_experience=worker.years_experience or 0,
@@ -53,6 +54,7 @@ def _build_response(worker: Worker) -> WorkerProfileResponse:
         is_available=worker.is_available,
         profile_completeness=worker.profile_completeness or 0,
         username=worker.username,
+        slug=worker.username,
         bio=worker.bio,
         job_title=worker.job_title,
         created_at=worker.created_at,
@@ -173,7 +175,38 @@ async def get_completeness(
     db: AsyncSession = Depends(get_db),
 ) -> CompletenessResponse:
     worker = await _get_worker_or_404(payload["sub"], db)
-    percentage, missing, next_action = _calculate_completeness(worker)
+
+    # Señales reales del perfil para un cálculo preciso de completitud
+    from app.models.generated_cv import GeneratedCV
+    from app.models.portfolio import PortfolioEntry
+    from app.models.wizard import WizardProgress
+
+    portfolio_count = await db.scalar(
+        select(func.count())
+        .select_from(PortfolioEntry)
+        .where(PortfolioEntry.worker_id == str(worker.id))
+    )
+    wiz = await db.scalar(
+        select(WizardProgress.current_step).where(WizardProgress.worker_id == str(worker.id))
+    )
+    has_cv = await db.scalar(
+        select(func.count())
+        .select_from(GeneratedCV)
+        .where(GeneratedCV.worker_id == str(worker.id))
+    )
+
+    percentage, missing, next_action = _calculate_completeness(
+        worker,
+        wizard_step=int(wiz or 0),
+        has_cv=bool(has_cv),
+        has_portfolio=bool(portfolio_count),
+    )
+
+    # Sincroniza el valor almacenado (usado por dashboards) con el cálculo real
+    if worker.profile_completeness != percentage:
+        worker.profile_completeness = percentage
+        await db.commit()
+
     return CompletenessResponse(
         percentage=percentage,
         missing_fields=missing,

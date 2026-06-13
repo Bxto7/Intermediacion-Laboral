@@ -19,7 +19,7 @@ export const WizardNavigation: React.FC<Props> = ({ step, onNext, isLoading, dis
   }
 
   return (
-    <div className="flex items-center justify-between pt-4 border-t border-[rgba(61,40,24,0.08)]">
+    <div className="flex items-center justify-between pt-4 border-t border-[rgba(42,29,20,0.08)]">
       {step > 1 ? (
         <button
           onClick={() => navigate(`/wizard/step/${step - 1}`)}

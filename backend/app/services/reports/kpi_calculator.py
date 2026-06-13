@@ -146,29 +146,27 @@ async def calculate_tcss(db: AsyncSession) -> dict:
 
 
 async def calculate_all_kpis(db: AsyncSession) -> dict:
-    """Ejecuta los 7 KPIs en paralelo y retorna el DashboardResponse dict."""
-    import asyncio
-    vil, ivp, tf, rbs, tcc, ivm, tcss = await asyncio.gather(
-        calculate_vil(db),
-        calculate_ivp(db),
-        calculate_tf(db),
-        calculate_rbs(db),
-        calculate_tcc(db),
-        calculate_ivm(db),
-        calculate_tcss(db),
-        return_exceptions=True,
-    )
+    """Ejecuta los 7 KPIs y retorna el DashboardResponse dict.
 
-    def safe(val, fallback):
-        return val if not isinstance(val, Exception) else fallback
+    IMPORTANTE: las queries se ejecutan SECUENCIALMENTE, no con asyncio.gather.
+    asyncpg no permite operaciones concurrentes sobre la misma conexión/sesión;
+    hacerlo en paralelo lanzaba "another operation is in progress" en cada query
+    y dejaba todos los KPIs en cero.
+    """
+    async def safe(coro, fallback):
+        try:
+            return await coro
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("kpi_calculation_failed", error=str(exc))
+            return fallback
 
     return {
-        "vil": safe(vil, {}),
-        "ivp": safe(ivp, {}),
-        "tf": safe(tf, {}),
-        "rbs": safe(rbs, {"avg_pct": 0.0, "n_pairs": 0}),
-        "tcc": safe(tcc, {}),
-        "ivm": safe(ivm, {"ivm_pct": 0.0, "total_oficio": 0}),
-        "tcss": safe(tcss, {}),
+        "vil": await safe(calculate_vil(db), {}),
+        "ivp": await safe(calculate_ivp(db), {}),
+        "tf": await safe(calculate_tf(db), {}),
+        "rbs": await safe(calculate_rbs(db), {"avg_pct": 0.0, "n_pairs": 0}),
+        "tcc": await safe(calculate_tcc(db), {}),
+        "ivm": await safe(calculate_ivm(db), {"ivm_pct": 0.0, "total_oficio": 0}),
+        "tcss": await safe(calculate_tcss(db), {}),
         "calculated_at": datetime.now(UTC).isoformat(),
     }

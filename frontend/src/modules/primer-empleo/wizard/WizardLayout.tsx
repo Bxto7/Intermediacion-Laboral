@@ -15,7 +15,7 @@ export const WizardLayout: React.FC = () => {
     <div>
       <WizardProgressBar />
       <div className="max-w-5xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-5 gap-6 mt-4">
-        <div className="lg:col-span-3 bg-bg-elevated rounded-2xl shadow-md border border-[rgba(61,40,24,0.08)] p-6 overflow-hidden">
+        <div className="lg:col-span-3 bg-bg-elevated rounded-2xl shadow-md border border-[rgba(42,29,20,0.08)] p-6 overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
@@ -36,7 +36,7 @@ export const WizardLayout: React.FC = () => {
             </motion.div>
           </AnimatePresence>
         </div>
-        <div className="hidden lg:block lg:col-span-2 bg-bg-elevated rounded-2xl shadow-md border border-[rgba(61,40,24,0.08)] p-6">
+        <div className="hidden lg:block lg:col-span-2 bg-bg-elevated rounded-2xl shadow-md border border-[rgba(42,29,20,0.08)] p-6">
           <CVLivePreview />
         </div>
       </div>

@@ -23,7 +23,7 @@ export const usePortfolio = () => {
     if (!worker?.id) return
     setIsLoading(true)
     try {
-      const { data } = await apiClient.get(`/portfolio/${worker.id}`)
+      const { data } = await apiClient.get('/portfolio/entries')
       setEntries(data || [])
     } catch { /* ignore */ }
     finally { setIsLoading(false) }
@@ -31,10 +31,22 @@ export const usePortfolio = () => {
 
   useEffect(() => { load() }, [load])
 
-  const addEntry = async (payload: FormData) => {
-    await apiClient.post('/portfolio/entries', payload, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+  /**
+   * Crea una entrada de portafolio. El backend espera el trabajo como JSON
+   * (title/description) y las fotos en un endpoint multipart aparte, así que
+   * se hace en dos pasos: crear la entrada y luego subir las fotos.
+   */
+  const addEntry = async (data: { title: string; description: string; files: File[] }) => {
+    const { data: entry } = await apiClient.post('/portfolio/entries', {
+      title: data.title,
+      description: data.description,
     })
+    if (data.files.length > 0 && entry?.id) {
+      const fd = new FormData()
+      data.files.forEach((f) => fd.append('files', f))
+      // axios fija automáticamente el Content-Type multipart con boundary al detectar FormData
+      await apiClient.post(`/portfolio/entries/${entry.id}/photos`, fd)
+    }
     await load()
   }
 
